@@ -66,10 +66,8 @@ export function tiltCard(event: PointerEvent<HTMLElement>) {
     rect = el.getBoundingClientRect();
   const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
   const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
-  el.style.setProperty("--tilt-x", `${(0.5 - y) * 5}deg`);
-  el.style.setProperty("--tilt-y", `${(x - 0.5) * 5}deg`);
-  el.style.setProperty("--shine-x", `${x * 100}%`);
-  el.style.setProperty("--shine-y", `${y * 100}%`);
+  el.style.setProperty("--tilt-x", `${(0.5 - y) * 2}deg`);
+  el.style.setProperty("--tilt-y", `${(x - 0.5) * 2}deg`);
 }
 export function resetTilt(event: PointerEvent<HTMLElement>) {
   event.currentTarget.style.setProperty("--tilt-x", "0deg");

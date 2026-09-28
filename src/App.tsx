@@ -97,8 +97,8 @@ function App() {
       /* Session controls still work when storage is unavailable. */
     }
   }, [display]);
-  const [focusedDeck, setFocusedDeck] = useState<Deck | null>(null);
-  const [revealed, setRevealed] = useState(false);
+  const [pickerWinner, setPickerWinner] = useState<Deck | null>(null);
+  const revealed = !!pickerWinner;
   const [refreshing, setRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState("");
   const [sort, setSort] = useState("collection");
@@ -176,12 +176,6 @@ function App() {
       );
     return decks;
   }, [owned, filters, sort]);
-  const atmosphereDeck =
-    detail ||
-    (focusedDeck && visible.some((d) => d.id === focusedDeck.id)
-      ? focusedDeck
-      : visible[0]) ||
-    null;
   useEffect(() => setRefreshError(""), [detail?.id]);
   const eligible = useMemo(
     () => visible.filter((d) => !collection.excluded.includes(d.id)),
@@ -265,7 +259,7 @@ function App() {
     <div
       className={`app-shell studio-theme ${revealed ? "winner-atmosphere" : ""}`}
     >
-      <Atmosphere deck={atmosphereDeck} revealed={revealed} />
+      <Atmosphere deck={pickerWinner} revealed={revealed} />
       <header className="studio-header">
         <a
           className="brand"
@@ -661,8 +655,7 @@ function App() {
                 spinning={spinning}
                 setSpinning={setSpinning}
                 openDeck={setDetail}
-                onFocusDeck={setFocusedDeck}
-                onReveal={setRevealed}
+                onWinner={setPickerWinner}
               />
             ) : visible.length ? (
               view === "cards" ? (
@@ -670,7 +663,6 @@ function App() {
                   decks={visible}
                   openDeck={setDetail}
                   chooseDeck={() => selectView("picker")}
-                  onFocusDeck={setFocusedDeck}
                 />
               ) : (
                 <div
@@ -689,7 +681,6 @@ function App() {
                       deck={deck}
                       index={index}
                       excluded={collection.excluded.includes(deck.id)}
-                      onPreview={() => setFocusedDeck(deck)}
                       onOpen={() => setDetail(deck)}
                       onExclude={() => exclude(deck.id)}
                     />
@@ -883,19 +874,15 @@ function DeckTile({
   excluded,
   onOpen,
   onExclude,
-  onPreview,
 }: {
   deck: Deck;
   index: number;
   excluded: boolean;
   onOpen: () => void;
   onExclude: () => void;
-  onPreview: () => void;
 }) {
   return (
     <article
-      onPointerEnter={onPreview}
-      onFocus={onPreview}
       className={`collection-tile ${excluded ? "deck-excluded" : ""}`}
       style={{ "--order": Math.min(index, 11) } as CSSProperties}
     >

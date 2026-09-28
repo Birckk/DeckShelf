@@ -235,8 +235,8 @@
 }
 .helix-card:hover {
   box-shadow:
-    0 0 0 2px #e1c58b,
-    0 10px 40px #d9c18929;
+    0 0 0 1px #d8c69a40,
+    0 10px 20px #0005;
 }
 .helix-card:focus-visible {
   outline: 3px solid #f2d697;

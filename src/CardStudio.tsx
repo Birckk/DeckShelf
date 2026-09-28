@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type PointerEvent,
-} from "react";
+import { useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink, Dices } from "lucide-react";
 import type { Deck } from "./domain";
 import { tiltCard, resetTilt } from "./Atmosphere";
@@ -14,12 +8,10 @@ export default function CardStudio({
   decks,
   openDeck,
   chooseDeck,
-  onFocusDeck,
 }: {
   decks: Deck[];
   openDeck: (deck: Deck) => void;
   chooseDeck: () => void;
-  onFocusDeck: (deck: Deck) => void;
 }) {
   const [selected, setSelected] = useState(decks[0]?.id);
   const pointer = useRef<{
@@ -35,9 +27,6 @@ export default function CardStudio({
   );
   const deck = decks[index];
   const count = decks.length;
-  useEffect(() => {
-    if (deck) onFocusDeck(deck);
-  }, [deck, onFocusDeck]);
   function step(direction: number) {
     setSelected(decks[(index + direction + count) % count].id);
   }

@@ -12,6 +12,7 @@ import {
 import { randomIndex, type Deck } from "./domain";
 import { Artwork, Mana } from "./components";
 import {
+  CENTERED_START,
   dragTravel,
   flightEase,
   helixPose,
@@ -42,15 +43,13 @@ export default function HelixPicker({
   spinning,
   setSpinning,
   openDeck,
-  onFocusDeck,
-  onReveal,
+  onWinner,
 }: {
   decks: Deck[];
   spinning: boolean;
   setSpinning: (v: boolean) => void;
   openDeck: (d: Deck) => void;
-  onFocusDeck: (d: Deck) => void;
-  onReveal: (revealed: boolean) => void;
+  onWinner: (deck: Deck | null) => void;
 }) {
   const [winner, setWinner] = useState<Deck | null>(null);
   const [paused, setPaused] = useState(false);
@@ -61,8 +60,7 @@ export default function HelixPicker({
   const stage = useRef<HTMLDivElement>(null);
   const nodes = useRef<(HTMLButtonElement | null)[]>([]);
   const motion = useRef<Motion>({
-    travel: 0.17,
-    turn: 0.3,
+    ...CENTERED_START,
     velocity: 0,
     flight: null,
     dragging: false,
@@ -83,14 +81,12 @@ export default function HelixPicker({
   const items = useMemo(() => repeatDecks(decks), [decks]);
   preferences.current = { paused, reduced };
   useEffect(() => {
-    onReveal(!!winner);
-    if (winner) onFocusDeck(winner);
-    return () => onReveal(false);
-  }, [winner, onReveal, onFocusDeck]);
+    onWinner(winner);
+    return () => onWinner(null);
+  }, [winner, onWinner]);
   useEffect(() => {
     motion.current = {
-      travel: randomIndex(1000) / 1000,
-      turn: (randomIndex(1000) / 1000) * Math.PI * 2,
+      ...CENTERED_START,
       velocity: 0,
       flight: null,
       dragging: false,
@@ -113,7 +109,6 @@ export default function HelixPicker({
     let frame = 0,
       previous = 0,
       visible = true;
-    let lastFocus = 0;
     const observer = new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting;
@@ -156,8 +151,6 @@ export default function HelixPicker({
           m.travel += (0.025 + m.velocity) * delta;
           m.velocity *= Math.exp(-3.4 * delta);
         }
-        let nearest: Deck | null = null,
-          nearestScore = Infinity;
         nodes.current.forEach((node, index) => {
           if (!node || index >= items.length) return;
           const p = helixPose(
@@ -168,11 +161,6 @@ export default function HelixPicker({
             width,
             height,
           );
-          const score = Math.abs(p.y) / height + (1 - p.depth);
-          if (p.opacity > 0.3 && score < nearestScore) {
-            nearestScore = score;
-            nearest = items[index];
-          }
           node.style.transform = `translate3d(${p.x}px,${p.y}px,${p.z}px) rotateY(${p.yaw}deg) rotateZ(${p.roll}deg)`;
           node.style.opacity = String(p.opacity * (m.winner ? 0.1 : 1));
           node.style.filter = `brightness(${p.brightness}) blur(${quiet ? 0 : p.blur}px)`;
@@ -188,10 +176,6 @@ export default function HelixPicker({
               ? 0
               : -1;
         });
-        if (nearest && !m.flight && !m.winner && now - lastFocus > 1800) {
-          onFocusDeck(nearest);
-          lastFocus = now;
-        }
       }
       frame = requestAnimationFrame(tick);
     }
@@ -201,7 +185,7 @@ export default function HelixPicker({
       resize.disconnect();
       observer.disconnect();
     };
-  }, [items, count, setSpinning, onFocusDeck]);
+  }, [items, count, setSpinning]);
   function explore() {
     motion.current.winner = null;
     setWinner(null);

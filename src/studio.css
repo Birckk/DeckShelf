@@ -361,7 +361,7 @@ body {
 .studio-card:hover {
   box-shadow:
     0 22px 28px -12px #000e,
-    0 0 0 1px #f6e6c344;
+    0 0 0 1px #f6e6c320;
 }
 .studio-caption {
   text-align: center;
@@ -468,9 +468,9 @@ body {
     transform 0.2s;
 }
 .collection-tile:hover {
-  background: #232428;
-  border-color: #ffffff25;
-  transform: translateY(-3px);
+  background: #202125;
+  border-color: #ffffff1c;
+  transform: translateY(-1px);
 }
 .collection-card {
   width: 100%;
@@ -1306,7 +1306,7 @@ option {
   font-size: 11px;
 }
 
-/* Artwork and mana light sit behind the established dark surfaces. */
+/* A quiet browsing backdrop; artwork and mana light appear only for a winner. */
 .studio-theme {
   position: relative;
   isolation: isolate;
@@ -1420,32 +1420,6 @@ option {
   transform: perspective(900px) rotateX(var(--tilt-x, 0deg))
     rotateY(var(--tilt-y, 0deg));
   transition: transform 160ms ease;
-}
-.collection-card::after,
-.studio-card.is-current::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at var(--shine-x, 50%) var(--shine-y, 30%),
-    #ffffff2b,
-    transparent 60%
-  );
-  opacity: 0;
-  transition: opacity 220ms;
-}
-@media (hover: hover) and (pointer: fine) {
-  .collection-card:hover::after,
-  .studio-card.is-current:hover::after {
-    opacity: 1;
-  }
-  .collection-card:hover {
-    box-shadow:
-      0 12px 24px #0008,
-      0 0 0 1px #e4cf9e40;
-  }
 }
 .collection-tile {
   animation: deck-arrive 280ms ease both;

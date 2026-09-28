@@ -1,4 +1,5 @@
 export const TAU = Math.PI * 2;
+export const CENTERED_START = { travel: 0.5, turn: 0 } as const;
 // Seven decks occupy 21 rows after repetition: keep that spacing for every pool.
 const ROWS_PER_WINDOW = 21;
 const loopLength = (slots: number) =>

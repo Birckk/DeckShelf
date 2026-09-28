@@ -4,7 +4,7 @@ A local browser showcase for one person's Commander collection. A black Card Stu
 
 The picker repeats eligible decks to keep the spiral full even with one or two matches. Each strand cycles through decks in order before repeating. Card spacing stays consistent as the pool grows: extra decks extend the loop beyond the viewport instead of crowding the visible spiral. Repeated cards are visual only; every eligible deck keeps an equal chance of being picked.
 
-Artwork and mana-colored light respond to the focused commander. The picker varies its starting position, travel distance, and duration, then reveals the winner with a brief halo and subdued surroundings. Hover tilt, filter transitions, and reveals respect reduced-motion preferences.
+The background stays steady while browsing all three views. Artwork and mana-colored light appear only when a winner is revealed. The picker opens centered, varies its spin distance and duration, then reveals the winner with a brief halo and subdued surroundings. Gentle card tilt, filter transitions, and reveals respect reduced-motion preferences.
 
 Collection display controls offer Details, Cards only, and List layouts, with small, medium, and large sizes. Large is the default. Layout and size are remembered in this browser.
 

@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  CENTERED_START,
   helixPose,
   landing,
   flightEase,
@@ -154,12 +155,36 @@ test("long loops wrap fully faded while every deck can still enter the center", 
 
 test("varied spin distances still land every eligible card at the center", () => {
   for (const count of [2, 7, 29]) {
-    const slots=repeatDecks(Array.from({length:count},(_,i)=>i)).length;
-    for (let i=0;i<slots;i++) for (const distance of [2,2.71,3.5]) {
-      const end=landing(i,slots,0.63,2.17,distance);
-      const p=helixPose(i,slots,end.travel,end.turn,980,610);
-      assert.ok(Math.abs(p.x)<1e-8 && Math.abs(p.y)<1e-8 && p.depth>.99999);
-      assert.ok(end.travel-.63 >= distance-1e-10);
-    }
+    const slots = repeatDecks(
+      Array.from({ length: count }, (_, i) => i),
+    ).length;
+    for (let i = 0; i < slots; i++)
+      for (const distance of [2, 2.71, 3.5]) {
+        const end = landing(i, slots, 0.63, 2.17, distance);
+        const p = helixPose(i, slots, end.travel, end.turn, 980, 610);
+        assert.ok(
+          Math.abs(p.x) < 1e-8 && Math.abs(p.y) < 1e-8 && p.depth > 0.99999,
+        );
+        assert.ok(end.travel - 0.63 >= distance - 1e-10);
+      }
+  }
+});
+
+test("opening or refiltering any pool starts with a front-facing card at the center", () => {
+  for (const count of [1, 2, 3, 7, 29, 100]) {
+    const slots = repeatDecks(
+      Array.from({ length: count }, (_, i) => i),
+    ).length;
+    const p = helixPose(
+      0,
+      slots,
+      CENTERED_START.travel,
+      CENTERED_START.turn,
+      980,
+      610,
+    );
+    assert.ok(
+      Math.abs(p.x) < 1e-8 && Math.abs(p.y) < 1e-8 && p.depth > 0.99999,
+    );
   }
 });
