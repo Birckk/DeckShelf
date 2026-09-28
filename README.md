@@ -10,6 +10,8 @@ Collection display controls offer Details, Cards only, and List layouts, with sm
 
 ## Run locally
 
+For interface changes, follow the project's [design direction](DESIGN.md). [AGENTS.md](AGENTS.md) points coding agents to the same guidance.
+
 Requires **Node.js 22.12+** (or a newer supported LTS).
 
 On Windows, double-click **Start Commander Archive.cmd**, then open **http://127.0.0.1:4317**. The first run installs dependencies. The launcher checks the Node version and rebuilds each time so source updates are included. Leave the terminal open while using it.
