@@ -1507,3 +1507,10 @@ option {
 .reduced-motion .reveal-ring {
   display: none;
 }
+
+/* Small, useful labels; let the card artwork supply the character. */
+.helix-live {
+  font-size: 11px;
+  letter-spacing: 0.2px;
+  color: #aaa9a3;
+}

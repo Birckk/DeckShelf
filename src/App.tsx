@@ -691,14 +691,12 @@ function App() {
               <div className="empty-state">
                 <Search size={32} strokeWidth={1} />
                 <h3>
-                  {owned.length
-                    ? "No decks match."
-                    : "Your next collection starts here."}
+                  {owned.length ? "No decks match." : "No decks on display."}
                 </h3>
                 <p>
                   {owned.length
                     ? "Try another color, release, or search. Your decks are still here."
-                    : "Choose some decks to bring your archive to life."}
+                    : "Choose which decks you own in My collection."}
                 </p>
                 <button
                   className="button button-gold"
@@ -827,16 +825,15 @@ function App() {
       )}
       {showAbout && (
         <Modal
-          title="The idea behind the archive"
+          title="About Commander Archive"
           onClose={() => setShowAbout(false)}
         >
           <div className="about-copy">
             <img src="/favicon.svg" width="55" height="55" alt="" />
-            <h2>A home for your decks.</h2>
+            <h2>Your Commander collection.</h2>
             <p>
-              A personal showcase for the Commander decks you own. Browse the
-              shelves, follow your favorite colors, or let chance decide what
-              comes to the table.
+              Browse the Commander decks you own, filter by color or set, and
+              pick a deck for your next game.
             </p>
             <p>
               Your collection choices stay in this browser. The starter decks
@@ -1033,7 +1030,7 @@ function CollectionDialog({
   return (
     <Modal title="Your collection" onClose={onClose}>
       <div className="collection-dialog">
-        <h2>What’s on your shelf?</h2>
+        <h2>Decks you own</h2>
         <p>Choose which decks to showcase. Decklists stay at their source.</p>
         <form className="add-source" onSubmit={addDeck}>
           <label htmlFor="deck-url">Add from Archidekt</label>
@@ -1132,7 +1129,7 @@ function CollectionDialog({
           Restoring replaces your current selection.
         </p>
         <button className="button button-gold done-button" onClick={onClose}>
-          <Check size={16} /> Back to the archive
+          <Check size={16} /> Back to collection
         </button>
       </div>
     </Modal>

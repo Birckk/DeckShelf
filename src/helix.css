@@ -25,19 +25,6 @@
   letter-spacing: 1.8px;
   color: #a6b69b;
 }
-.helix-live > span {
-  width: 5px;
-  height: 5px;
-  background: #cbb17a;
-  border-radius: 50%;
-  box-shadow: 0 0 9px #cbb17a66;
-  animation: helix-beacon 2.5s ease-in-out infinite;
-}
-.helix-live > span.resting {
-  animation: none;
-  background: #7d897a;
-  box-shadow: none;
-}
 .helix-motion-controls {
   display: flex;
   align-items: center;
@@ -178,21 +165,6 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(0deg, #081109eb, transparent 70%);
-}
-.helix-card-top {
-  position: absolute;
-  top: 9px;
-  left: 11px;
-  right: 11px;
-  font-size: 5px;
-  letter-spacing: 2px;
-  color: #ebe1c5;
-  display: flex;
-  justify-content: space-between;
-  text-shadow: 0 1px 3px #000;
-}
-.helix-card-top > span {
-  font-size: 9px;
 }
 .helix-card-caption {
   position: absolute;

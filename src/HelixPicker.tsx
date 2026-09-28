@@ -7,7 +7,7 @@ import {
   Pause,
   Play,
   RotateCcw,
-  Sparkles,
+  Dices,
 } from "lucide-react";
 import { randomIndex, type Deck } from "./domain";
 import { Artwork, Mana } from "./components";
@@ -281,14 +281,13 @@ export default function HelixPicker({
     >
       <div className="helix-toolbar">
         <span className="helix-live">
-          <span className={paused || reduced || winner ? "resting" : ""} />
           {spinning
-            ? "FATE IN MOTION"
+            ? "Picking a deck…"
             : winner
-              ? "YOUR NEXT ADVENTURE"
+              ? "Deck selected"
               : paused || reduced
-                ? "A MOMENT OF STILLNESS"
-                : "A LIVING COLLECTION"}
+                ? "Motion paused"
+                : "Deck picker"}
         </span>
         <div className="helix-motion-controls">
           <button
@@ -312,11 +311,11 @@ export default function HelixPicker({
         </div>
       </div>
       <div className="helix-intro">
-        <h2>A twist of fate.</h2>
+        <h2>What are we playing?</h2>
         <p>
           {count
-            ? "Follow the cards. Find a favorite. Or let the universe choose."
-            : "No decks in this constellation. Change your filters to bring them back."}
+            ? "Browse your decks or pick one at random."
+            : "No eligible decks. Adjust your filters or include more decks."}
         </p>
       </div>
       <div
@@ -375,9 +374,6 @@ export default function HelixPicker({
                 eager
               />
               <span className="helix-card-shade" />
-              <span className="helix-card-top">
-                COMMANDER <span>✦</span>
-              </span>
               <span className="helix-card-caption">
                 <strong>{deck.name}</strong>
                 <Mana colors={deck.colors} size="mini" />
@@ -407,7 +403,7 @@ export default function HelixPicker({
           <div className="helix-gesture">
             <Hand size={13} />
             {spinning
-              ? "The strands are turning…"
+              ? "Picking from your filtered decks…"
               : dragging
                 ? "Release to let it drift"
                 : "Drag to turn. Release to drift."}
@@ -463,7 +459,7 @@ export default function HelixPicker({
             ) : winner ? (
               <RotateCcw size={16} />
             ) : (
-              <Sparkles size={17} />
+              <Dices size={17} />
             )}
             {spinning
               ? "Choosing your deck…"
