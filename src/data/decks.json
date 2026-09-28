@@ -1,0 +1,962 @@
+[
+  {
+    "id": "26549829",
+    "name": "Calling All Angels",
+    "set": "Foundations Commander",
+    "colors": [
+      "W"
+    ],
+    "theme": "Angel",
+    "tags": [
+      "Angels",
+      "Flying",
+      "Lifegain",
+      "Tribal"
+    ],
+    "description": "Hope arrives in full force with Giada and her ability to strengthen any Angels you cast. Play a whole host of Angels, reap the divine benefits, and ascend to victory!",
+    "commanders": [
+      {
+        "name": "Giada, Font of Hope",
+        "art": "/images/4ebc7622-08a1-4f43-92dd-8675d395e8f6-art.webp",
+        "image": "/images/4ebc7622-08a1-4f43-92dd-8675d395e8f6-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/4/e/4ebc7622-08a1-4f43-92dd-8675d395e8f6.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/4/e/4ebc7622-08a1-4f43-92dd-8675d395e8f6.webp",
+        "artist": "Johannes Voss"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/26549829",
+    "originalUrl": "https://cardgamebase.com/foundations-commander-precons/",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-09-24T16:03:48.543576+00:00"
+  },
+  {
+    "id": "26550173",
+    "name": "Reign of Dragons",
+    "set": "Foundations Commander",
+    "colors": [
+      "R"
+    ],
+    "theme": "Dragon & Treasure",
+    "tags": [
+      "Dragons",
+      "Flying",
+      "Burn",
+      "Tribal"
+    ],
+    "description": "Your reign over the table begins with Lathliss, who creates a Dragon when a non-token Dragon enters. Use Treasure tokens and cost-reduction effects to send out your fiercest Dragons early and drown the world in fire!",
+    "commanders": [
+      {
+        "name": "Lathliss, Dragon Queen",
+        "art": "/images/8a17ec4e-b508-41af-803b-32acd863e598-art.webp",
+        "image": "/images/8a17ec4e-b508-41af-803b-32acd863e598-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/8/a/8a17ec4e-b508-41af-803b-32acd863e598.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/8/a/8a17ec4e-b508-41af-803b-32acd863e598.webp",
+        "artist": "Zoltan Boros"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/26550173",
+    "originalUrl": "https://cardgamebase.com/foundations-commander-precons/",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-09-24T16:03:48.753967+00:00"
+  },
+  {
+    "id": "26550215",
+    "name": "Tramplesaurus Rex",
+    "set": "Foundations Commander",
+    "colors": [
+      "G"
+    ],
+    "theme": "Large Dinosaurs",
+    "tags": [
+      "Stompy",
+      "Power Matters",
+      "Tribal"
+    ],
+    "description": "Tower over the rest of the food chain with Ghalta and let high-power creatures run wild on the battlefield. Higher attack power reduces Ghalta's casting cost, so unleash her as soon as possible and trample the competition!",
+    "commanders": [
+      {
+        "name": "Ghalta, Primal Hunger",
+        "art": "/images/5d9951d1-3228-4d69-8e63-6e6f0a893a86-art.webp",
+        "image": "/images/5d9951d1-3228-4d69-8e63-6e6f0a893a86-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/5/d/5d9951d1-3228-4d69-8e63-6e6f0a893a86.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/5/d/5d9951d1-3228-4d69-8e63-6e6f0a893a86.webp",
+        "artist": "Raph Lomotan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/26550215",
+    "originalUrl": "https://cardgamebase.com/foundations-commander-precons/",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-09-24T16:03:48.964312+00:00"
+  },
+  {
+    "id": "26549969",
+    "name": "Keen Engineering",
+    "set": "Foundations Commander",
+    "colors": [
+      "U"
+    ],
+    "theme": "Artifact Thopters",
+    "tags": [
+      "Thopters",
+      "Artifacts",
+      "Draw",
+      "Tribal",
+      "Tokens"
+    ],
+    "description": "Work with Sai to engineer useful artifacts and generate flying Thopters as a bonus. Make unexpected plays and draw additional cards to let the cogs of your strategy click into place!",
+    "commanders": [
+      {
+        "name": "Sai, Master Thopterist",
+        "art": "/images/5650587a-27a5-4d68-97e2-5745627bd094-art.webp",
+        "image": "/images/5650587a-27a5-4d68-97e2-5745627bd094-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/5/6/5650587a-27a5-4d68-97e2-5745627bd094.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/5/6/5650587a-27a5-4d68-97e2-5745627bd094.webp",
+        "artist": "Bryan Sola"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/26549969",
+    "originalUrl": "https://cardgamebase.com/foundations-commander-precons/",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-09-24T16:03:49.174673+00:00"
+  },
+  {
+    "id": "26550043",
+    "name": "Wretched Ranks",
+    "set": "Foundations Commander",
+    "colors": [
+      "B"
+    ],
+    "theme": "Zombies Sacrifice",
+    "tags": [
+      "Graveyard",
+      "Zombies",
+      "Lifedrain",
+      "Sacrifice",
+      "Tribal"
+    ],
+    "description": "Overrun the table's defenses with [[Ghoulcaller Gisa]], who can rapidly build a Zombie army. Once your shambling horde reaches critical mass, boost their attack and send everyone else to the graveyard!",
+    "commanders": [
+      {
+        "name": "Ghoulcaller Gisa",
+        "art": "/images/909e62fa-4585-495e-812b-5df56af24610-art.webp",
+        "image": "/images/909e62fa-4585-495e-812b-5df56af24610-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/9/0/909e62fa-4585-495e-812b-5df56af24610.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/9/0/909e62fa-4585-495e-812b-5df56af24610.webp",
+        "artist": "Miguel Mercado"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/26550043",
+    "originalUrl": "https://cardgamebase.com/foundations-commander-precons/",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-09-24T16:03:49.384025+00:00"
+  },
+  {
+    "id": "26484365",
+    "name": "Multiverse Reforged",
+    "set": "Reality Fracture",
+    "colors": [
+      "W",
+      "U",
+      "B",
+      "R"
+    ],
+    "theme": "Jace",
+    "tags": [
+      "Polymorph",
+      "ETB Effects",
+      "Historic",
+      "Tokens"
+    ],
+    "description": "Helmed by the four-color planeswalker [[Jace, Multiverse Architect]], this deck is packed with new-to-Magic cards that depict Echoverse versions of some of your favorite Magic legends. There's a mono-white Ob Nixilis, a mono-black Avacyn, even a colorless Omnath - you've seen these characters before, but you've never seen them quite like this.",
+    "commanders": [
+      {
+        "name": "Jace, Multiverse Architect",
+        "art": "/images/55cd03d9-2535-4cf3-a8b2-1418e1190f4a-art.webp",
+        "image": "/images/55cd03d9-2535-4cf3-a8b2-1418e1190f4a-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/5/5/55cd03d9-2535-4cf3-a8b2-1418e1190f4a.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/5/5/55cd03d9-2535-4cf3-a8b2-1418e1190f4a.webp",
+        "artist": "Volkan Baǵa"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/26484365",
+    "originalUrl": "https://cardgamebase.com/reality-fracture-spoilers-leaks/",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-09-24T16:03:49.593249+00:00"
+  },
+  {
+    "id": "23342365",
+    "name": "Avengers Assemble",
+    "set": "Marvel Super Heroes Commander",
+    "colors": [
+      "W",
+      "U",
+      "R"
+    ],
+    "theme": "Equipment Counters",
+    "tags": [
+      "Heroes",
+      "+1/+1 Counters",
+      "Voltron"
+    ],
+    "description": "Assemble your own team of Heroes with Captain America, Team Leader, and throw your mighty shield into battle! Director Nick Fury will keep your hand stocked with Heroes that are ready to take on whatever threats come your way.",
+    "commanders": [
+      {
+        "name": "Captain America, Team Leader",
+        "art": "/images/910a6dfc-04a2-4c6d-b2ba-507bc75ec821-art.webp",
+        "image": "/images/910a6dfc-04a2-4c6d-b2ba-507bc75ec821-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/9/1/910a6dfc-04a2-4c6d-b2ba-507bc75ec821.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/9/1/910a6dfc-04a2-4c6d-b2ba-507bc75ec821.webp",
+        "artist": "Mark Spears"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/23342365",
+    "originalUrl": "https://moxfield.com/decks/VnAdVaM_b0u66KIAZCLI8A",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-06-26",
+    "fetchedAt": "2026-09-24T16:03:49.804524+00:00"
+  },
+  {
+    "id": "23366791",
+    "name": "The Fantastic Four",
+    "set": "Marvel Super Heroes Commander",
+    "colors": [
+      "W",
+      "U",
+      "R",
+      "G"
+    ],
+    "theme": "Non-creature spells",
+    "tags": [
+      "Spellslinger"
+    ],
+    "description": "Pick your favorite member of Marvel's First Family and push science to its limits!",
+    "commanders": [
+      {
+        "name": "Mister Fantastic",
+        "art": "/images/64307a48-6e47-49b3-bfe0-c9d8d7226650-art.webp",
+        "image": "/images/64307a48-6e47-49b3-bfe0-c9d8d7226650-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/6/4/64307a48-6e47-49b3-bfe0-c9d8d7226650.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/6/4/64307a48-6e47-49b3-bfe0-c9d8d7226650.webp",
+        "artist": "Gintas Galvanauskas"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/23366791",
+    "originalUrl": "https://moxfield.com/decks/C8ZTZpNsbk-uBqd69j4fMw",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-06-26",
+    "fetchedAt": "2026-09-24T16:03:50.014021+00:00"
+  },
+  {
+    "id": "23394508",
+    "name": "Doom Prevails",
+    "set": "Marvel Super Heroes Commander",
+    "colors": [
+      "U",
+      "B",
+      "R"
+    ],
+    "theme": "Connive Drain Life",
+    "tags": [
+      "Villains",
+      "Connive",
+      "Aristocrat"
+    ],
+    "description": "A master of science, sorcery, and schemes, Doctor Doom, King of Latveria has arrived in Magic: The Gathering. If you're feeling tricksy, Loki, the Deceiver is here to fool your foes and copy your most powerful Villains.",
+    "commanders": [
+      {
+        "name": "Doctor Doom, King of Latveria",
+        "art": "/images/ac011c2d-d4d9-4f17-a1fb-7e30d25ca249-art.webp",
+        "image": "/images/ac011c2d-d4d9-4f17-a1fb-7e30d25ca249-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/a/c/ac011c2d-d4d9-4f17-a1fb-7e30d25ca249.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/a/c/ac011c2d-d4d9-4f17-a1fb-7e30d25ca249.webp",
+        "artist": "Nathaniel Himawan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/23394508",
+    "originalUrl": "https://moxfield.com/decks/mWQACuymy0OV-2MJgx2-TQ",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-06-26",
+    "fetchedAt": "2026-09-24T16:03:50.225404+00:00"
+  },
+  {
+    "id": "23426916",
+    "name": "Wakanda Forever",
+    "set": "Marvel Super Heroes Commander",
+    "colors": [
+      "W",
+      "G"
+    ],
+    "theme": "Vibranium Monarch",
+    "tags": [
+      "Artifacts",
+      "Monarch",
+      "Ramp",
+      "Tokens"
+    ],
+    "description": "T'Challa, the Black Panther and his royal allies have arrived to pave a path to victory. For a more aggressive approach to diplomacy, try having Shuri, the Black Panther helm the deck.",
+    "commanders": [
+      {
+        "name": "T'Challa, the Black Panther",
+        "art": "/images/d5a3537f-ac0a-4517-8a89-92abe8c0b8d0-art.webp",
+        "image": "/images/d5a3537f-ac0a-4517-8a89-92abe8c0b8d0-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/d/5/d5a3537f-ac0a-4517-8a89-92abe8c0b8d0.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/d/5/d5a3537f-ac0a-4517-8a89-92abe8c0b8d0.webp",
+        "artist": "Eli Minaya"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/23426916",
+    "originalUrl": "https://moxfield.com/decks/-73tFnDWzkaLqk6HWSxYsA",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-06-26",
+    "fetchedAt": "2026-09-24T16:03:50.435003+00:00"
+  },
+  {
+    "id": "21319716",
+    "name": "Quandrix Unlimited",
+    "set": "Secrets of Strixhaven",
+    "colors": [
+      "U",
+      "G"
+    ],
+    "theme": "x Spells? (Math)",
+    "tags": [
+      "+1/+1 Counters",
+      "Big Mana",
+      "Ramp"
+    ],
+    "description": "Master magic and mathematics with Quandrix Unlimited, Secrets of Strixhaven's green/blue preconstructed deck. Exponentially excoriating opponents is the aim, with Zimone, Infinite Analyst and Primo, the Unbounded leading you toward massive X-spells and huge numbers.",
+    "commanders": [
+      {
+        "name": "Zimone, Infinite Analyst",
+        "art": "/images/605afac4-d2e5-4e68-97d2-3ac2ead5f3a9-art.webp",
+        "image": "/images/605afac4-d2e5-4e68-97d2-3ac2ead5f3a9-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/6/0/605afac4-d2e5-4e68-97d2-3ac2ead5f3a9.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/6/0/605afac4-d2e5-4e68-97d2-3ac2ead5f3a9.webp",
+        "artist": "Carly Milligan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/21319716",
+    "originalUrl": "https://moxfield.com/decks/gGtJmNlez06i3p6Kved35g",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-04-24",
+    "fetchedAt": "2026-09-24T16:03:50.645834+00:00"
+  },
+  {
+    "id": "21319304",
+    "name": "Silverquill Influence",
+    "set": "Secrets of Strixhaven",
+    "colors": [
+      "W",
+      "B"
+    ],
+    "theme": "Defensive Politics",
+    "tags": [
+      "Auras",
+      "Enchantments",
+      "Pillow Fort",
+      "Enchantress"
+    ],
+    "description": "It's all about Auras with Silverquill Influence, the black/white Secrets of Strixhaven preconstructed deck. Whether you're going with Killian, Decisive Mentor in the lead, or fellow newcomer Scriv, the Obligator, you're looking to maximize your Auras' value coming and going to grind out a victory.",
+    "commanders": [
+      {
+        "name": "Killian, Decisive Mentor",
+        "art": "/images/76b6c35a-bb92-4ad3-8f85-88b9bafc6266-art.webp",
+        "image": "/images/76b6c35a-bb92-4ad3-8f85-88b9bafc6266-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/7/6/76b6c35a-bb92-4ad3-8f85-88b9bafc6266.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/7/6/76b6c35a-bb92-4ad3-8f85-88b9bafc6266.webp",
+        "artist": "Billy Christian"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/21319304",
+    "originalUrl": "https://moxfield.com/decks/zQLesJzHJEyCaNMw-GUT7w",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-04-24",
+    "fetchedAt": "2026-09-24T16:03:50.855050+00:00"
+  },
+  {
+    "id": "21319521",
+    "name": "Witherbloom Pestilence",
+    "set": "Secrets of Strixhaven",
+    "colors": [
+      "B",
+      "G"
+    ],
+    "theme": "Sacrifice Pests",
+    "tags": [
+      "Lifegain",
+      "Tokens",
+      "Sacrifice"
+    ],
+    "description": "Witherbloom Pestilence, the green/black preconstructed deck from Secrets of Strixhaven, gives you mastery over the cycle of life and death...and pests. Both Dina, Essence Brewer and Gorma, the Gullet want to see creatures die, and luckily, the deck's full of ways to make that happen.",
+    "commanders": [
+      {
+        "name": "Dina, Essence Brewer",
+        "art": "/images/9fe237b8-c02c-41ea-9fc4-b771b91d2157-art.webp",
+        "image": "/images/9fe237b8-c02c-41ea-9fc4-b771b91d2157-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/9/f/9fe237b8-c02c-41ea-9fc4-b771b91d2157.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/9/f/9fe237b8-c02c-41ea-9fc4-b771b91d2157.webp",
+        "artist": "Pauline Voss"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/21319521",
+    "originalUrl": "https://moxfield.com/decks/CIe9QwsuMUm0xHZVdXcZJQ",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-04-24",
+    "fetchedAt": "2026-09-24T16:03:51.066088+00:00"
+  },
+  {
+    "id": "21319610",
+    "name": "Lorehold Spirit",
+    "set": "Secrets of Strixhaven",
+    "colors": [
+      "W",
+      "R"
+    ],
+    "theme": "Leave the Graveyard",
+    "tags": [
+      "Flashback",
+      "Graveyard",
+      "Self-Mill",
+      "Spirits",
+      "Reanimator"
+    ],
+    "description": "Turn dusty old history into a powerful weapon with Lorehold Spirit, the red/white preconstructed deck from Secrets of Strixhaven. Led by the planeswalking Quintorius, History Chaser or Excava, the Risen Past, the strategy is straightforward - dig up ancient history, create Spirits, and dominate past, present and future.",
+    "commanders": [
+      {
+        "name": "Quintorius, History Chaser",
+        "art": "/images/0742f19d-179c-43c4-ab95-4160c56b4384-art.webp",
+        "image": "/images/0742f19d-179c-43c4-ab95-4160c56b4384-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/0/7/0742f19d-179c-43c4-ab95-4160c56b4384.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/0/7/0742f19d-179c-43c4-ab95-4160c56b4384.webp",
+        "artist": "Darren Tan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/21319610",
+    "originalUrl": "https://moxfield.com/decks/8erwc7vsiEanV87GMM3IuQ",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-04-24",
+    "fetchedAt": "2026-09-24T16:03:51.274908+00:00"
+  },
+  {
+    "id": "21319431",
+    "name": "Prismari Artistry",
+    "set": "Secrets of Strixhaven",
+    "colors": [
+      "U",
+      "R"
+    ],
+    "theme": "Big spells token",
+    "tags": [
+      "Spellslinger",
+      "Tokens",
+      "Big Mana"
+    ],
+    "description": "Overwhelm the battlefield with splashy spells and attention-grabbing abilities with Prismari Artistry, the red/blue preconstructed deck from Secrets of Strixhaven. Led by your choice of Rootha, Mastering the Moment or Muddle, the Ever-Changing, the goal is simple: shock and awe.",
+    "commanders": [
+      {
+        "name": "Rootha, Mastering the Moment",
+        "art": "/images/a5b3dbb2-c090-4118-9e47-56c16202572c-art.webp",
+        "image": "/images/a5b3dbb2-c090-4118-9e47-56c16202572c-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/a/5/a5b3dbb2-c090-4118-9e47-56c16202572c.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/a/5/a5b3dbb2-c090-4118-9e47-56c16202572c.webp",
+        "artist": "Lie Setiawan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/21319431",
+    "originalUrl": "https://moxfield.com/decks/KjdTzZ_tVE26-yKF0HvewQ",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-04-24",
+    "fetchedAt": "2026-09-24T16:03:51.485619+00:00"
+  },
+  {
+    "id": "20105223",
+    "name": "Turtle Power!",
+    "set": "Ninja Turtles Commander",
+    "colors": [
+      "W",
+      "U",
+      "B",
+      "R",
+      "G"
+    ],
+    "theme": "TMNT token",
+    "tags": [
+      "+1/+1 Counters",
+      "Historic",
+      "Ninjutsu",
+      "Turtles",
+      "Mutants",
+      "Tokens"
+    ],
+    "description": "Teenage Mutant Ninja Turtles brings along just one Commander deck, dubbed Turtle Power! This five-color deck allows for any combination of Leonardo, the Balance paired up with the titular turtles (and Splinter or April, of course). Alternately, you can select Heroes in a Half Shell as the deck's Commander. \n\nThe deck is themed around a number of strategies: Mutant, Ninja, and Turtle Typal, Artifacts matter, Sneak (ninjutsu) and disappear, and Mutagen tokens/+1/+1 counters. Will all these strategies cohere into a functional deck? Experiment in the Playtester to find out!",
+    "commanders": [
+      {
+        "name": "Heroes in a Half Shell",
+        "art": "/images/ccc2a4e6-f505-4040-9d8a-c7b8e1a2b55e-art.webp",
+        "image": "/images/ccc2a4e6-f505-4040-9d8a-c7b8e1a2b55e-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/c/c/ccc2a4e6-f505-4040-9d8a-c7b8e1a2b55e.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/c/c/ccc2a4e6-f505-4040-9d8a-c7b8e1a2b55e.webp",
+        "artist": "Victor Maury"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/20105223",
+    "originalUrl": "https://moxfield.com/decks/JHjwO92ZUEyNdPzE7D5d7A",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-03-06",
+    "fetchedAt": "2026-09-24T16:03:51.697399+00:00"
+  },
+  {
+    "id": "18744715",
+    "name": "Blight Curse",
+    "set": "Lorwyn Eclipsed Commander",
+    "colors": [
+      "B",
+      "R",
+      "G"
+    ],
+    "theme": "-1/-1",
+    "tags": [
+      "-1/-1 Counters",
+      "Reanimator",
+      "Control"
+    ],
+    "description": "Blight your enemies with the power of -1/-1 counters with Blight Curse, the Jund-colored preconstructed Commander deck from Lorwyn Eclipsed. \n\nThree new legendary creatures - [[Auntie Ool, Cursewretch]], [[The Reaper, King No More]], and [[Ferrafor, Young Yew]] - join the fray, alongside new cards [[Dread Tiller]], [[Oft-Nabbed Goat]], [[Village Pillagers]], [[Grave Venerations]], [[Puca's Covenant]], [[Wickersmith's Tools]], [[Eventide's Shadow]], and [[Aberrant Return]].",
+    "commanders": [
+      {
+        "name": "Auntie Ool, Cursewretch",
+        "art": "/images/9a2e4252-9fbc-4d43-8935-db2cafaa7b5f-art.webp",
+        "image": "/images/9a2e4252-9fbc-4d43-8935-db2cafaa7b5f-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/9/a/9a2e4252-9fbc-4d43-8935-db2cafaa7b5f.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/9/a/9a2e4252-9fbc-4d43-8935-db2cafaa7b5f.webp",
+        "artist": "Daniel Zrom"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/18744715",
+    "originalUrl": "https://moxfield.com/decks/wZCqAM_hbEu-TrzZcSpFtw",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-01-23",
+    "fetchedAt": "2026-09-24T16:03:51.906858+00:00"
+  },
+  {
+    "id": "18744843",
+    "name": "Dance of the Elements",
+    "set": "Lorwyn Eclipsed Commander",
+    "colors": [
+      "W",
+      "U",
+      "B",
+      "R",
+      "G"
+    ],
+    "theme": "Rainbow Elements",
+    "tags": [
+      "Elementals",
+      "Tribal",
+      "Ramp"
+    ],
+    "description": "Rally your elemental army and bring some primordial punishment to your opponents with this five-color Commander deck from Lorwyn Eclipsed.\n\nThis list features two new Commanders: [[Ashling, the Limitless]] and [[Mass of Mysteries]]. Alongside those two, new cards include [[Jubiliation]], [[Impulsivity]], [[Lamentation]], [[Belonging]], [[Subterfuge]], [[Elemental Spectacle]], [[Springleaf Parade]], [[Rain-Slicked Copse]], [[Sodden Verdure]] and [[Abundant Countryside]]. \n\nThe deck also includes first-ever reprints of two Shadowmoor rares: [[Slithermuse]] and [[Cream of the Crop]].",
+    "commanders": [
+      {
+        "name": "Ashling, the Limitless",
+        "art": "/images/5924c01f-2815-4e37-b700-3ba6cc81e0e4-art.webp",
+        "image": "/images/5924c01f-2815-4e37-b700-3ba6cc81e0e4-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/5/9/5924c01f-2815-4e37-b700-3ba6cc81e0e4.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/5/9/5924c01f-2815-4e37-b700-3ba6cc81e0e4.webp",
+        "artist": "Kai Carpenter"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/18744843",
+    "originalUrl": "https://moxfield.com/decks/6G3OF7b3iU6qH4q_6lHVBw",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-01-23",
+    "fetchedAt": "2026-09-24T16:03:52.118511+00:00"
+  },
+  {
+    "id": "14397447",
+    "name": "World Shaper",
+    "set": "Edge of Eternities Commander",
+    "colors": [
+      "B",
+      "R",
+      "G"
+    ],
+    "theme": "Land Sacrifice",
+    "tags": [
+      "Dredge",
+      "Self-Mill",
+      "Graveyard",
+      "Lands Matter",
+      "Sacrifice",
+      "Reanimator",
+      "Land"
+    ],
+    "description": "Bending the world (or worlds) of Magic: The Gathering to our will is the name of the game with World Shaper, the Jund-colored (BRG) preconstructed deck featured with Edge of Eternities.\n\nGuided by Szarel, Genesis Shepherd as our insectoid Crucible of Worlds-inspired commander, we're looking to take advantage of lands coming and going onto the battlefield, graveyard and beyond to build an insurmountable advantage. Our alternate commander is Hearthhull, the Worldseed, a Spacecraft that gains land-sacrificing momentum as we work to power up its stations with charge counters.\n\nIn addition to reprints, we've got 10 new cards with which to wreak havoc: Exploration Broodship, Eumidian Wastewaker, Evendo Brushrazer, Baloth Prime, Horizon Explorer, Scouring Swarm, Planetary Annihilation, Eumidian Hatchery, Festering Thicket and Vernal Fen.\n\nWorld Shaper was originally revealed via the Command Zone YouTube Channel.",
+    "commanders": [
+      {
+        "name": "Szarel, Genesis Shepherd",
+        "art": "/images/89b61123-b10f-4bcf-b5f9-1f302f9b22d1-art.webp",
+        "image": "/images/89b61123-b10f-4bcf-b5f9-1f302f9b22d1-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/8/9/89b61123-b10f-4bcf-b5f9-1f302f9b22d1.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/8/9/89b61123-b10f-4bcf-b5f9-1f302f9b22d1.webp",
+        "artist": "Matt Stewart"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/14397447",
+    "originalUrl": "https://moxfield.com/decks/z4iIQoHd4ECI0GNv5H1u3g",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-08-01",
+    "fetchedAt": "2026-09-24T16:03:52.328225+00:00"
+  },
+  {
+    "id": "14420275",
+    "name": "Counter Intelligence",
+    "set": "Edge of Eternities Commander",
+    "colors": [
+      "W",
+      "U",
+      "R"
+    ],
+    "theme": "Artifacts Counters",
+    "tags": [
+      "Proliferate",
+      "Artifacts",
+      "Counters"
+    ],
+    "description": "Whether it's charge counters, +1/+1 counters or even indestructible counters, we're looking to proliferate until the heat death of the universe with Counter Intelligence, the Jeskai (WUR)-colored preconstructed deck of Edge of Eternities. \n\nAssemble some of Magic: The Gathering's most notorious synergies behind either Kilo, Apogee Mind or Inspirit, Flagship Vessel  - two commanders both suited for the helm of an artifact-heavy, counter-rich 99. And when all else fails, just start charging up the Darksteel Reactor, which is seeing its first-ever reprint after appearing in Darksteel more than 21 years ago.\n\nJoining our two eligible commanders are ten other new cards: Insight Engine,Uthros Research Craft, Long-Range Sensor, Moxite Refinery, Solar Array, Patrolling Peacemaker, Depthshaker Titan, Surge Conductor, Glittering Massif and Radiant Summit.",
+    "commanders": [
+      {
+        "name": "Kilo, Apogee Mind",
+        "art": "/images/307a859e-eb80-4af6-b731-92e4767b5100-art.webp",
+        "image": "/images/307a859e-eb80-4af6-b731-92e4767b5100-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/3/0/307a859e-eb80-4af6-b731-92e4767b5100.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/3/0/307a859e-eb80-4af6-b731-92e4767b5100.webp",
+        "artist": "Tuan Duong Chu"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/14420275",
+    "originalUrl": "https://moxfield.com/decks/K_R2ARDl_0W6Bs-mVi-vCA",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-08-01",
+    "fetchedAt": "2026-09-24T16:03:52.539933+00:00"
+  },
+  {
+    "id": "13107079",
+    "name": "Counter Blitz",
+    "set": "Final Fantasy Commander",
+    "colors": [
+      "W",
+      "U",
+      "G"
+    ],
+    "theme": "Counter movement saga",
+    "tags": [
+      "+1/+1 Counters",
+      "Ramp"
+    ],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Tidus, Yuna's Guardian",
+        "art": "/images/2cfd4494-346c-4cbc-8072-e267254cefcc-art.webp",
+        "image": "/images/2cfd4494-346c-4cbc-8072-e267254cefcc-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/2/c/2cfd4494-346c-4cbc-8072-e267254cefcc.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/2/c/2cfd4494-346c-4cbc-8072-e267254cefcc.webp",
+        "artist": "Nijihayashi"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/13107079",
+    "originalUrl": "https://moxfield.com/decks/lrrdWuKxM0KM9uE9-x4LJw",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-06-13",
+    "fetchedAt": "2026-09-24T16:03:52.749755+00:00"
+  },
+  {
+    "id": "13107116",
+    "name": "Scions & Spellcraft",
+    "set": "Final Fantasy Commander",
+    "colors": [
+      "W",
+      "U",
+      "B"
+    ],
+    "theme": "Esper SpellCraft",
+    "tags": [
+      "Spellslinger",
+      "Historic",
+      "Lifegain"
+    ],
+    "description": "Scions & Spellcraft is based around Final Fantasy XIV and features little-known, under-the-radar commander [[Y'shtola, Night's Blessed]] at the helm of a deck designed to gain control and card advantage by slinging spells.",
+    "commanders": [
+      {
+        "name": "Y'shtola, Night's Blessed",
+        "art": "/images/c7f2c2d5-e052-49e8-b5de-712858c2ea78-art.webp",
+        "image": "/images/c7f2c2d5-e052-49e8-b5de-712858c2ea78-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/c/7/c7f2c2d5-e052-49e8-b5de-712858c2ea78.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/c/7/c7f2c2d5-e052-49e8-b5de-712858c2ea78.webp",
+        "artist": "Magali Villeneuve"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/13107116",
+    "originalUrl": "https://moxfield.com/decks/3s_W4MAiukee07B9aAs5EQ",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-06-13",
+    "fetchedAt": "2026-09-24T16:03:52.960678+00:00"
+  },
+  {
+    "id": "13106730",
+    "name": "Revival Trance",
+    "set": "Final Fantasy Commander",
+    "colors": [
+      "W",
+      "B",
+      "R"
+    ],
+    "theme": "Aggro Reanimate",
+    "tags": [
+      "Graveyard",
+      "Reanimator",
+      "Self-Mill",
+      "Aggro"
+    ],
+    "description": "Revival Trance is a Final Fantasy VI-themed deck built around graveyard reanimation. The Mardu-colored deck is centered around [[Terra, Herald of Hope]] resurrecting small creatures from the graveyard.",
+    "commanders": [
+      {
+        "name": "Terra, Herald of Hope",
+        "art": "/images/5aa1a2d7-6133-41a9-9662-9008d1309935-art.webp",
+        "image": "/images/5aa1a2d7-6133-41a9-9662-9008d1309935-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/5/a/5aa1a2d7-6133-41a9-9662-9008d1309935.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/5/a/5aa1a2d7-6133-41a9-9662-9008d1309935.webp",
+        "artist": "Marta Nael"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/13106730",
+    "originalUrl": "https://moxfield.com/decks/TdOsPBP3302BdskyLVzU-A",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-06-13",
+    "fetchedAt": "2026-09-24T16:03:53.171600+00:00"
+  },
+  {
+    "id": "13106990",
+    "name": "Limit Break",
+    "set": "Final Fantasy Commander",
+    "colors": [
+      "W",
+      "R",
+      "G"
+    ],
+    "theme": "Big Attack Equipment",
+    "tags": [
+      "Equipment",
+      "Historic",
+      "Voltron"
+    ],
+    "description": "Focused around Final Fantasy VII, the Limit Break preconstructed deck is themed around all things 7 power, as [[Cloud, Ex-SOLDIER]] fights for the planet's future alongside powerful allies and equipment.",
+    "commanders": [
+      {
+        "name": "Cloud, Ex-SOLDIER",
+        "art": "/images/07b4e4f8-6a31-4533-be51-668ce3ddc84f-art.webp",
+        "image": "/images/07b4e4f8-6a31-4533-be51-668ce3ddc84f-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/0/7/07b4e4f8-6a31-4533-be51-668ce3ddc84f.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/0/7/07b4e4f8-6a31-4533-be51-668ce3ddc84f.webp",
+        "artist": "Justyna Dura"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/13106990",
+    "originalUrl": "https://moxfield.com/decks/xNhT2XmIrkOu2lXb4-vjhg",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-06-13",
+    "fetchedAt": "2026-09-24T16:03:53.383588+00:00"
+  },
+  {
+    "id": "12124803",
+    "name": "Temur Roar",
+    "set": "Tarkir: Dragonstorm Commander",
+    "colors": [
+      "U",
+      "R",
+      "G"
+    ],
+    "theme": "Ramp Dragon",
+    "tags": [
+      "Ramp",
+      "Tribal"
+    ],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Eshki, Temur's Roar",
+        "art": "/images/ff9aa863-8773-452d-946c-ae334c632e11-art.webp",
+        "image": "/images/ff9aa863-8773-452d-946c-ae334c632e11-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/f/f/ff9aa863-8773-452d-946c-ae334c632e11.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/f/f/ff9aa863-8773-452d-946c-ae334c632e11.webp",
+        "artist": "Billy Christian"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/12124803",
+    "originalUrl": "https://moxfield.com/decks/dp8QKvCr3EqGF9-qu5Zzfg",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-04-11",
+    "fetchedAt": "2026-09-24T16:03:53.593513+00:00"
+  },
+  {
+    "id": "12028998",
+    "name": "Sultai Arisen",
+    "set": "Tarkir: Dragonstorm Commander",
+    "colors": [
+      "U",
+      "B",
+      "G"
+    ],
+    "theme": "Graveyard Exit",
+    "tags": [
+      "Reanimator",
+      "Mill"
+    ],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Teval, the Balanced Scale",
+        "art": "/images/b5d1955a-9ff0-4f8b-9af8-341371957299-art.webp",
+        "image": "/images/b5d1955a-9ff0-4f8b-9af8-341371957299-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/b/5/b5d1955a-9ff0-4f8b-9af8-341371957299.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/b/5/b5d1955a-9ff0-4f8b-9af8-341371957299.webp",
+        "artist": "Chris Rahn"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/12028998",
+    "originalUrl": "https://moxfield.com/decks/ckpy_1FNIEiFMXqyA6NbYQ",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-04-11",
+    "fetchedAt": "2026-09-24T16:03:53.804704+00:00"
+  },
+  {
+    "id": "12124776",
+    "name": "Abzan Armor",
+    "set": "Tarkir: Dragonstorm Commander",
+    "colors": [
+      "W",
+      "B",
+      "G"
+    ],
+    "theme": "Defender",
+    "tags": [
+      "Control",
+      "Lifegain",
+      "Aristocrat"
+    ],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Felothar the Steadfast",
+        "art": "/images/2c3549f6-25df-4ea7-84ad-922ccd4af6b2-art.webp",
+        "image": "/images/2c3549f6-25df-4ea7-84ad-922ccd4af6b2-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/2/c/2c3549f6-25df-4ea7-84ad-922ccd4af6b2.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/2/c/2c3549f6-25df-4ea7-84ad-922ccd4af6b2.webp",
+        "artist": "Zoltan Boros"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/12124776",
+    "originalUrl": "https://moxfield.com/decks/HRkJg22HtkC8VhQ49cHIMg",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-04-11",
+    "fetchedAt": "2026-09-24T16:03:54.014609+00:00"
+  },
+  {
+    "id": "12020252",
+    "name": "Mardu Surge",
+    "set": "Tarkir: Dragonstorm Commander",
+    "colors": [
+      "W",
+      "B",
+      "R"
+    ],
+    "theme": "Token Sacrifice",
+    "tags": [
+      "Aggro",
+      "Tokens",
+      "Sacrifice"
+    ],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Zurgo Stormrender",
+        "art": "/images/dc8eb325-75c9-4331-830d-3f7d62d77290-art.webp",
+        "image": "/images/dc8eb325-75c9-4331-830d-3f7d62d77290-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/d/c/dc8eb325-75c9-4331-830d-3f7d62d77290.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/d/c/dc8eb325-75c9-4331-830d-3f7d62d77290.webp",
+        "artist": "Lie Setiawan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/12020252",
+    "originalUrl": "https://moxfield.com/decks/8KaWrDZ65k6x_VvjwJclGg",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-04-11",
+    "fetchedAt": "2026-09-24T16:03:54.223612+00:00"
+  },
+  {
+    "id": "12002085",
+    "name": "Jeskai Striker",
+    "set": "Tarkir: Dragonstorm Commander",
+    "colors": [
+      "W",
+      "U",
+      "R"
+    ],
+    "theme": "Spellslinger Prowess",
+    "tags": [
+      "Spellslinger",
+      "Combo"
+    ],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Shiko and Narset, Unified",
+        "art": "/images/5a42fc7d-52ac-4e95-9e04-8f8fa7f687c8-art.webp",
+        "image": "/images/5a42fc7d-52ac-4e95-9e04-8f8fa7f687c8-grid.webp",
+        "artSource": "https://card-images.archidekt.com/art/front/5/a/5a42fc7d-52ac-4e95-9e04-8f8fa7f687c8.webp",
+        "imageSource": "https://card-images.archidekt.com/grid/front/5/a/5a42fc7d-52ac-4e95-9e04-8f8fa7f687c8.webp",
+        "artist": "Chris Rallis"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/12002085",
+    "originalUrl": "https://moxfield.com/decks/90IaIz_OaUyg1oE7a2OQsw",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-04-11",
+    "fetchedAt": "2026-09-24T16:03:54.433378+00:00"
+  }
+]

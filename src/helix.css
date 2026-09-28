@@ -1,0 +1,686 @@
+.helix-picker {
+  --helix-gold: #d8bd87;
+  position: relative;
+  overflow: clip;
+  border: 1px solid #c0a26526;
+  border-radius: 8px;
+  background: #101a16;
+  isolation: isolate;
+}
+.helix-toolbar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 22px;
+  border-bottom: 1px solid #ffffff09;
+}
+.helix-live {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 8px;
+  letter-spacing: 1.8px;
+  color: #a6b69b;
+}
+.helix-live > span {
+  width: 5px;
+  height: 5px;
+  background: #cbb17a;
+  border-radius: 50%;
+  box-shadow: 0 0 9px #cbb17a66;
+  animation: helix-beacon 2.5s ease-in-out infinite;
+}
+.helix-live > span.resting {
+  animation: none;
+  background: #7d897a;
+  box-shadow: none;
+}
+.helix-motion-controls {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+}
+.helix-motion-controls .text-button {
+  font-size: 10px;
+}
+.helix-motion-controls > label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  color: #9dac95;
+  cursor: pointer;
+}
+.helix-motion-controls input {
+  width: 11px;
+  height: 11px;
+  margin: 0;
+}
+.helix-intro {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 66px;
+  text-align: center;
+  z-index: 4;
+  pointer-events: none;
+}
+.helix-intro .eyebrow {
+  font-size: 7px;
+  letter-spacing: 2px;
+  color: #b1b89b;
+}
+.helix-intro h2 {
+  font-family: var(--display);
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -1.2px;
+  margin: 10px 0;
+  color: #e7dcc2;
+  text-shadow: 0 3px 35px #07130c;
+}
+.helix-intro p {
+  font-size: 10px;
+  color: #9cac93;
+  line-height: 1.7;
+}
+.has-winner .helix-intro {
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.helix-stage {
+  position: relative;
+  height: 610px;
+  overflow: clip;
+  perspective: 1200px;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  --flight: 0;
+  background: radial-gradient(ellipse at 50% 48%, #3753402b, transparent 62%);
+}
+.helix-stage.is-dragging {
+  cursor: grabbing;
+}
+.is-spinning .helix-stage {
+  cursor: wait;
+}
+.helix-stage:before,
+.helix-stage:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: 150px;
+  pointer-events: none;
+}
+.helix-stage:before {
+  top: 0;
+  background: linear-gradient(
+    #101a16 3%,
+    #101a16ed 29%,
+    #101a1640 80%,
+    transparent
+  );
+}
+.helix-stage:after {
+  bottom: 0;
+  background: linear-gradient(0deg, #101a16 3%, #101a16b3 25%, transparent);
+}
+.helix-world {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: rotateZ(-14deg) rotateX(-8deg);
+  perspective: 1200px;
+}
+.helix-card {
+  position: absolute;
+  left: -96px;
+  top: -66px;
+  width: 192px;
+  height: 132px;
+  padding: 0;
+  border-radius: 7px;
+  background: #273628;
+  box-shadow:
+    0 15px 20px #0005,
+    0 1px 0 #d7c29445;
+  border: 1px solid #dbc29438;
+  overflow: hidden;
+  will-change: transform;
+  backface-visibility: visible;
+  cursor: pointer;
+  transform-origin: center;
+  transition: box-shadow 0.2s;
+}
+.helix-card:disabled {
+  opacity: 1;
+}
+.helix-card > img,
+.helix-card > .art-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+.helix-card-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, #081109eb, transparent 70%);
+}
+.helix-card-top {
+  position: absolute;
+  top: 9px;
+  left: 11px;
+  right: 11px;
+  font-size: 5px;
+  letter-spacing: 2px;
+  color: #ebe1c5;
+  display: flex;
+  justify-content: space-between;
+  text-shadow: 0 1px 3px #000;
+}
+.helix-card-top > span {
+  font-size: 9px;
+}
+.helix-card-caption {
+  position: absolute;
+  bottom: 11px;
+  left: 11px;
+  right: 11px;
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  justify-content: space-between;
+  text-align: left;
+}
+.helix-card-caption > strong {
+  font-family: var(--display);
+  font-size: 16px;
+  line-height: 1.1;
+  font-weight: 500;
+  text-wrap: balance;
+  color: #f2ead8;
+  text-shadow: 0 1px 5px #000;
+  max-width: 138px;
+}
+.helix-card-caption > .mana-row {
+  position: absolute;
+  bottom: 42px;
+  left: 0;
+  gap: 3px;
+}
+.helix-card .mini .mana {
+  width: 10px;
+  height: 10px;
+  font-size: 7px;
+}
+.helix-card-edge {
+  position: absolute;
+  inset: 4px;
+  border: 1px solid #e3c99922;
+  border-radius: 3px;
+  pointer-events: none;
+}
+.helix-card:hover {
+  box-shadow:
+    0 0 0 2px #e1c58b,
+    0 10px 40px #d9c18929;
+}
+.helix-card:focus-visible {
+  outline: 3px solid #f2d697;
+  outline-offset: 3px;
+}
+.helix-atmosphere {
+  position: absolute;
+  inset: -15%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 47% 45%, #c8ae6d12, transparent 48%),
+    radial-gradient(ellipse at 74% 68%, #31866d14, transparent 45%);
+  opacity: calc(0.55 + var(--flight) * 0.45);
+  filter: hue-rotate(calc(var(--flight) * 18deg));
+  transform: scale(calc(1 + var(--flight) * 0.15));
+}
+.helix-axis {
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  width: 1px;
+  height: 80%;
+  transform: rotate(-14deg);
+  background: linear-gradient(transparent, #c5b58120, transparent);
+  pointer-events: none;
+}
+.helix-floor {
+  position: absolute;
+  left: 50%;
+  bottom: -90px;
+  width: 75%;
+  height: 220px;
+  border: 1px solid #c5b58120;
+  border-radius: 50%;
+  transform: translateX(-50%) rotate(-8deg);
+  box-shadow:
+    0 0 0 26px #c5b58105,
+    0 0 0 80px #c5b58103;
+  pointer-events: none;
+}
+.helix-gesture {
+  position: absolute;
+  z-index: 4;
+  bottom: 21px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #a4b59b;
+  font-size: 9px;
+  letter-spacing: 0.35px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.is-spinning .helix-card {
+  border-color: #dfc69466;
+}
+.helix-console {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 29px;
+  background: linear-gradient(120deg, #26302077, #16211a);
+  border-top: 1px solid #c5b58123;
+}
+.helix-selection {
+  min-width: 0;
+}
+.helix-selection > .eyebrow {
+  font-size: 8px;
+  letter-spacing: 1.8px;
+  color: #c9b27e;
+}
+.helix-selection h3 {
+  font-family: var(--display);
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.3px;
+  margin: 7px 0 10px;
+  color: #eee6d3;
+}
+.helix-selection-note {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #9cae91;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.helix-selection-note > .mana-row {
+  flex-shrink: 0;
+}
+.helix-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 11px;
+  flex-shrink: 0;
+}
+.helix-actions .spin-button {
+  min-width: 191px;
+  gap: 10px;
+  height: 43px;
+}
+.helix-chance {
+  font-size: 8px;
+  color: #91a084;
+}
+.helix-actions > .text-button {
+  font-size: 9px;
+}
+.helix-source {
+  display: flex;
+  justify-content: center;
+  padding: 15px 18px;
+  background: #172219;
+  border-top: 1px solid #ffffff08;
+  color: #cdb781;
+  font-size: 10px;
+}
+.helix-reveal {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 29px;
+  pointer-events: none;
+}
+.revealed-card {
+  position: relative;
+  width: 245px;
+  aspect-ratio: 488/680;
+  padding: 0;
+  border-radius: 13px;
+  pointer-events: auto;
+  box-shadow:
+    0 0 0 1px #d8be82aa,
+    0 23px 50px #0008,
+    0 0 80px #dcb76c16;
+  animation: helix-reveal 0.85s cubic-bezier(0.18, 0.8, 0.24, 1) both;
+}
+.revealed-card > img,
+.revealed-card > .art-fallback {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 13px;
+}
+.reveal-halo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 450px;
+  height: 450px;
+  border: 1px solid #d8be8225;
+  border-radius: 50%;
+  transform: translate(-50%, -53%) rotateX(12deg);
+  box-shadow:
+    0 0 0 22px #d8be8207,
+    0 0 0 75px #d8be8203;
+  background: radial-gradient(ellipse, #dfb76a13, transparent 65%);
+  animation: helix-halo 1.2s ease-out both;
+}
+.reveal-caption {
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: #dbc794;
+  text-shadow: 0 1px 10px #000;
+  animation: helix-caption 0.8s 0.25s both;
+}
+.helix-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 15px;
+  color: #708469;
+  font-size: 12px;
+}
+@keyframes helix-beacon {
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 3px #cbb17a22;
+  }
+}
+@keyframes helix-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(25px) rotateY(-30deg) rotateZ(-7deg) scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateY(0) rotateZ(0) scale(1);
+  }
+}
+@keyframes helix-halo {
+  from {
+    opacity: 0;
+    scale: 0.55;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes helix-caption {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (min-width: 1500px) {
+  .helix-stage {
+    height: 660px;
+  }
+  .helix-card {
+    width: 216px;
+    height: 149px;
+    left: -108px;
+    top: -74px;
+  }
+  .helix-card-caption > strong {
+    font-size: 16px;
+    max-width: 166px;
+  }
+  .helix-intro h2 {
+    font-size: 28px;
+  }
+}
+@media (max-width: 1100px) {
+  .helix-card {
+    width: 162px;
+    height: 115px;
+    left: -81px;
+    top: -57px;
+  }
+  .helix-card-caption > strong {
+    font-size: 16px;
+  }
+  .helix-card-caption > .mana-row {
+    bottom: 40px;
+  }
+  .helix-console {
+    gap: 15px;
+    padding: 23px;
+  }
+  .helix-selection h3 {
+    font-size: 25px;
+  }
+  .helix-actions .spin-button {
+    min-width: 165px;
+    font-size: 10px;
+  }
+  .helix-intro h2 {
+    font-size: 28px;
+  }
+}
+@media (max-width: 900px) {
+  .helix-stage {
+    height: 560px;
+  }
+  .helix-console {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 19px;
+  }
+  .helix-actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .helix-intro p {
+    max-width: 280px;
+    margin: auto;
+  }
+  .helix-toolbar {
+    padding: 15px;
+  }
+  .helix-live {
+    font-size: 7px;
+    letter-spacing: 1px;
+  }
+  .helix-motion-controls {
+    gap: 10px;
+  }
+  .helix-motion-controls > label {
+    font-size: 8px;
+  }
+  .helix-motion-controls .text-button {
+    font-size: 9px;
+  }
+  .helix-intro {
+    top: 75px;
+  }
+  .revealed-card {
+    width: 215px;
+  }
+}
+@media (max-width: 700px) {
+  .helix-stage {
+    height: 510px;
+    perspective: 950px;
+  }
+  .helix-world {
+    transform: rotateZ(-11deg) rotateX(-5deg);
+    perspective: 950px;
+  }
+  .helix-card {
+    width: 142px;
+    height: 103px;
+    left: -71px;
+    top: -51px;
+    border-radius: 5px;
+  }
+  .helix-card-caption {
+    left: 9px;
+    bottom: 10px;
+    right: 8px;
+  }
+  .helix-card-caption > strong {
+    font-size: 16px;
+    max-width: 120px;
+  }
+  .helix-card-caption > .mana-row {
+    bottom: 39px;
+  }
+  .helix-card-top {
+    font-size: 4px;
+    top: 8px;
+    left: 9px;
+  }
+  .helix-card .mini .mana {
+    width: 9px;
+    height: 9px;
+    font-size: 6px;
+  }
+  .helix-stage:before {
+    height: 150px;
+  }
+  .helix-intro {
+    top: 79px;
+  }
+  .helix-intro h2 {
+    font-size: 28px;
+    margin: 9px 0;
+  }
+  .helix-intro .eyebrow {
+    font-size: 6px;
+    letter-spacing: 1.4px;
+  }
+  .helix-intro p {
+    font-size: 9px;
+    max-width: 245px;
+  }
+  .helix-toolbar {
+    gap: 8px;
+    padding: 15px 12px;
+  }
+  .helix-motion-controls > label {
+    font-size: 8px;
+  }
+  .helix-motion-controls .text-button > span {
+    display: none;
+  }
+  .helix-live {
+    font-size: 6px;
+    letter-spacing: 1.3px;
+  }
+  .helix-motion-controls {
+    gap: 11px;
+  }
+  .helix-gesture {
+    font-size: 8px;
+    bottom: 17px;
+  }
+  .helix-console {
+    padding: 20px 17px;
+    gap: 17px;
+  }
+  .helix-selection h3 {
+    font-size: 25px;
+  }
+  .helix-selection-note {
+    font-size: 9px;
+  }
+  .helix-selection > .eyebrow {
+    font-size: 7px;
+  }
+  .helix-actions {
+    align-items: center;
+    gap: 12px;
+  }
+  .helix-actions .spin-button {
+    min-width: 165px;
+    font-size: 10px;
+  }
+  .helix-chance {
+    font-size: 7px;
+    max-width: 88px;
+    line-height: 1.6;
+  }
+  .revealed-card {
+    width: 208px;
+  }
+  .reveal-caption {
+    font-size: 7px;
+    letter-spacing: 2px;
+  }
+  .helix-reveal {
+    gap: 25px;
+  }
+  .reveal-halo {
+    width: 330px;
+    height: 330px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .helix-live > span,
+  .revealed-card,
+  .reveal-halo,
+  .reveal-caption {
+    animation: none;
+  }
+}
+.reduced-motion .helix-live > span,
+.reduced-motion .revealed-card,
+.reduced-motion .reveal-halo,
+.reduced-motion .reveal-caption {
+  animation: none;
+}
+.reduced-motion .helix-intro {
+  transition: none;
+}
