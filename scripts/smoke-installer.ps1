@@ -10,7 +10,13 @@ $setup = Join-Path $repoRoot "release\Commander-Archive-Setup-$version-x64.exe"
 $installDir = Join-Path $repoRoot 'qa\installed-application'
 $profile = Join-Path $env:APPDATA 'Commander Archive'
 $registryRoot = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall'
-$existing = @(Get-ChildItem $registryRoot | Get-ItemProperty | Where-Object { $_.DisplayName -eq 'Commander Archive' })
+function Get-AppRegistration {
+    # A fresh Windows user may have no per-user uninstall registry key yet.
+    if (Test-Path -LiteralPath $registryRoot) {
+        Get-ChildItem $registryRoot | Get-ItemProperty | Where-Object { $_.DisplayName -eq 'Commander Archive' }
+    }
+}
+$existing = @(Get-AppRegistration)
 if ($existing.Count -or (Test-Path -LiteralPath $profile) -or (Test-Path -LiteralPath $installDir)) {
     throw 'A prior installation/profile exists. Refusing to alter it.'
 }
@@ -25,7 +31,7 @@ function Install-Candidate {
 }
 try {
     Install-Candidate
-    $entry = @(Get-ChildItem $registryRoot | Get-ItemProperty | Where-Object { $_.DisplayName -eq 'Commander Archive' })
+    $entry = @(Get-AppRegistration)
     if ($entry.Count -ne 1) { throw 'Expected one per-user uninstall entry' }
     $shortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Commander Archive.lnk'
     if (-not (Test-Path -LiteralPath $shortcut)) { throw 'Missing Start menu shortcut' }
@@ -43,6 +49,6 @@ try {
 if (-not (Test-Path -LiteralPath $sentinel)) { throw 'Uninstall removed the user profile' }
 if (Test-Path -LiteralPath (Join-Path $installDir 'Commander Archive.exe')) { throw 'Uninstall left the application executable' }
 if (Test-Path -LiteralPath $shortcut) { throw 'Uninstall left the Start menu shortcut' }
-$remaining = @(Get-ChildItem $registryRoot | Get-ItemProperty | Where-Object { $_.DisplayName -eq 'Commander Archive' })
+$remaining = @(Get-AppRegistration)
 if ($remaining.Count) { throw 'Uninstall left its registry entry' }
 Write-Output 'PASS: per-user install, shortcut, reinstall, installed application, uninstall, profile preservation.'
