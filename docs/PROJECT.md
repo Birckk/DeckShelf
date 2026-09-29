@@ -17,10 +17,31 @@ product iteration. The repository and project remain private.
   has snapshot, migration/UI and verification tasks (#14–#16).
 - Investigations capture decisions before committing to implementation.
 
-The board has Status, Priority, Work type, Release, Parent issue and Sub-issues
-progress fields. Views cover the release board, first-use work, epics, public
-readiness and full backlog. `Ready` means available to pick up, not already active.
+The board has Status, Priority, Work type, Area, Release, Parent issue and
+Sub-issues progress fields. Views cover the release board, first-use work, epics,
+public readiness, hierarchy and backlog with areas. The Hierarchy view exposes
+real parent/sub-issue relationships and completion progress, not just title prefixes.
+`Ready` means available to pick up, not already active.
 The first ready task is the catalog snapshot (#14).
+
+### Areas
+
+Area describes the primary part of the product affected, independently of release
+or position in the hierarchy:
+
+- Collections: demo/personal collections, saved choices and recovery.
+- Data & integrations: catalog snapshots and external deck sources.
+- Experience & accessibility: phone use, controls and accessible interactions.
+- Offline & sync: PWA behavior and continuity across devices.
+- Delivery & operations: packaging, deployment and runtime maintenance.
+- Security & release: privacy review, licensing and publication readiness.
+
+Assign one primary area to each item. A task can have a different area from its
+parent: the precon demo feature is Collections, while its snapshot task is Data &
+integrations. Area values are not automatically inherited. Keep epics as outcomes,
+not permanent department buckets; use Area filters to inspect work across epics.
+Add further levels only when work actually needs them. Small fixes need not have
+an artificial feature and task wrapper.
 
 Existing issues have been imported. GitHub's browser-only Auto-add workflow should
 target `Bircck/DeckShelf` with `is:issue,pr`; until enabled, explicitly add new items
