@@ -240,3 +240,28 @@ export function setShown(
       : [...new Set([...collection.hidden, ...ids])],
   };
 }
+
+// Bulk actions affect only the current results. Unsaved source entries stay staged.
+export function setDeckSelection(
+  collection: Collection,
+  pending: string[],
+  rows: { id: string; saved: boolean }[],
+  selected: boolean,
+): { collection: Collection; pending: string[] } {
+  const ids = new Set(rows.map((row) => row.id));
+  return {
+    collection: setShown(
+      collection,
+      rows.filter((row) => row.saved).map((row) => row.id),
+      selected,
+    ),
+    pending: selected
+      ? [
+          ...new Set([
+            ...pending,
+            ...rows.filter((row) => !row.saved).map((row) => row.id),
+          ]),
+        ]
+      : pending.filter((id) => !ids.has(id)),
+  };
+}

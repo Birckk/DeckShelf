@@ -199,22 +199,22 @@
   color: #9698a3;
   line-height: 1.7;
 }
+.manager-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 8px 0;
+  border-bottom: 1px solid #ffffff12;
+}
 .manager-group-control {
   display: flex;
   gap: 14px;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #ffffff12;
-  padding: 16px 0;
+  min-height: 30px;
 }
 .manager-precon-link {
-  padding-top: 14px;
-}
-.manager-selection-note {
-  font-size: 10px;
-  line-height: 1.6;
-  color: #91939e;
-  margin: 12px 0 0;
+  flex-basis: 100%;
 }
 @media (max-width: 700px) {
   .overview-group {
@@ -245,6 +245,10 @@
 .modal:has(.collection-manager) {
   width: 1060px;
 }
+.modal:has(.collection-manager) > .modal-head {
+  padding: 8px 20px;
+  gap: 20px;
+}
 .collection-manager {
   color: #e4e2df;
   font-size: 13px;
@@ -254,15 +258,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 24px 28px;
-  border-bottom: 1px solid #ffffff12;
-}
-.manager-heading h2 {
-  margin: 0 0 6px;
-  font-family: Outfit, sans-serif;
-  font-size: 26px;
-  font-weight: 500;
-  letter-spacing: -0.6px;
+  flex: 1;
+  min-width: 0;
 }
 .manager-heading p,
 .manager-section-heading p {
@@ -334,7 +331,7 @@
   margin: 10px;
 }
 .manager-content {
-  padding: 24px;
+  padding: 14px 20px;
   min-width: 0;
 }
 .manager-section-heading {
@@ -346,21 +343,23 @@
 .manager-content h3 {
   font-family: Outfit, sans-serif;
   font-weight: 500;
-  font-size: 21px;
-  margin: 0 0 6px;
+  font-size: 19px;
+  margin: 0 0 3px;
 }
 .manager-source-actions {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin: 18px 0;
+  margin: 0 0 0 auto;
+  min-height: 30px;
 }
 .manager-source-actions > span {
   flex: 1;
   font-size: 11px;
   color: #92939e;
 }
+.manager-heading .button,
 .collection-manager .button {
   font-size: 12px;
   padding: 10px 14px;
@@ -381,7 +380,7 @@
 .manager-search {
   display: flex;
   gap: 10px;
-  margin: 22px 0 12px;
+  margin: 10px 0 0;
 }
 .manager-search label {
   display: flex;
@@ -425,7 +424,8 @@
   display: flex;
   gap: 16px;
   align-items: center;
-  margin: 12px 0;
+  margin: 5px 0;
+  min-height: 30px;
   flex-wrap: wrap;
 }
 .manager-bulk > span {
@@ -663,7 +663,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 15px;
-  padding: 16px 24px;
+  padding: 10px 20px;
   border-top: 1px solid #ffffff12;
   background: #18191d;
 }
@@ -685,7 +685,7 @@
 }
 @media (min-width: 701px) {
   .collection-manager {
-    height: min(760px, calc(100dvh - 117px));
+    height: min(760px, calc(100dvh - 100px));
     display: flex;
     flex-direction: column;
   }
@@ -721,12 +721,15 @@
     max-width: calc(100vw - 16px);
     max-height: calc(100dvh - 16px);
   }
-  .manager-heading {
-    padding: 18px 16px;
-    gap: 8px;
+  .modal:has(.collection-manager) > .modal-head {
+    padding: 8px 14px;
+    gap: 12px;
   }
-  .manager-heading h2 {
-    font-size: 22px;
+  .manager-heading {
+    justify-content: flex-end;
+  }
+  .manager-heading > div {
+    display: none;
   }
   .manager-heading p {
     font-size: 10px;
@@ -756,7 +759,7 @@
     display: none;
   }
   .manager-content {
-    padding: 18px 14px;
+    padding: 12px 14px;
   }
   .manager-columns,
   .manager-row {
@@ -784,9 +787,9 @@
   .manager-bulk {
     gap: 12px;
   }
-  .manager-source-actions > span {
-    flex-basis: 100%;
-    order: 3;
+  .manager-source-actions {
+    margin-left: 0;
+    width: 100%;
   }
   .manager-source-actions > .text-button {
     margin-left: auto;
@@ -805,7 +808,7 @@
     min-height: 42px;
   }
   .manager-footer {
-    padding: 14px;
+    padding: 8px 14px;
   }
   .manager-footer > div {
     gap: 12px;
@@ -830,9 +833,9 @@
   }
   .manager-mobile-nav {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 14px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
     background: #141519;
     border-bottom: 1px solid #ffffff12;
     font-size: 11px;

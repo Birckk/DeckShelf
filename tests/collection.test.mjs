@@ -7,6 +7,7 @@ import {
   rememberSource,
   saveSnapshots,
   setShown,
+  setDeckSelection,
   showcaseGroups,
   showcaseDecks,
   enableGroup,
@@ -332,4 +333,39 @@ test("incomplete, repeated, private or misrouted discovery fails instead of repl
     discoverSource("folder", "../../secret"),
     /username or folder/,
   );
+});
+
+test("bulk selection handles saved and new decks while preserving choices outside the results", () => {
+  const original = {
+    ...collection,
+    hidden: [deck.id, "outside"],
+    disabledGroups: ["starter"],
+  };
+  const rows = [
+    { id: deck.id, saved: true },
+    { id: "new", saved: false },
+  ];
+  const selected = setDeckSelection(
+    original,
+    ["pending-outside", "new"],
+    rows,
+    true,
+  );
+  assert.deepEqual(selected.collection.hidden, ["outside"]);
+  assert.deepEqual(selected.pending, ["pending-outside", "new"]);
+  assert.deepEqual(selected.collection.added, original.added);
+  assert.deepEqual(selected.collection.excluded, original.excluded);
+  assert.deepEqual(selected.collection.disabledGroups, original.disabledGroups);
+  const cleared = setDeckSelection(
+    selected.collection,
+    selected.pending,
+    rows,
+    false,
+  );
+  assert.deepEqual(cleared.collection.hidden, ["outside", deck.id]);
+  assert.deepEqual(cleared.pending, ["pending-outside"]);
+  assert.deepEqual(setDeckSelection(original, ["new"], [], false), {
+    collection: original,
+    pending: ["new"],
+  });
 });

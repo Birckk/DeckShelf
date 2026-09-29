@@ -31,6 +31,7 @@ import {
   rememberSource,
   saveSnapshots,
   setShown,
+  setDeckSelection,
   showcaseGroups,
   showcaseDecks,
   enableGroup,
@@ -158,7 +159,16 @@ export default function CollectionManager({
         (status === "new" && !isSavedHere(row.id)))
     );
   });
-  const newRows = shown.filter((row) => !isSavedHere(row.id));
+  function selectAll(select: boolean) {
+    const next = setDeckSelection(
+      collection,
+      selected,
+      shown.map((row) => ({ id: row.id, saved: isSavedHere(row.id) })),
+      select,
+    );
+    setCollection(next.collection);
+    setSelected(next.pending);
+  }
   function navigate(next: string) {
     setSection(next);
     setSearch("");
@@ -367,11 +377,13 @@ export default function CollectionManager({
     }
   }
   return (
-    <Modal title="My collection" onClose={onClose} wide>
-      <div className="collection-manager">
-        <header className="manager-heading">
+    <Modal
+      title="My collection"
+      onClose={onClose}
+      wide
+      headerActions={
+        <div className="manager-heading">
           <div>
-            <h2>Your decks, on display.</h2>
             <p>
               {onDisplay} on display <span>·</span> {sources.length} linked{" "}
               {sources.length === 1 ? "source" : "sources"}
@@ -388,11 +400,15 @@ export default function CollectionManager({
           >
             <Plus size={16} /> Add decks
           </button>
-        </header>
+        </div>
+      }
+    >
+      <div className="collection-manager">
         <div className="manager-body">
           <label className="manager-mobile-nav">
-            Collection source
+            <span>Source</span>
             <select
+              aria-label="Collection source"
               value={section}
               disabled={!!busy}
               onChange={(e) => navigate(e.target.value)}
@@ -618,80 +634,76 @@ export default function CollectionManager({
                     </a>
                   )}
                 </div>
-                {activeGroup && (
-                  <div className="manager-group-control">
-                    <label className="overview-switch">
-                      <input
-                        type="checkbox"
-                        role="switch"
-                        aria-label={`Enable ${activeGroup.name}`}
-                        checked={activeGroup.enabled}
+                <div className="manager-toolbar">
+                  {activeGroup && (
+                    <div className="manager-group-control">
+                      <label className="overview-switch">
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          aria-label={`Enable ${activeGroup.name}`}
+                          checked={activeGroup.enabled}
+                          disabled={!!busy}
+                          onChange={(e) =>
+                            setCollection((c) =>
+                              enableGroup(c, activeGroup.key, e.target.checked),
+                            )
+                          }
+                        />
+                        <span>
+                          {activeGroup.enabled
+                            ? "Collection enabled"
+                            : "Collection off — selections kept"}
+                        </span>
+                      </label>
+                      <button
+                        className="text-button"
                         disabled={!!busy}
-                        onChange={(e) =>
+                        onClick={() =>
                           setCollection((c) =>
-                            enableGroup(c, activeGroup.key, e.target.checked),
+                            onlyGroup(c, activeGroup.key, groups),
                           )
                         }
-                      />
-                      <span>
-                        {activeGroup.enabled
-                          ? "Collection enabled"
-                          : "Collection off — selections kept"}
-                      </span>
-                    </label>
-                    <button
-                      className="text-button"
-                      disabled={!!busy}
-                      onClick={() =>
-                        setCollection((c) =>
-                          onlyGroup(c, activeGroup.key, groups),
-                        )
-                      }
-                    >
-                      Only this collection
-                    </button>
-                  </div>
-                )}
-                {section === "starter" && (
-                  <div className="manager-precon-link">
-                    <button
-                      className="text-button"
-                      disabled={!!busy}
-                      onClick={browsePrecons}
-                    >
-                      Browse Archidekt’s full precon catalog{" "}
-                      <ArrowLeft
-                        size={12}
-                        style={{ transform: "rotate(180deg)" }}
-                      />
-                    </button>
-                  </div>
-                )}
-                <p className="manager-selection-note">
-                  Select individual decks below. Collection switches control
-                  whether those selections appear; picker choices are kept when
-                  a collection is off.
-                </p>
-                {source && (
-                  <div className="manager-source-actions">
-                    <button
-                      className="button button-outline"
-                      disabled={!!busy}
-                      onClick={refreshSource}
-                    >
-                      <RefreshCw size={14} /> Refresh source
-                    </button>
-                    <span>New decks wait for your selection.</span>
-                    <button
-                      className="text-button"
-                      disabled={!!busy}
-                      onClick={disconnect}
-                      title="Disconnect source; keep saved decks"
-                    >
-                      <Unplug size={14} /> Disconnect
-                    </button>
-                  </div>
-                )}
+                      >
+                        Only this collection
+                      </button>
+                    </div>
+                  )}
+                  {section === "starter" && (
+                    <div className="manager-precon-link">
+                      <button
+                        className="text-button"
+                        disabled={!!busy}
+                        onClick={browsePrecons}
+                      >
+                        Browse Archidekt’s full precon catalog{" "}
+                        <ArrowLeft
+                          size={12}
+                          style={{ transform: "rotate(180deg)" }}
+                        />
+                      </button>
+                    </div>
+                  )}
+                  {source && (
+                    <div className="manager-source-actions">
+                      <button
+                        className="text-button"
+                        disabled={!!busy}
+                        onClick={refreshSource}
+                      >
+                        <RefreshCw size={14} /> Refresh source
+                      </button>
+                      <button
+                        className="text-button"
+                        disabled={!!busy}
+                        onClick={disconnect}
+                        title="Disconnect source; keep saved decks"
+                      >
+                        <Unplug size={14} /> Disconnect
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <div className="manager-search">
                   <label>
                     <Search size={16} />
@@ -717,52 +729,21 @@ export default function CollectionManager({
                   <span>
                     {shown.length} {shown.length === 1 ? "deck" : "decks"}
                   </span>
-                  {newRows.length > 0 && (
-                    <button
-                      className="text-button"
-                      disabled={!!busy}
-                      onClick={() =>
-                        setSelected((ids) => [
-                          ...new Set([...ids, ...newRows.map((d) => d.id)]),
-                        ])
-                      }
-                    >
-                      Select new decks
-                    </button>
-                  )}
                   <button
                     className="text-button"
-                    disabled={!!busy || !shown.some((d) => isSavedHere(d.id))}
-                    onClick={() =>
-                      setCollection((c) =>
-                        setShown(
-                          c,
-                          shown
-                            .filter((d) => isSavedHere(d.id))
-                            .map((d) => d.id),
-                          true,
-                        ),
-                      )
-                    }
+                    disabled={!!busy || !shown.length}
+                    title="Select every deck in the current results. New decks wait for Add selected decks."
+                    onClick={() => selectAll(true)}
                   >
-                    Select saved
+                    Select all
                   </button>
                   <button
                     className="text-button"
-                    disabled={!!busy || !shown.some((d) => isSavedHere(d.id))}
-                    onClick={() =>
-                      setCollection((c) =>
-                        setShown(
-                          c,
-                          shown
-                            .filter((d) => isSavedHere(d.id))
-                            .map((d) => d.id),
-                          false,
-                        ),
-                      )
-                    }
+                    disabled={!!busy || !shown.length}
+                    title="Deselect every deck in the current results"
+                    onClick={() => selectAll(false)}
                   >
-                    Deselect saved
+                    Deselect all
                   </button>
                 </div>
                 <div className="manager-list">

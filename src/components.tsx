@@ -75,11 +75,13 @@ export function Modal({
   children,
   onClose,
   wide = false,
+  headerActions,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
+  headerActions?: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -106,6 +108,7 @@ export function Modal({
     >
       <div className="modal-head">
         <span className="eyebrow">{title}</span>
+        {headerActions}
         <button
           className="icon-button"
           aria-label="Close dialog"

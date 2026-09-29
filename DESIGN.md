@@ -44,6 +44,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Distinguish local saved decks, starter precons, and source listings. Deduplicate decks shared by multiple sources.
 - Disconnecting a source or losing access to it must not delete saved decks. Keep the last usable snapshot when refresh fails.
 - Preserve the version-1 collection backup format and existing local choices. Include source connections in exports.
+- Select all / Deselect all affect the current deck results, including search and status filters. New source entries are staged until Add selected decks; bulk actions preserve choices outside the results. Keep list controls compact, with no repeated introductory banner.
 - Open My collection on its showcase overview. Collection switches pause whole sources without changing individual deck selections or picker exclusions; “Only this” isolates one collection across all viewer modes.
 - Overlapping enabled collections form a unique union of decks. Direct deck links may belong to Individual decks even when the same deck appears in another collection.
 - “Included precons” means the original 29 requested decks with bundled artwork. Keep that distinct from Archidekt’s larger curated precon catalog; browsing the catalog never selects decks automatically.
