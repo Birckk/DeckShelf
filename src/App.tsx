@@ -3,7 +3,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type ChangeEvent,
   type CSSProperties,
 } from "react";
 import {
@@ -11,7 +10,6 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
-  Download,
   ExternalLink,
   Eye,
   EyeOff,
@@ -20,13 +18,11 @@ import {
   List,
   GalleryVerticalEnd,
   Library,
-  Plus,
   Search,
   SlidersHorizontal,
   Dices,
   RectangleVertical,
   RefreshCw,
-  Upload,
   X,
 } from "lucide-react";
 import seed from "./data/decks.json";
@@ -44,6 +40,7 @@ import {
 import { Artwork, Mana, ManaSymbol, Modal } from "./components";
 import Picker from "./HelixPicker";
 import CardStudio from "./CardStudio";
+import CollectionManager from "./CollectionManager";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 
 const catalog = seed as Deck[];
@@ -814,7 +811,8 @@ function App() {
         </Modal>
       )}
       {showCollection && (
-        <CollectionDialog
+        <CollectionManager
+          catalog={catalog}
           decks={allDecks}
           collection={collection}
           setCollection={setCollection}
@@ -841,9 +839,10 @@ function App() {
               internet access; newly added artwork is loaded from the source.
             </p>
             <p>
-              Use <strong>Your collection</strong> to choose the decks on
-              display, add an Archidekt link, or back up your selection.
-              Decklists are viewed and edited on their original sites.
+              Use <strong>My collection</strong> to choose the decks on display,
+              link public Archidekt accounts or folders, add individual deck
+              links, or back up your selection. Decklists are viewed and edited
+              on their original sites.
             </p>
             <div className="about-credits">
               <a
@@ -854,8 +853,8 @@ function App() {
                 Deck information: Archidekt <ExternalLink size={12} />
               </a>
               <span>
-                Magic: The Gathering and card imagery © their respective owners.
-                This is an unofficial fan project.
+                Magic: The Gathering and card imagery © their respective
+                owners. This is an unofficial fan project.
               </span>
             </div>
           </div>
@@ -923,216 +922,4 @@ function DeckTile({
   );
 }
 
-function CollectionDialog({
-  decks,
-  collection,
-  setCollection,
-  onClose,
-  backup,
-  notify,
-}: {
-  decks: Deck[];
-  collection: Collection;
-  setCollection: (c: Collection | ((c: Collection) => Collection)) => void;
-  onClose: () => void;
-  backup: () => void;
-  notify: (s: string) => void;
-}) {
-  const [search, setSearch] = useState("");
-  const [url, setUrl] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const input = useRef<HTMLInputElement>(null);
-  const abort = useRef<AbortController | null>(null);
-  useEffect(() => () => abort.current?.abort(), []);
-  const shown = decks.filter((d) =>
-    d.name.toLowerCase().includes(search.toLowerCase()),
-  );
-  async function addDeck(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    let id: string;
-    try {
-      const source = new URL(url);
-      const match = /^\/decks\/(\d{1,12})(?:\/|$)/.exec(source.pathname);
-      if (
-        !["archidekt.com", "www.archidekt.com"].includes(source.hostname) ||
-        source.protocol !== "https:" ||
-        !match
-      )
-        throw new Error();
-      id = match[1];
-    } catch {
-      setError(
-        "Paste a public Archidekt deck link, for example https://archidekt.com/decks/4874412.",
-      );
-      return;
-    }
-    const existing = decks.find((d) => d.id === id);
-    if (existing) {
-      setCollection((c) => ({
-        ...c,
-        hidden: c.hidden.filter((v) => v !== id),
-      }));
-      setUrl("");
-      notify(`${existing.name} is in your collection.`);
-      return;
-    }
-    setBusy(true);
-    abort.current = new AbortController();
-    try {
-      const response = await fetch(`/api/decks/${id}`, {
-        signal: abort.current.signal,
-      });
-      const content = response.headers.get("content-type") || "";
-      if (!content.includes("application/json"))
-        throw new Error(
-          "Adding a source needs the local app server. Start it with npm run dev or npm start.",
-        );
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Could not load the deck.");
-      if (!validateDeck(data))
-        throw new Error("The source returned incomplete deck information.");
-      setCollection((c) => ({
-        ...c,
-        hidden: c.hidden.filter((v) => v !== data.id),
-        added: [...c.added.filter((d) => d.id !== data.id), data],
-      }));
-      setUrl("");
-      notify(`${data.name} added to your collection.`);
-    } catch (e) {
-      if ((e as Error).name !== "AbortError")
-        setError(
-          (e as Error).message === "Failed to fetch"
-            ? "Could not reach the source. Check your connection and try again."
-            : (e as Error).message,
-        );
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function restore(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      if (file.size > 5_000_000)
-        throw new Error("Please choose a collection backup smaller than 5 MB.");
-      const restored = parseCollection(await file.text());
-      setCollection(restored);
-      setError("");
-      notify("Collection restored from your backup.");
-    } catch (e) {
-      setError((e as Error).message);
-    }
-    e.target.value = "";
-  }
-  return (
-    <Modal title="Your collection" onClose={onClose}>
-      <div className="collection-dialog">
-        <h2>Decks you own</h2>
-        <p>Choose which decks to showcase. Decklists stay at their source.</p>
-        <form className="add-source" onSubmit={addDeck}>
-          <label htmlFor="deck-url">Add from Archidekt</label>
-          <div>
-            <input
-              id="deck-url"
-              type="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://archidekt.com/decks/…"
-              required
-              disabled={busy}
-            />
-            <button
-              className="button button-gold"
-              disabled={busy}
-              type="submit"
-            >
-              {busy ? (
-                "Loading…"
-              ) : (
-                <>
-                  <Plus size={16} /> Add
-                </>
-              )}
-            </button>
-          </div>
-          <span>Public Commander decks. No account connection needed.</span>
-        </form>
-        {error && (
-          <p className="inline-error" role="alert">
-            {error}
-          </p>
-        )}
-        <div className="collection-list-tools">
-          <label className="search-field">
-            <Search size={15} />
-            <input
-              aria-label="Find a deck in collection settings"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Find a deck…"
-            />
-          </label>
-          <span>
-            {decks.filter((d) => !collection.hidden.includes(d.id)).length} on
-            display
-          </span>
-        </div>
-        <div className="collection-list">
-          {shown.map((deck) => (
-            <label className="collection-row" key={deck.id}>
-              <input
-                type="checkbox"
-                aria-label={`Show ${deck.name}`}
-                checked={!collection.hidden.includes(deck.id)}
-                onChange={(e) =>
-                  setCollection((c) => ({
-                    ...c,
-                    hidden: e.target.checked
-                      ? c.hidden.filter((id) => id !== deck.id)
-                      : [...c.hidden, deck.id],
-                  }))
-                }
-              />
-              <Artwork src={deck.commanders[0].art} alt="" />
-              <span>
-                <strong>{deck.name}</strong>
-                <small>{deck.commanders.map((c) => c.name).join(" & ")}</small>
-              </span>
-              <Mana colors={deck.colors} size="mini" />
-            </label>
-          ))}
-          {!shown.length && <p className="no-matches">No matching decks.</p>}
-        </div>
-        <div className="backup-actions">
-          <button className="text-button" onClick={backup}>
-            <Download size={14} /> Export collection
-          </button>
-          <button
-            className="text-button"
-            onClick={() => input.current?.click()}
-          >
-            <Upload size={14} /> Restore backup
-          </button>
-          <input
-            className="sr-only"
-            ref={input}
-            type="file"
-            accept=".json,application/json"
-            onChange={restore}
-          />
-        </div>
-        <p className="backup-note">
-          A backup contains your display choices and added source snapshots.
-          Restoring replaces your current selection.
-        </p>
-        <button className="button button-gold done-button" onClick={onClose}>
-          <Check size={16} /> Back to collection
-        </button>
-      </div>
-    </Modal>
-  );
-}
 export default App;

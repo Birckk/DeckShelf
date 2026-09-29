@@ -92,6 +92,23 @@ export type Collection = {
   hidden: string[];
   excluded: string[];
   added: Deck[];
+  sources?: CollectionSource[];
+};
+export type SourceEntry = {
+  id: string;
+  name: string;
+  image: string;
+  colors: Color[];
+};
+export type CollectionSource = {
+  key: string;
+  kind: "account" | "folder";
+  value: string;
+  name: string;
+  url: string;
+  checkedAt: string;
+  entries: SourceEntry[];
+  knownIds: string[];
 };
 export const EMPTY_COLLECTION: Collection = {
   version: 1,
@@ -111,6 +128,42 @@ function imageUrl(value: unknown): value is string {
   return (
     typeof value === "string" &&
     (/^\/images\/[a-zA-Z0-9.-]+$/.test(value) || webUrl(value))
+  );
+}
+export function validateSource(value: unknown): value is CollectionSource {
+  if (!value || typeof value !== "object") return false;
+  const s = value as CollectionSource;
+  return (
+    ["account", "folder"].includes(s.kind) &&
+    typeof s.value === "string" &&
+    (s.kind === "folder"
+      ? /^\d{1,12}$/.test(s.value)
+      : /^[\p{L}\p{N}_.@+ -]{1,100}$/u.test(s.value)) &&
+    s.key === `${s.kind}:${s.value.toLowerCase()}` &&
+    typeof s.name === "string" &&
+    s.url ===
+      (s.kind === "folder"
+        ? `https://archidekt.com/folders/${s.value}`
+        : `https://archidekt.com/u/${encodeURIComponent(s.value)}`) &&
+    typeof s.checkedAt === "string" &&
+    Number.isFinite(Date.parse(s.checkedAt)) &&
+    Array.isArray(s.knownIds) &&
+    s.knownIds.length <= 2000 &&
+    s.knownIds.every((id) => typeof id === "string" && /^\d{1,12}$/.test(id)) &&
+    Array.isArray(s.entries) &&
+    s.entries.length <= 1000 &&
+    new Set(s.entries.map((e) => e?.id)).size === s.entries.length &&
+    s.entries.every(
+      (e) =>
+        e &&
+        typeof e.id === "string" &&
+        /^\d{1,12}$/.test(e.id) &&
+        typeof e.name === "string" &&
+        (e.image === "" || imageUrl(e.image)) &&
+        Array.isArray(e.colors) &&
+        e.colors.every((c) => COLORS.some((v) => v.id === c)) &&
+        s.knownIds.includes(e.id),
+    )
   );
 }
 export function validateDeck(value: unknown): value is Deck {
@@ -165,7 +218,12 @@ export function parseCollection(raw: string): Collection {
     ) ||
     !v.added.every(validateDeck) ||
     v.added.length > 1000 ||
-    new Set(v.added.map((d) => d.id)).size !== v.added.length
+    new Set(v.added.map((d) => d.id)).size !== v.added.length ||
+    (v.sources !== undefined &&
+      (!Array.isArray(v.sources) ||
+        v.sources.length > 50 ||
+        !v.sources.every(validateSource) ||
+        new Set(v.sources.map((s) => s.key)).size !== v.sources.length))
   ) {
     throw new Error("This is not a valid Commander Archive collection file.");
   }
@@ -174,5 +232,6 @@ export function parseCollection(raw: string): Collection {
     hidden: [...new Set(v.hidden)],
     excluded: [...new Set(v.excluded)],
     added: v.added,
+    ...(v.sources !== undefined ? { sources: v.sources } : {}),
   };
 }

@@ -36,6 +36,15 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - The pick button floats over the spiral. Do not restore a large footer console that consumes carousel space.
 - Do not remove useful spacing or flatten everything in the name of being “less AI.” Preserve readability and the distinctive card presentation.
 
+## Collection management
+
+- My collection controls the showcase. Deck editing and card inventory stay on the external platform.
+- Public accounts, folders, and individual deck links are read-only sources. Do not ask for platform passwords.
+- Discovering a source does not mean the user owns all its decks. New discoveries wait for selection; refresh preserves display and picker choices.
+- Distinguish local saved decks, starter precons, and source listings. Deduplicate decks shared by multiple sources.
+- Disconnecting a source or losing access to it must not delete saved decks. Keep the last usable snapshot when refresh fails.
+- Preserve the version-1 collection backup format and existing local choices. Include source connections in exports.
+
 ## Motion and atmosphere
 
 - Backgrounds stay steady while browsing Collection, Cards, and Pick a deck. Do not change them on hover, keyboard focus, carousel selection, or an idle timer.

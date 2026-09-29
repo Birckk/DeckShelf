@@ -48,7 +48,7 @@ npm start
 
 - Open a deck to see its commanders, source description, colors, and themes, then follow its Archidekt link for the full decklist. **Refresh from Archidekt** fetches a fresh snapshot without changing your inclusion/exclusion choices; source failures keep the saved deck.
 
-- **Your collection** chooses the decks on display or adds a public Archidekt Commander deck by URL. This app does not edit decklists, manage individual card ownership, or connect an account.
+- **My collection** manages the showcase: link one or more public Archidekt accounts or folders, or add individual deck links. Use the separate Display and Picker checkboxes to choose what appears and what can be picked. Search and bulk display controls apply to the current list.
 
 - Export a backup before moving computers, switching browsers, clearing browser data, or changing the server origin/port. **Restore backup replaces the current collection selection.**
 
@@ -56,13 +56,24 @@ npm start
 
 The 29 supplied precons are included in `src/data/decks.json`, with local commander artwork in `public/images`. The starter collection, filtering and picker work without external internet access while the local server is running. Fonts are bundled locally too.
 
-Display choices and added source snapshots are stored in this browser's `localStorage`. They are specific to the browser and URL origin. This is one collection for one user, without accounts or shared ownership.
+Display choices, linked public sources, and imported deck snapshots are stored in this browser's `localStorage`. They are specific to the browser and URL origin. This is one collection for one user; linking multiple sources does not create shared ownership or an app login.
 
-Adding or refreshing a source requires internet access and the local Node server. Added or refreshed artwork is loaded from Archidekt; offline availability of that artwork depends on the browser cache. Imported information is a snapshot, not an automatic account sync. Moxfield links are retained as references for the supplied collection; live Moxfield import is not implemented.
+Adding or refreshing a source requires internet access and the local Node server. Added or refreshed artwork is loaded from Archidekt; offline availability of that artwork depends on the browser cache. Refresh is manual, not a background account sync. Moxfield links are retained as references for the supplied collection; live Moxfield import is not implemented.
+
+### Linking sources
+
+1. Open **My collection → Add decks**. Enter an Archidekt username, public profile URL (`/u/name`), folder URL (`/folders/123`), or individual deck URL (`/decks/123`). Links are detected automatically.
+2. An account or folder appears in the source sidebar. Select the decks you own, then choose **Add selected decks**. Source listings are previews; full commander metadata loads for selected decks only. An individual deck link is added directly.
+3. **Refresh source** discovers new decks and updates already-saved decks from that source. New decks wait for review; local visibility and picker exclusions stay unchanged. Failed imports are listed individually, and previous snapshots are retained. Decks no longer listed remain available with a saved-copy notice.
+4. **Disconnect** removes the connection and keeps all saved decks and display choices. Decks without another linked source are listed under Individual decks (or Starter precons for bundled decks).
+
+Connections are read-only and require no password. Only public Commander decks can be discovered. Folders include their direct decks; link subfolders separately. Accounts include public Commander decks across folders. The importer supports up to 50 sources, 1,000 decks per source and 1,000 imported snapshots. Sources larger than the limit fail explicitly rather than silently showing an incomplete collection.
+
+Backups include source connections, saved source listings, deck snapshots and display/picker choices. Existing version-1 backups remain supported. Restore shows a confirmation before replacing the local collection. The app never writes to Archidekt or stores full decklists.
 
 The initial metadata comes from the reference workbook's 29 requested entries (deck names, themes and sets) and the curated `Archidekt_Precons` catalog. No colleague names, ownership information, ratings, or game results are included. `World Shapers` and `The Fatastic Four` were matched to their source names, `World Shaper` and `The Fantastic Four`.
 
-Archidekt's public deck endpoint is fetched through a small server adapter to avoid browser CORS restrictions. Each fetched deck is reduced to display metadata and its commanders; the app does not retain the full deck's cards. Upstream errors leave the existing local collection usable. The adapter uses a bounded one-hour in-memory cache. Public endpoints can change, so the importer is kept in `server/api.mjs`.
+Archidekt's public endpoints are fetched through a small server adapter to avoid browser CORS restrictions. Each fetched deck is reduced to display metadata and its commanders; the app does not retain the full deck's cards. Upstream errors leave the existing local collection usable. Deck metadata uses a bounded one-hour in-memory cache, bypassed on explicit refresh; source listings are fetched fresh. The adapters are isolated in `server/api.mjs` and `server/sources.mjs` because these public endpoints may change. Account and folder behavior was checked against Archidekt on September 29, 2026. Archidekt explains the public/private distinction in its [API discussion](https://archidekt.com/forum/thread/21858972) and folder visibility in its [folder announcement](https://archidekt.com/news/4116486).
 
 For refreshing the bundled starter data from the original reference workbook (optional, not required to run):
 ```sh

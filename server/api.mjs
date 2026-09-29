@@ -1,3 +1,4 @@
+import { discoverSource } from './sources.mjs';
 const cache = new Map();
 const colors = { White:'W', Blue:'U', Black:'B', Red:'R', Green:'G' };
 const plain = value => String(value || '').replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
@@ -38,6 +39,16 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
   const match = /^\/api\/decks\/(\d{1,12})$/.exec(url.pathname);
   res.setHeader('Content-Type','application/json; charset=utf-8');
   res.setHeader('X-Content-Type-Options','nosniff');
+  if (url.pathname === '/api/sources' && req.method === 'GET') {
+    try {
+      const source = await discoverSource(url.searchParams.get('kind'), url.searchParams.get('value') || '');
+      res.end(JSON.stringify(source));
+    } catch (error) {
+      res.writeHead(502);
+      res.end(JSON.stringify({error:error.name === 'TimeoutError' ? 'Archidekt took too long to respond. Your saved collection is unchanged.' : error.message}));
+    }
+    return;
+  }
   if (!match || req.method !== 'GET') {
     res.writeHead(404); res.end(JSON.stringify({ error:'Unknown source request.' })); return;
   }
