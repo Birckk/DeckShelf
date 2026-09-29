@@ -39,7 +39,9 @@ deckshelf.birckk.com {
 
 This site uses Caddy's normal HTTPS certificate validation over ports 80/443.
 It does not need a DNS API token.
-Point the hostname at your server with an A/AAAA record or a CNAME; keep it DNS-only while validating HTTPS.
+Point the hostname at your server with an A/AAAA record or a CNAME. Start DNS-only while validating HTTPS.
+After HTTPS works, Cloudflare proxying is optional; use Full (strict) SSL mode
+and do not cache `/api/*` or `/healthz` responses.
 
 Validate the Caddy configuration before applying it. If your server mounts a
 single Caddyfile, preserve its inode when updating it, then validate and reload.
