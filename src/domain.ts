@@ -93,6 +93,8 @@ export type Collection = {
   excluded: string[];
   added: Deck[];
   sources?: CollectionSource[];
+  disabledGroups?: string[];
+  manualIds?: string[];
 };
 export type SourceEntry = {
   id: string;
@@ -109,6 +111,7 @@ export type CollectionSource = {
   checkedAt: string;
   entries: SourceEntry[];
   knownIds: string[];
+  selectedIds?: string[];
 };
 export const EMPTY_COLLECTION: Collection = {
   version: 1,
@@ -150,6 +153,12 @@ export function validateSource(value: unknown): value is CollectionSource {
     Array.isArray(s.knownIds) &&
     s.knownIds.length <= 2000 &&
     s.knownIds.every((id) => typeof id === "string" && /^\d{1,12}$/.test(id)) &&
+    (s.selectedIds === undefined ||
+      (Array.isArray(s.selectedIds) &&
+        s.selectedIds.length <= 2000 &&
+        s.selectedIds.every(
+          (id) => typeof id === "string" && s.knownIds.includes(id),
+        ))) &&
     Array.isArray(s.entries) &&
     s.entries.length <= 1000 &&
     new Set(s.entries.map((e) => e?.id)).size === s.entries.length &&
@@ -219,6 +228,22 @@ export function parseCollection(raw: string): Collection {
     !v.added.every(validateDeck) ||
     v.added.length > 1000 ||
     new Set(v.added.map((d) => d.id)).size !== v.added.length ||
+    (v.disabledGroups !== undefined &&
+      (!Array.isArray(v.disabledGroups) ||
+        v.disabledGroups.length > 52 ||
+        !v.disabledGroups.every(
+          (key) =>
+            typeof key === "string" &&
+            (key === "starter" ||
+              key === "manual" ||
+              v.sources?.some((s) => s?.key === key)),
+        ))) ||
+    (v.manualIds !== undefined &&
+      (!Array.isArray(v.manualIds) ||
+        v.manualIds.length > 2000 ||
+        !v.manualIds.every(
+          (id) => typeof id === "string" && /^\d{1,12}$/.test(id),
+        ))) ||
     (v.sources !== undefined &&
       (!Array.isArray(v.sources) ||
         v.sources.length > 50 ||
@@ -233,5 +258,11 @@ export function parseCollection(raw: string): Collection {
     excluded: [...new Set(v.excluded)],
     added: v.added,
     ...(v.sources !== undefined ? { sources: v.sources } : {}),
+    ...(v.disabledGroups !== undefined
+      ? { disabledGroups: [...new Set(v.disabledGroups)] }
+      : {}),
+    ...(v.manualIds !== undefined
+      ? { manualIds: [...new Set(v.manualIds)] }
+      : {}),
   };
 }

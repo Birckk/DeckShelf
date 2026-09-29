@@ -48,7 +48,7 @@ npm start
 
 - Open a deck to see its commanders, source description, colors, and themes, then follow its Archidekt link for the full decklist. **Refresh from Archidekt** fetches a fresh snapshot without changing your inclusion/exclusion choices; source failures keep the saved deck.
 
-- **My collection** manages the showcase: link one or more public Archidekt accounts or folders, or add individual deck links. Use the separate Display and Picker checkboxes to choose what appears and what can be picked. Search and bulk display controls apply to the current list.
+- **My collection** manages the showcase: link one or more public Archidekt accounts or folders, or add individual deck links. Use the Selected and Picker checkboxes for individual decks, and collection switches to choose which groups appear. Search and bulk display controls apply to the current list.
 
 - Export a backup before moving computers, switching browsers, clearing browser data, or changing the server origin/port. **Restore backup replaces the current collection selection.**
 
@@ -61,6 +61,12 @@ Display choices, linked public sources, and imported deck snapshots are stored i
 Adding or refreshing a source requires internet access and the local Node server. Added or refreshed artwork is loaded from Archidekt; offline availability of that artwork depends on the browser cache. Refresh is manual, not a background account sync. Moxfield links are retained as references for the supplied collection; live Moxfield import is not implemented.
 
 ### Linking sources
+
+**My collection** opens on **Showcase overview**. Each connected folder/account, Individual decks, and Included precons has an on/off switch. Switching a collection off pauses its contribution to Collection, Cards and Pick a deck without changing its deck selections or picker exclusions. **Only this** enables just that collection; **Enable all** restores every collection switch. Overlapping collections show each deck once if at least one enabled collection includes it. Deselecting a saved deck or excluding it from the picker still applies across collections.
+
+**Included precons** is the original 29-deck list supplied for this project, bundled with offline artwork. It is not Archidekt’s complete catalog or a live folder. Turn it off when you only want your own connected folders. **Browse precons** reads the public `Archidekt_Precons` account behind [Archidekt’s curated catalog](https://archidekt.com/commander-precons); select the precons you own before adding them. Even decks already included locally are not automatically selected for a newly connected catalog. Your existing linked sources retain their saved selections.
+
+Individual decks includes direct deck links and saved decks no longer attached to a source. Adding an individual link explicitly keeps it in this group even if the same deck belongs to a folder. Disabled collections, source selections and these individual links are included in backups; older backups continue to work with all collection switches enabled.
 
 1. Open **My collection → Add decks**. Enter an Archidekt username, public profile URL (`/u/name`), folder URL (`/folders/123`), or individual deck URL (`/decks/123`). Links are detected automatically.
 2. An account or folder appears in the source sidebar. Select the decks you own, then choose **Add selected decks**. Source listings are previews; full commander metadata loads for selected decks only. An individual deck link is added directly.

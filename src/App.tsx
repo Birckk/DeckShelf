@@ -41,6 +41,7 @@ import { Artwork, Mana, ManaSymbol, Modal } from "./components";
 import Picker from "./HelixPicker";
 import CardStudio from "./CardStudio";
 import CollectionManager from "./CollectionManager";
+import { showcaseDecks } from "./collection";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 
 const catalog = seed as Deck[];
@@ -158,8 +159,8 @@ function App() {
     [collection.added],
   );
   const owned = useMemo(
-    () => allDecks.filter((d) => !collection.hidden.includes(d.id)),
-    [allDecks, collection.hidden],
+    () => showcaseDecks(collection, catalog, allDecks),
+    [allDecks, collection],
   );
   const visible = useMemo(() => {
     const decks = owned.filter((d) => matchesDeck(d, filters));
@@ -693,7 +694,7 @@ function App() {
                 <p>
                   {owned.length
                     ? "Try another color, release, or search. Your decks are still here."
-                    : "Choose which decks you own in My collection."}
+                    : "Enable a collection or select decks in My collection."}
                 </p>
                 <button
                   className="button button-gold"

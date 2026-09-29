@@ -41,8 +41,13 @@ export function rememberSource(
   const previous = collection.sources?.find((s) => s.key === source.key);
   const updated = {
     ...source,
+    ...(previous?.selectedIds !== undefined
+      ? { selectedIds: previous.selectedIds }
+      : {}),
     knownIds: [...new Set([...(previous?.knownIds || []), ...source.knownIds])],
   };
+  if (previous && previous.selectedIds === undefined)
+    delete updated.selectedIds;
   if (updated.knownIds.length > 2000)
     throw new Error(
       "This source has too much history. Disconnect it and link it again; saved decks will remain.",
@@ -54,6 +59,143 @@ export function rememberSource(
       updated,
     ],
   };
+}
+
+export type ShowcaseGroup = {
+  key: string;
+  name: string;
+  kind: "included" | "manual" | "account" | "folder";
+  ids: string[];
+  available: number;
+  enabled: boolean;
+};
+export function sourceDeckIds(
+  source: CollectionSource,
+  decks: Deck[],
+): string[] {
+  const savedIds = new Set(decks.map((d) => d.id));
+  return (source.selectedIds ?? source.knownIds).filter((id) =>
+    savedIds.has(id),
+  );
+}
+export function showcaseGroups(
+  collection: Collection,
+  catalog: Deck[],
+  decks: Deck[],
+): ShowcaseGroup[] {
+  const seedIds = new Set(catalog.map((d) => d.id));
+  const sourceGroups = (collection.sources || []).map((s) => ({
+    key: s.key,
+    name:
+      s.key === "account:archidekt_precons"
+        ? "Archidekt precon catalog"
+        : s.name,
+    kind: s.kind,
+    ids: sourceDeckIds(s, decks),
+    available: s.entries.length,
+  }));
+  const linked = new Set(sourceGroups.flatMap((g) => g.ids));
+  const manual = decks
+    .filter(
+      (d) =>
+        collection.manualIds?.includes(d.id) ||
+        (!seedIds.has(d.id) && !linked.has(d.id)),
+    )
+    .map((d) => d.id);
+  return [
+    {
+      key: "starter",
+      name: "Included precons",
+      kind: "included" as const,
+      ids: [...seedIds],
+      available: catalog.length,
+    },
+    {
+      key: "manual",
+      name: "Individual decks",
+      kind: "manual" as const,
+      ids: manual,
+      available: manual.length,
+    },
+    ...sourceGroups,
+  ].map((g) => ({
+    ...g,
+    enabled: !collection.disabledGroups?.includes(g.key),
+  }));
+}
+export function showcaseDecks(
+  collection: Collection,
+  catalog: Deck[],
+  decks: Deck[],
+): Deck[] {
+  const ids = new Set(
+    showcaseGroups(collection, catalog, decks)
+      .filter((g) => g.enabled)
+      .flatMap((g) => g.ids),
+  );
+  return decks.filter(
+    (d) => ids.has(d.id) && !collection.hidden.includes(d.id),
+  );
+}
+export function enableGroup(
+  collection: Collection,
+  key: string,
+  enabled: boolean,
+): Collection {
+  return {
+    ...collection,
+    disabledGroups: enabled
+      ? (collection.disabledGroups || []).filter((k) => k !== key)
+      : [...new Set([...(collection.disabledGroups || []), key])],
+  };
+}
+export function onlyGroup(
+  collection: Collection,
+  key: string,
+  groups: ShowcaseGroup[],
+): Collection {
+  return {
+    ...collection,
+    disabledGroups: groups.filter((g) => g.key !== key).map((g) => g.key),
+  };
+}
+export function selectSourceDecks(
+  collection: Collection,
+  key: string,
+  ids: string[],
+  decks: Deck[],
+): Collection {
+  return {
+    ...collection,
+    sources: (collection.sources || []).map((s) =>
+      s.key === key
+        ? {
+            ...s,
+            selectedIds: [...new Set([...sourceDeckIds(s, decks), ...ids])],
+          }
+        : s,
+    ),
+  };
+}
+export function disconnectSource(
+  collection: Collection,
+  key: string,
+  catalog: Deck[],
+  decks: Deck[],
+): Collection {
+  const visible = new Set(
+    showcaseDecks(collection, catalog, decks).map((d) => d.id),
+  );
+  const next = {
+    ...collection,
+    sources: (collection.sources || []).filter((s) => s.key !== key),
+    disabledGroups: (collection.disabledGroups || []).filter((k) => k !== key),
+  };
+  // Orphaned snapshots become individual decks, but a paused source must not reveal them.
+  const newlyVisible = showcaseDecks(next, catalog, decks)
+    .filter((d) => !visible.has(d.id))
+    .map((d) => d.id);
+  return setShown(next, newlyVisible, false);
 }
 
 // A refresh only replaces metadata. Local visibility and picker choices survive.

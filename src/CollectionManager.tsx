@@ -14,6 +14,7 @@ import {
   Upload,
   UserRound,
   X,
+  LayoutGrid,
 } from "lucide-react";
 import { Artwork, Mana, Modal } from "./components";
 import {
@@ -30,7 +31,15 @@ import {
   rememberSource,
   saveSnapshots,
   setShown,
+  showcaseGroups,
+  showcaseDecks,
+  enableGroup,
+  onlyGroup,
+  sourceDeckIds,
+  selectSourceDecks,
+  disconnectSource,
 } from "./collection";
+import CollectionOverview from "./CollectionOverview";
 import "./collection.css";
 
 type Props = {
@@ -90,7 +99,7 @@ export default function CollectionManager({
   backup,
   notify,
 }: Props) {
-  const [section, setSection] = useState("all");
+  const [section, setSection] = useState("overview");
   const [connecting, setConnecting] = useState(false);
   const [kind, setKind] = useState<"account" | "folder" | "deck">("account");
   const [value, setValue] = useState("");
@@ -107,22 +116,25 @@ export default function CollectionManager({
   const sources = collection.sources || [];
   const source = sources.find((s) => s.key === section);
   const saved = useMemo(() => new Map(decks.map((d) => [d.id, d])), [decks]);
-  const seedIds = new Set(catalog.map((d) => d.id));
-  const linkedIds = new Set(sources.flatMap((s) => s.knownIds));
-  const onDisplay = decks.filter(
-    (d) => !collection.hidden.includes(d.id),
-  ).length;
-  const manual = decks.filter(
-    (d) => !seedIds.has(d.id) && !linkedIds.has(d.id),
+  const groups = showcaseGroups(collection, catalog, decks);
+  const activeGroup = groups.find((g) => g.key === section);
+  const onDisplayIds = new Set(
+    showcaseDecks(collection, catalog, decks).map((d) => d.id),
   );
+  const onDisplay = onDisplayIds.size;
+  const manual = decks.filter((d) =>
+    groups.find((g) => g.key === "manual")!.ids.includes(d.id),
+  );
+  const sourceIds = new Set(source ? sourceDeckIds(source, decks) : []);
+  const isSavedHere = (id: string) =>
+    saved.has(id) && (!source || sourceIds.has(id));
   const rows: SourceEntry[] = source
     ? [
         ...source.entries,
         ...decks
           .filter(
             (d) =>
-              source.knownIds.includes(d.id) &&
-              !source.entries.some((e) => e.id === d.id),
+              sourceIds.has(d.id) && !source.entries.some((e) => e.id === d.id),
           )
           .map(toEntry),
       ]
@@ -137,16 +149,16 @@ export default function CollectionManager({
     const text = [row.name, ...(deck?.commanders.map((c) => c.name) || [])]
       .join(" ")
       .toLowerCase();
-    const display = !!deck && !collection.hidden.includes(row.id);
+    const display = isSavedHere(row.id) && onDisplayIds.has(row.id);
     return (
       text.includes(search.toLowerCase()) &&
       (status === "all" ||
         (status === "shown" && display) ||
-        (status === "hidden" && !!deck && !display) ||
-        (status === "new" && !deck))
+        (status === "hidden" && isSavedHere(row.id) && !display) ||
+        (status === "new" && !isSavedHere(row.id)))
     );
   });
-  const newRows = shown.filter((row) => !saved.has(row.id));
+  const newRows = shown.filter((row) => !isSavedHere(row.id));
   function navigate(next: string) {
     setSection(next);
     setSearch("");
@@ -188,15 +200,20 @@ export default function CollectionManager({
           );
         const deck = await loadDeck(parsed.value, signal);
         signal.throwIfAborted();
-        setCollection(saveSnapshots(collection, [deck], true));
-        navigate("all");
-        notify(`${deck.name} is on display.`);
+        setCollection({
+          ...saveSnapshots(collection, [deck], true),
+          manualIds: [...new Set([...(collection.manualIds || []), deck.id])],
+        });
+        navigate("manual");
+        notify(`${deck.name} added to Individual decks.`);
       } else {
         if (sources.length >= 50 && !sources.some((s) => s.key === parsed.key))
           throw new Error("You can link up to 50 sources.");
         const found = await loadSource(parsed.kind, parsed.value, signal);
         signal.throwIfAborted();
-        setCollection(rememberSource(collection, found));
+        setCollection(
+          rememberSource(collection, { ...found, selectedIds: [] }),
+        );
         navigate(found.key);
         notify(
           `${found.entries.length} public Commander decks found. Choose which to show.`,
@@ -245,21 +262,42 @@ export default function CollectionManager({
     try {
       if (
         collection.added.length +
-          selected.filter((id) => !collection.added.some((d) => d.id === id))
-            .length >
+          selected.filter((id) => !saved.has(id)).length >
         1000
       )
         throw new Error(
           "A local collection can hold up to 1,000 imported decks. Choose fewer decks.",
         );
-      const { loaded, errors } = await fetchDecks(selected, signal, false);
-      setCollection(saveSnapshots(collection, loaded, true));
+      const { loaded, errors } = await fetchDecks(
+        selected.filter((id) => !saved.has(id)),
+        signal,
+        false,
+      );
+      const accepted = [
+        ...loaded,
+        ...selected.filter((id) => saved.has(id)).map((id) => saved.get(id)!),
+      ];
+      const next = setShown(
+        saveSnapshots(collection, loaded, true),
+        accepted.map((d) => d.id),
+        true,
+      );
+      setCollection(
+        source
+          ? selectSourceDecks(
+              next,
+              source.key,
+              accepted.map((d) => d.id),
+              decks,
+            )
+          : next,
+      );
       setSelected((ids) =>
-        ids.filter((id) => !loaded.some((d) => d.id === id)),
+        ids.filter((id) => !accepted.some((d) => d.id === id)),
       );
       setFailures(errors);
       notify(
-        `${loaded.length} ${loaded.length === 1 ? "deck" : "decks"} added to your showcase.`,
+        `${accepted.length} ${accepted.length === 1 ? "deck" : "decks"} selected${activeGroup?.enabled === false ? ". Enable this collection to show them." : "."}`,
       );
     } catch (e) {
       report(e);
@@ -273,7 +311,7 @@ export default function CollectionManager({
     try {
       const found = await loadSource(source.kind, source.value, signal);
       const { loaded, errors } = await fetchDecks(
-        found.entries.filter((e) => saved.has(e.id)).map((e) => e.id),
+        found.entries.filter((e) => sourceIds.has(e.id)).map((e) => e.id),
         signal,
         true,
       );
@@ -304,12 +342,29 @@ export default function CollectionManager({
   }
   function disconnect() {
     if (!source) return;
-    setCollection((c) => ({
-      ...c,
-      sources: (c.sources || []).filter((s) => s.key !== source.key),
-    }));
-    navigate("all");
+    setCollection((c) => disconnectSource(c, source.key, catalog, decks));
+    navigate("overview");
     notify("Source disconnected. Saved decks and display choices were kept.");
+  }
+  async function browsePrecons() {
+    const key = "account:archidekt_precons";
+    if (sources.some((s) => s.key === key)) {
+      navigate(key);
+      return;
+    }
+    const signal = begin("Loading Archidekt’s precon catalog…");
+    try {
+      if (sources.length >= 50)
+        throw new Error("You can link up to 50 sources.");
+      const found = await loadSource("account", "Archidekt_Precons", signal);
+      signal.throwIfAborted();
+      setCollection(rememberSource(collection, { ...found, selectedIds: [] }));
+      navigate(key);
+    } catch (e) {
+      report(e);
+    } finally {
+      setBusy("");
+    }
   }
   return (
     <Modal title="My collection" onClose={onClose} wide>
@@ -342,9 +397,10 @@ export default function CollectionManager({
               disabled={!!busy}
               onChange={(e) => navigate(e.target.value)}
             >
+              <option value="overview">Showcase overview</option>
               <option value="all">All saved decks ({decks.length})</option>
               <option value="starter">
-                Starter precons ({catalog.length})
+                Included precons ({catalog.length})
               </option>
               <option value="manual">Individual decks ({manual.length})</option>
               {sources.map((s) => (
@@ -355,6 +411,16 @@ export default function CollectionManager({
             </select>
           </label>
           <nav className="manager-nav" aria-label="Collection sources">
+            <button
+              aria-current={
+                section === "overview" && !connecting ? "page" : undefined
+              }
+              disabled={!!busy}
+              onClick={() => navigate("overview")}
+            >
+              <LayoutGrid size={16} />
+              <span>Showcase overview</span>
+            </button>
             <button
               aria-current={
                 section === "all" && !connecting ? "page" : undefined
@@ -374,7 +440,7 @@ export default function CollectionManager({
               onClick={() => navigate("starter")}
             >
               <Folder size={16} />
-              <span>Starter precons</span>
+              <span>Included precons</span>
               <small>{catalog.length}</small>
             </button>
             <button
@@ -502,14 +568,30 @@ export default function CollectionManager({
                   </span>
                 </div>
               </form>
+            ) : section === "overview" ? (
+              <CollectionOverview
+                groups={groups}
+                collection={collection}
+                decks={decks}
+                busy={!!busy}
+                navigate={navigate}
+                toggle={(key, enabled) =>
+                  setCollection((c) => enableGroup(c, key, enabled))
+                }
+                only={(key) => setCollection((c) => onlyGroup(c, key, groups))}
+                enableAll={() =>
+                  setCollection((c) => ({ ...c, disabledGroups: [] }))
+                }
+                browsePrecons={browsePrecons}
+              />
             ) : (
               <>
                 <div className="manager-section-heading">
                   <div>
                     <h3>
-                      {source?.name ||
+                      {activeGroup?.name ||
                         (section === "starter"
-                          ? "Starter precons"
+                          ? "Included precons"
                           : section === "manual"
                             ? "Individual decks"
                             : "All saved decks")}
@@ -518,7 +600,7 @@ export default function CollectionManager({
                       {source
                         ? `${source.kind === "folder" ? "Folder · direct decks only" : "Archidekt account"} · Checked ${new Date(source.checkedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
                         : section === "starter"
-                          ? "The included collection. Show only the precons you own."
+                          ? "The original 29 decks from your supplied list, bundled with local artwork. This is not the full precon catalog."
                           : section === "manual"
                             ? "Added by link, or kept after disconnecting a source."
                             : "Saved locally. Show what you own; choose what goes in the picker."}
@@ -536,6 +618,60 @@ export default function CollectionManager({
                     </a>
                   )}
                 </div>
+                {activeGroup && (
+                  <div className="manager-group-control">
+                    <label className="overview-switch">
+                      <input
+                        type="checkbox"
+                        role="switch"
+                        aria-label={`Enable ${activeGroup.name}`}
+                        checked={activeGroup.enabled}
+                        disabled={!!busy}
+                        onChange={(e) =>
+                          setCollection((c) =>
+                            enableGroup(c, activeGroup.key, e.target.checked),
+                          )
+                        }
+                      />
+                      <span>
+                        {activeGroup.enabled
+                          ? "Collection enabled"
+                          : "Collection off — selections kept"}
+                      </span>
+                    </label>
+                    <button
+                      className="text-button"
+                      disabled={!!busy}
+                      onClick={() =>
+                        setCollection((c) =>
+                          onlyGroup(c, activeGroup.key, groups),
+                        )
+                      }
+                    >
+                      Only this collection
+                    </button>
+                  </div>
+                )}
+                {section === "starter" && (
+                  <div className="manager-precon-link">
+                    <button
+                      className="text-button"
+                      disabled={!!busy}
+                      onClick={browsePrecons}
+                    >
+                      Browse Archidekt’s full precon catalog{" "}
+                      <ArrowLeft
+                        size={12}
+                        style={{ transform: "rotate(180deg)" }}
+                      />
+                    </button>
+                  </div>
+                )}
+                <p className="manager-selection-note">
+                  Select individual decks below. Collection switches control
+                  whether those selections appear; picker choices are kept when
+                  a collection is off.
+                </p>
                 {source && (
                   <div className="manager-source-actions">
                     <button
@@ -596,45 +732,51 @@ export default function CollectionManager({
                   )}
                   <button
                     className="text-button"
-                    disabled={!!busy || !shown.some((d) => saved.has(d.id))}
+                    disabled={!!busy || !shown.some((d) => isSavedHere(d.id))}
                     onClick={() =>
                       setCollection((c) =>
                         setShown(
                           c,
-                          shown.filter((d) => saved.has(d.id)).map((d) => d.id),
+                          shown
+                            .filter((d) => isSavedHere(d.id))
+                            .map((d) => d.id),
                           true,
                         ),
                       )
                     }
                   >
-                    Show saved
+                    Select saved
                   </button>
                   <button
                     className="text-button"
-                    disabled={!!busy || !shown.some((d) => saved.has(d.id))}
+                    disabled={!!busy || !shown.some((d) => isSavedHere(d.id))}
                     onClick={() =>
                       setCollection((c) =>
                         setShown(
                           c,
-                          shown.filter((d) => saved.has(d.id)).map((d) => d.id),
+                          shown
+                            .filter((d) => isSavedHere(d.id))
+                            .map((d) => d.id),
                           false,
                         ),
                       )
                     }
                   >
-                    Hide saved
+                    Deselect saved
                   </button>
                 </div>
                 <div className="manager-list">
                   <div className="manager-columns">
                     <span>Deck</span>
-                    <span>Display</span>
+                    <span>Selected</span>
                     <span>Picker</span>
                   </div>
                   {shown.map((row) => {
                     const deck = saved.get(row.id);
                     const displaying =
-                      !!deck && !collection.hidden.includes(row.id);
+                      isSavedHere(row.id) &&
+                      !collection.hidden.includes(row.id);
+                    const member = isSavedHere(row.id);
                     const missing =
                       !!source &&
                       !!deck &&
@@ -670,10 +812,14 @@ export default function CollectionManager({
                             <small>
                               {missing
                                 ? "No longer listed · saved copy kept"
-                                : deck?.commanders
-                                    .map((c) => c.name)
-                                    .join(" & ") ||
-                                  "Not added · details load when selected"}
+                                : !member
+                                  ? "Not selected for this collection"
+                                  : !onDisplayIds.has(row.id) && displaying
+                                    ? "Collection off · selection kept"
+                                    : deck?.commanders
+                                        .map((c) => c.name)
+                                        .join(" & ") ||
+                                      "Not added · details load when selected"}
                             </small>
                             <Mana
                               colors={deck?.colors || row.colors}
@@ -685,12 +831,12 @@ export default function CollectionManager({
                           <input
                             type="checkbox"
                             disabled={!!busy}
-                            aria-label={`${deck ? "Show" : "Select"} ${row.name}`}
+                            aria-label={`${member ? "Show" : "Select"} ${row.name}`}
                             checked={
-                              deck ? displaying : selected.includes(row.id)
+                              member ? displaying : selected.includes(row.id)
                             }
                             onChange={(e) =>
-                              deck
+                              member
                                 ? setCollection((c) =>
                                     setShown(c, [row.id], e.target.checked),
                                   )
@@ -701,7 +847,7 @@ export default function CollectionManager({
                                   )
                             }
                           />
-                          <span>{deck ? "Show" : "Add"}</span>
+                          <span>{member ? "Show" : "Add"}</span>
                         </label>
                         <label className="manager-toggle">
                           <input

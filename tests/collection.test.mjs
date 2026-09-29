@@ -7,6 +7,12 @@ import {
   rememberSource,
   saveSnapshots,
   setShown,
+  showcaseGroups,
+  showcaseDecks,
+  enableGroup,
+  onlyGroup,
+  selectSourceDecks,
+  disconnectSource,
 } from "../src/collection.ts";
 import { discoverSource } from "../server/sources.mjs";
 
@@ -61,6 +67,125 @@ test("source links detect their kind, normalize duplicates and reject unrelated 
     "javascript:foo",
   ])
     assert.throws(() => parseSourceInput(url, "account"));
+});
+
+test("collection switches keep selections and picker exclusions and apply to every view pool", () => {
+  const c = { ...collection, hidden: [], sources: [source] };
+  const paused = enableGroup(
+    enableGroup(c, "starter", false),
+    source.key,
+    false,
+  );
+  assert.deepEqual(showcaseDecks(paused, [deck], [deck]), []);
+  assert.deepEqual(paused.hidden, c.hidden);
+  assert.deepEqual(paused.excluded, c.excluded);
+  assert.deepEqual(
+    showcaseDecks(enableGroup(paused, source.key, true), [deck], [deck]),
+    [deck],
+  );
+  assert.deepEqual(
+    showcaseDecks({ ...paused, disabledGroups: [] }, [deck], [deck]),
+    [deck],
+  );
+});
+test("overlapping collections form a unique union and Only this uses one group", () => {
+  const personal = { ...deck, id: "777" };
+  const second = {
+    ...source,
+    key: "folder:43",
+    value: "43",
+    url: "https://archidekt.com/folders/43",
+    knownIds: [deck.id, "777"],
+    entries: [entry, { ...entry, id: "777" }],
+  };
+  const c = {
+    ...collection,
+    hidden: [],
+    added: [personal],
+    sources: [source, second],
+  };
+  const all = [deck, personal];
+  assert.deepEqual(
+    showcaseDecks(enableGroup(c, source.key, false), [deck], all),
+    all,
+  );
+  const only = onlyGroup(c, source.key, showcaseGroups(c, [deck], all));
+  assert.deepEqual(showcaseDecks(only, [deck], all), [deck]);
+  assert.deepEqual(
+    showcaseDecks({ ...only, hidden: [deck.id] }, [deck], all),
+    [],
+  );
+});
+test("opening the precon catalog does not implicitly select existing bundled precons", () => {
+  const c = {
+    ...collection,
+    hidden: [],
+    sources: [{ ...source, selectedIds: [] }],
+    disabledGroups: ["starter"],
+  };
+  assert.deepEqual(showcaseDecks(c, [deck], [deck]), []);
+  const chosen = selectSourceDecks(c, source.key, [deck.id], [deck]);
+  assert.deepEqual(showcaseDecks(chosen, [deck], [deck]), [deck]);
+  const refreshed = rememberSource(chosen, {
+    ...source,
+    entries: [entry, { ...entry, id: "999" }],
+    knownIds: [deck.id, "999"],
+  });
+  assert.deepEqual(refreshed.sources[0].selectedIds, [deck.id]);
+  assert.deepEqual(refreshed.disabledGroups, ["starter"]);
+  assert.deepEqual(parseCollection(JSON.stringify(refreshed)), refreshed);
+});
+test("individual links can include a deck also present in a disabled source or included group", () => {
+  const c = {
+    ...collection,
+    hidden: [],
+    sources: [source],
+    manualIds: [deck.id],
+    disabledGroups: ["starter", source.key],
+  };
+  assert.deepEqual(showcaseDecks(c, [deck], [deck]), [deck]);
+  assert.deepEqual(
+    showcaseDecks(enableGroup(c, "manual", false), [deck], [deck]),
+    [],
+  );
+  assert.deepEqual(parseCollection(JSON.stringify(c)), c);
+});
+test("disconnecting a paused source keeps its snapshot without unexpectedly showing it", () => {
+  const personal = { ...deck, id: "777" };
+  const s = {
+    ...source,
+    knownIds: ["777"],
+    entries: [{ ...entry, id: "777" }],
+    selectedIds: ["777"],
+  };
+  const c = {
+    version: 1,
+    hidden: [],
+    excluded: ["777"],
+    added: [personal],
+    sources: [s],
+    disabledGroups: [s.key],
+  };
+  const next = disconnectSource(c, s.key, [], [personal]);
+  assert.deepEqual(next.added, [personal]);
+  assert.deepEqual(next.hidden, ["777"]);
+  assert.deepEqual(next.excluded, ["777"]);
+  assert.deepEqual(next.disabledGroups, []);
+  assert.deepEqual(
+    showcaseGroups(next, [], [personal]).find((g) => g.key === "manual").ids,
+    ["777"],
+  );
+});
+test("legacy source selections survive refresh and invalid group settings are rejected", () => {
+  const c = rememberSource(rememberSource(collection, source), source);
+  assert.deepEqual(parseCollection(JSON.stringify(c)), c);
+  for (const change of [
+    { disabledGroups: ["unknown"] },
+    { disabledGroups: [false] },
+    { manualIds: ["not-id"] },
+    { sources: [{ ...source, selectedIds: ["999"] }] },
+  ])
+    assert.throws(() => parseCollection(JSON.stringify({ ...c, ...change })));
 });
 test("source backup round trips and legacy backups preserve all existing choices", () => {
   assert.deepEqual(parseCollection(JSON.stringify(collection)), collection);
