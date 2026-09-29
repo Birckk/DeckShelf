@@ -1,6 +1,31 @@
-# Commander Archive
+# DeckShelf
 
-A local browser showcase for one person's Commander collection. A black Card Studio with full commander cards, a compact collection grid, and a continuously moving double helix that picks the next deck to play.
+Commander collection.
+
+The web app is the primary entry point. Deployment target: `https://deckshelf.birckk.com`.
+See [server deployment](docs/HOSTING.md) for Docker, Caddy, checks and updates.
+The optional Windows package currently retains its Commander Archive name and
+profile for compatibility with existing installations.
+
+A local showcase for one person's Commander collection, available as a Windows desktop application or in a browser. A black Card Studio with full commander cards, a compact collection grid, and a continuously moving double helix that picks the next deck to play.
+
+## Windows application
+
+Download **Commander-Archive-Setup-VERSION-x64.exe** and run the setup wizard.
+It installs for your Windows account without admin access and adds Commander
+Archive to the Start menu. No separately installed Node.js or browser is required.
+The optional ZIP is for users who prefer to manage a portable application folder.
+
+The desktop profile persists independently of the extracted folder and default
+browser. To bring over an existing browser collection, export a backup in the
+browser app and restore it in the desktop app. A linked Archidekt account helps
+rebuild your deck sources on another device; it does not synchronize local choices.
+
+See the [desktop guide](docs/DESKTOP.md) for backups, upgrades, uninstall and offline
+behavior. Builds are currently unsigned Windows x64 release candidates. Downloads
+in the private GitHub repository require repository access; no public release has
+been published. See [release instructions](docs/RELEASING.md) and
+[validation results](docs/VALIDATION.md).
 
 The picker repeats eligible decks to keep the spiral full even with one or two matches. Each strand cycles through decks in order before repeating. Card spacing stays consistent as the pool grows: extra decks extend the loop beyond the viewport instead of crowding the visible spiral. Repeated cards are visual only; every eligible deck keeps an equal chance of being picked.
 
@@ -8,7 +33,7 @@ The background stays steady while browsing all three views. Artwork and mana-col
 
 Collection display controls offer Details, Cards only, and List layouts, with small, medium, and large sizes. Large is the default. Layout and size are remembered in this browser.
 
-## Run locally
+## Run from source in a browser
 
 For interface changes, follow the project's [design direction](DESIGN.md). [AGENTS.md](AGENTS.md) points coding agents to the same guidance.
 
@@ -56,9 +81,9 @@ npm start
 
 The 29 supplied precons are included in `src/data/decks.json`, with local commander artwork in `public/images`. The starter collection, filtering and picker work without external internet access while the local server is running. Fonts are bundled locally too.
 
-Display choices, linked public sources, and imported deck snapshots are stored in this browser's `localStorage`. They are specific to the browser and URL origin. This is one collection for one user; linking multiple sources does not create shared ownership or an app login.
+Display choices, linked public sources, and imported deck snapshots are stored in `localStorage`. In the browser version they are specific to the browser and URL origin. The desktop version uses its own persistent profile and stable `archive://app` origin; browser changes do not affect it. This is one collection for one user; linking multiple sources does not create shared ownership or an app login.
 
-Adding or refreshing a source requires internet access and the local Node server. Added or refreshed artwork is loaded from Archidekt; offline availability of that artwork depends on the browser cache. Refresh is manual, not a background account sync. Moxfield links are retained as references for the supplied collection; live Moxfield import is not implemented.
+Adding or refreshing a source requires internet access and the API adapter (built into the desktop app, or provided by the Node server for browser use). Added or refreshed artwork is loaded from Archidekt; offline availability of that artwork depends on the cache. Refresh is manual, not a background account sync. Moxfield links are retained as references for the supplied collection; live Moxfield import is not implemented.
 
 ### Linking sources
 
@@ -119,3 +144,7 @@ Deck data and source descriptions: [Archidekt precon catalog](https://archidekt.
 The [double-helix gallery](https://github.com/githyperplexed/double-helix-gallery) inspired the use of spatial card presentation. This app's layout and animation code were independently implemented.
 
 Mana symbols are bundled SVGs from [Scryfall’s symbology API](https://scryfall.com/docs/api/card-symbols). Fonts (Outfit and DM Sans) are bundled through Fontsource for local use.
+
+See [third-party notices](THIRD_PARTY_NOTICES.md) for asset provenance and packaged
+license texts, and [project licensing status](LICENSE.md) for the pending original
+software license decision. Third-party artwork is not relicensed by this project.

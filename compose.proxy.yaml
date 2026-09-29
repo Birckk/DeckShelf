@@ -1,0 +1,16 @@
+name: deckshelf
+services:
+  deckshelf:
+    image: ${DECKSHELF_IMAGE:?Set DECKSHELF_IMAGE to a tested image digest}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    pids_limit: 100
+    networks: [proxy]
+networks:
+  proxy:
+    external: true

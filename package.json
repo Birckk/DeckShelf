@@ -2,13 +2,22 @@
   "name": "commander-archive",
   "private": true,
   "version": "1.0.0",
+  "description": "A personal Commander collection viewer and deck picker",
+  "author": "Bircck",
+  "license": "UNLICENSED",
+  "main": "desktop/main.mjs",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "start": "node server/index.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "desktop": "npm run runtime && npm run build && electron .",
+    "runtime": "node node_modules/electron/install.js",
+    "notices": "node scripts/notices.mjs",
+    "package:windows": "npm run runtime && npm run build && npm run notices && electron-builder --win --x64 --publish never && node scripts/release-assets.mjs",
+    "test:desktop": "node scripts/smoke-desktop.mjs"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.3.0",
@@ -18,10 +27,13 @@
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@types/node": "^26.6.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.1"
   },

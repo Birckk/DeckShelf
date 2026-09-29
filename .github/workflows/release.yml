@@ -1,0 +1,56 @@
+name: Release candidate
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Validate release version
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Use a stable semantic package version.' }
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") { throw 'Tag must match package.json version.' }
+          if (-not (Select-String -Path docs/RELEASE_NOTES.md -SimpleMatch "Commander Archive $version" -Quiet)) { throw 'Update release notes for this version.' }
+      - run: npm ci
+      - run: npm test
+      - run: npm run package:windows
+      - run: npm run test:desktop
+      - shell: pwsh
+        run: ./scripts/smoke-installer.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: |
+            release/*Setup*.exe
+            release/*.zip
+            release/*.txt
+            release/*.md
+            release/build-info.json
+          if-no-files-found: error
+  draft:
+    if: github.ref_type == 'tag'
+    needs: windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+          path: assets
+      - name: Create draft release for owner review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" assets/* --verify-tag --draft --title "Commander Archive $RELEASE_TAG" --notes-file assets/RELEASE_NOTES.md

@@ -9,3 +9,9 @@ qa/
 .env.*
 !.env.example
 *.log
+release/
+build/notices/
+build/windows/
+build/cleanup-backup/
+test-results/
+playwright-report/

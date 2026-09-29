@@ -266,11 +266,11 @@ function App() {
             e.preventDefault();
             selectView("cards");
           }}
-          aria-label="Commander Archive home"
+          aria-label="DeckShelf home"
         >
           <img src="/favicon.svg" alt="" />
           <span>
-            Commander <span className="brand-sub">Archive</span>
+            Deck<span className="brand-sub">Shelf</span>
           </span>
         </a>
         <div className="studio-nav" role="group" aria-label="Collection view">
@@ -296,7 +296,7 @@ function App() {
         <div className="header-actions">
           <button
             className="icon-button about-button"
-            aria-label="About Commander Archive"
+            aria-label="About DeckShelf"
             onClick={() => setShowAbout(true)}
           >
             <Info size={18} />
@@ -824,12 +824,12 @@ function App() {
       )}
       {showAbout && (
         <Modal
-          title="About Commander Archive"
+          title="About DeckShelf"
           onClose={() => setShowAbout(false)}
         >
           <div className="about-copy">
             <img src="/favicon.svg" width="55" height="55" alt="" />
-            <h2>Your Commander collection.</h2>
+            <h2>Commander collection</h2>
             <p>
               Browse the Commander decks you own, filter by color or set, and
               pick a deck for your next game.

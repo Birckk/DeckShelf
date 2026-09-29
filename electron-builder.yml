@@ -1,0 +1,46 @@
+appId: dk.bircck.commanderarchive
+productName: Commander Archive
+asar: true
+# Reuse the exact runtime installed by npm ci; avoid a second download/extraction.
+electronDist: node_modules/electron/dist
+afterPack: scripts/after-pack.mjs
+directories:
+  output: build/windows
+files:
+  - dist/**/*
+  - desktop/**/*
+  - server/api.mjs
+  - server/sources.mjs
+  - package.json
+  - '!node_modules/**/*'
+extraResources:
+  - from: docs/DESKTOP.md
+    to: DESKTOP.md
+  - from: THIRD_PARTY_NOTICES.md
+    to: THIRD_PARTY_NOTICES.md
+  - from: LICENSE.md
+    to: LICENSE.md
+  - from: build/notices
+    to: notices
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: zip
+      arch: [x64]
+  artifactName: Commander-Archive-${version}-windows-${arch}.${ext}
+  signAndEditExecutable: false
+nsis:
+  artifactName: Commander-Archive-Setup-${version}-x64.exe
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: false
+  createDesktopShortcut: false
+  createStartMenuShortcut: true
+  shortcutName: Commander Archive
+  uninstallDisplayName: Commander Archive
+  deleteAppDataOnUninstall: false
+  runAfterFinish: true
+  include: build/installer.nsh
+publish: null
