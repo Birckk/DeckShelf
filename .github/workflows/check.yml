@@ -5,6 +5,7 @@ permissions:
 jobs:
   web-container:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,6 +28,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [test-and-build, web-container]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       packages: write
@@ -45,6 +47,7 @@ jobs:
           tags: ghcr.io/bircck/deckshelf:sha-${{ github.sha }}
           labels: org.opencontainers.image.source=https://github.com/Bircck/DeckShelf
   test-and-build:
+    timeout-minutes: 20
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]

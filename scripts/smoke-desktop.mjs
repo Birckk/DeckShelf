@@ -44,6 +44,11 @@ const errors = [];
 async function launch(directory) {
   running = await electron.launch({ executablePath: join(directory, 'Commander Archive.exe'), args: ['--smoke-test'], env, timeout: 45000 });
   const page = await running.firstWindow();
+  // A hidden Electron window may not produce compositor frames on the hosted
+  // Windows runner. Show it only on that disposable machine for screenshots.
+  if (process.env.GITHUB_ACTIONS === 'true' && process.env.RUNNER_OS === 'Windows') {
+    await running.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].show());
+  }
   page.on('pageerror', error => errors.push(error.message));
   await expect(page.getByRole('button', { name: /^My collection/ })).toBeVisible();
   expect(page.url()).toBe('archive://app/');
