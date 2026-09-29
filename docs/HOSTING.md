@@ -31,15 +31,17 @@ docker compose -f compose.proxy.yaml up -d --wait
 Add this public site to the existing Caddy configuration:
 
 ```caddyfile
-deckshelf.birckk.com {
+deckshelf.example.com {
     encode zstd gzip
     reverse_proxy deckshelf:4317
 }
 ```
 
-This site uses Caddy's normal HTTPS certificate validation over ports 80/443.
-It does not need a DNS API token.
-Point the hostname at your server with an A/AAAA record or a CNAME. Start DNS-only while validating HTTPS.
+Replace the example hostname with your own. Caddy can validate HTTPS certificates
+over ports 80/443 without a DNS API token. Point the hostname at your server using
+an A/AAAA record or a CNAME to an existing hostname. If the server address changes,
+configure dynamic DNS for the appropriate zone and keep its credential outside
+the repository. Start DNS-only while validating HTTPS.
 After HTTPS works, Cloudflare proxying is optional; use Full (strict) SSL mode
 and do not cache `/api/*` or `/healthz` responses.
 
@@ -55,7 +57,8 @@ desktop and phone sizes. Only successful main builds publish an image tagged
 `sha-COMMIT` to `ghcr.io/bircck/deckshelf`. Pin deployments by digest.
 
 Update the server's image pin and run Compose with `up -d --wait`. Check
-`https://deckshelf.birckk.com/healthz`, the collection and a public source import.
+`https://deckshelf.example.com/healthz` at your chosen hostname, the collection and
+a public source import.
 Keep the previous digest to roll back using the same command. Image publication
 does not automatically restart the server.
 

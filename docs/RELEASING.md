@@ -42,7 +42,7 @@ tests, concept images, caches, private environment files and development tooling
 
 The desktop smoke script extracts the actual ZIP into a temporary folder, uses an
 isolated temporary profile, and exercises the packaged executable with Playwright.
-It does not launch the app with the owner's profile or touch port 4317. Test screenshots
+It does not launch the app with the user's profile or touch port 4317. Test screenshots
 go to `qa/`; temporary test files remain on failure for diagnosis. The release ZIP
 is not a USB-portable profile: data belongs to the Windows user, not the ZIP folder.
 

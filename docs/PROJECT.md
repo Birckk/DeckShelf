@@ -1,8 +1,30 @@
 # Project work
 
-[GitHub issues](https://github.com/Bircck/DeckShelf/issues) are the backlog and the
-source of task status. Use [First-use polish](https://github.com/Bircck/DeckShelf/milestone/1)
-for the next product iteration. There is no separate project board to maintain.
+[DeckShelf — Feature releases](https://github.com/users/Bircck/projects/4) is the
+release-planning overview. Its items are the real
+[GitHub issues](https://github.com/Bircck/DeckShelf/issues), not duplicate tasks.
+Use [First-use polish](https://github.com/Bircck/DeckShelf/milestone/1) for the next
+product iteration. The repository and project remain private.
+
+## Project structure
+
+- Epics: [First-use polish](https://github.com/Bircck/DeckShelf/issues/10),
+  [Everyday collection use](https://github.com/Bircck/DeckShelf/issues/11), and
+  [Public-release readiness](https://github.com/Bircck/DeckShelf/issues/12).
+- Features/PBIs are child issues describing a useful outcome. Use these as one
+  level; a separate PBI layer is unnecessary for this project's size.
+- Tasks are smaller sub-issues when a feature needs a breakdown. The precon demo
+  has snapshot, migration/UI and verification tasks (#14–#16).
+- Investigations capture decisions before committing to implementation.
+
+The board has Status, Priority, Work type, Release, Parent issue and Sub-issues
+progress fields. Views cover the release board, first-use work, epics, public
+readiness and full backlog. `Ready` means available to pick up, not already active.
+The first ready task is the catalog snapshot (#14).
+
+Existing issues have been imported. GitHub's browser-only Auto-add workflow should
+target `Bircck/DeckShelf` with `is:issue,pr`; until enabled, explicitly add new items
+to project 4. Do not store a personal Projects token in a repository workflow.
 
 ## First-use polish
 
@@ -23,6 +45,7 @@ for the next product iteration. There is no separate project board to maintain.
 - [Moxfield import investigation](https://github.com/Bircck/DeckShelf/issues/7).
 - [Desktop branding compatibility](https://github.com/Bircck/DeckShelf/issues/8).
 - [Licensing and public download decisions](https://github.com/Bircck/DeckShelf/issues/9).
+- [Public-release history, automation and artifact audit](https://github.com/Bircck/DeckShelf/issues/13).
 
 These record remaining work from the repository and product discussions. They
 are not a promise to implement every idea. CLI/MCP interfaces and additional
