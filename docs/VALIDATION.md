@@ -1,4 +1,30 @@
-# Desktop candidate validation
+# Deployment and desktop validation
+
+## Hosted application and GitHub checks
+
+On September 29, 2026, DeckShelf was deployed on the server in a
+non-root, read-only Docker container behind the existing Caddy proxy. Caddy
+obtained a valid public certificate for `deckshelf.birckk.com`; HTTP redirects
+to HTTPS. The live health endpoint and a public Archidekt import succeeded.
+Chromium checks at 1440px and 390px verified the public HTTPS site, loaded artwork,
+collection navigation, no horizontal overflow and no page errors. Public DNS was
+resolved explicitly for the browser checks because this development computer
+still cached the earlier NXDOMAIN; normal DNS access also passed on the server.
+
+[GitHub run 36620315392](https://github.com/Bircck/DeckShelf/actions/runs/36620315392)
+passed Linux and Windows unit/build checks, the container's web smoke checks,
+packaged desktop smoke checks, and the actual NSIS install/reinstall/uninstall
+lifecycle on a disposable Windows runner. The installer check verified the Start
+menu shortcut, per-user registration and preservation of the profile sentinel.
+
+The first hosted runs found two test-harness issues: hidden windows did not
+produce screenshot frames on the Windows runner, and a fresh user had no uninstall
+registry key. Tests now show the window only on that disposable runner and handle
+an absent registry key. Local test windows stay hidden.
+
+The website is online; PWA installation and offline caching are not implemented.
+
+## Earlier local desktop validation
 
 Local validation on September 29, 2026, on Windows 10 x64 (build 19045), with
 Node 22.23.2 for building and Electron 44.4.5 in the distributable:
@@ -47,9 +73,10 @@ the bundled application, not execution of the installation wizard. Authenticode
 reports NotSigned. Installation, Start menu registration,
 same-version reinstall and uninstall/profile preservation have a dedicated check
 in `scripts/smoke-installer.ps1`, gated to disposable GitHub Windows runners. That
-lifecycle check has not been run on this machine or remotely yet. The setup wizard
+lifecycle check subsequently passed on GitHub (see above). The setup wizard
 has not been manually exercised. No signing certificate or automatic updater exists.
-GitHub workflows are prepared but were not run remotely or used to publish a release.
+The Check workflow has run remotely. No desktop GitHub release has been published;
+the separate tag-triggered draft-release workflow has not been exercised.
 
 The first test extraction under the system TEMP folder hit a Chromium GPU startup
 failure with exit code -2147483645. That directory has additional inherited sandbox
