@@ -2,6 +2,10 @@
 
 Commander collection.
 
+[Project tasks and priorities](docs/PROJECT.md) ·
+[GitHub backlog](https://github.com/Bircck/DeckShelf/issues) ·
+[First-use polish milestone](https://github.com/Bircck/DeckShelf/milestone/1)
+
 The web app is the primary entry point. Deployment target: `https://deckshelf.birckk.com`.
 See [server deployment](docs/HOSTING.md) for Docker, Caddy, checks and updates.
 The optional Windows package currently retains its Commander Archive name and

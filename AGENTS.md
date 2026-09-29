@@ -7,3 +7,4 @@ Read [DESIGN.md](DESIGN.md) before changing user-facing layout, styling, motion,
 - Preserve local operation, saved collection choices, accessible controls, and reduced-motion support.
 - For behavior changes, run relevant tests and `npm run build`. For visual changes, also inspect the affected views in the browser at desktop and mobile sizes. Documentation-only changes do not require a build.
 - Describe verified results accurately; distinguish tested behavior from aesthetic judgment.
+- See [docs/PROJECT.md](docs/PROJECT.md) for the backlog workflow. Track task status and acceptance criteria in GitHub issues; distinguish implemented, tested and deployed work. Current owner requests take priority over the recorded order.
