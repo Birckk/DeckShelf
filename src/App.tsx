@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react";
 import seed from "./data/decks.json";
+import precons from "./data/precons.json";
 import {
   COLORS,
   EMPTY_COLLECTION,
@@ -41,7 +42,7 @@ import { Artwork, Mana, ManaSymbol, Modal } from "./components";
 import Picker from "./HelixPicker";
 import CardStudio from "./CardStudio";
 import CollectionManager from "./CollectionManager";
-import { showcaseDecks } from "./collection";
+import { showcaseDecks, collectionDecks, freshCollection, removeDemo } from "./collection";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 
 const catalog = seed as Deck[];
@@ -65,18 +66,20 @@ function readDisplay(): { layout: CollectionLayout; size: number } {
     return { layout: "grid", size: 2 };
   }
 }
-function readSaved(): { collection: Collection; error: string } {
+function readSaved(): { collection: Collection; error: string; raw?: string | null } {
+  let raw: string | null = null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    raw = localStorage.getItem(STORAGE_KEY);
     return {
-      collection: raw ? parseCollection(raw) : { ...EMPTY_COLLECTION },
+      collection: raw !== null ? parseCollection(raw) : freshCollection(precons as { snapshotAt: string; decks: Deck[] }),
       error: "",
     };
   } catch {
     return {
       collection: { ...EMPTY_COLLECTION },
+      raw,
       error:
-        "Your saved collection could not be read. The starter collection is shown; the saved data has not been overwritten.",
+        "Your saved collection could not be read. The starter collection is shown temporarily; the saved data has not been overwritten. Export it for recovery, or restore a valid backup to resume saving.",
     };
   }
 }
@@ -85,6 +88,7 @@ function App() {
   const [loaded] = useState(readSaved);
   const [collection, setCollection] = useState<Collection>(loaded.collection);
   const [storageError, setStorageError] = useState(loaded.error);
+  const [storageLocked, setStorageLocked] = useState(!!loaded.error);
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
   const [view, setView] = useState<View>("cards");
   const [display, setDisplay] = useState(readDisplay);
@@ -102,6 +106,7 @@ function App() {
   const [sort, setSort] = useState("collection");
   const [detail, setDetail] = useState<Deck | null>(null);
   const [showCollection, setShowCollection] = useState(false);
+  const [personalStart, setPersonalStart] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const filterDropdownRef = useRef<HTMLDivElement>(null);
@@ -135,7 +140,7 @@ function App() {
   const [spinning, setSpinning] = useState(false);
   const [notice, setNotice] = useState("");
   useEffect(() => {
-    if (loaded.error && collection === loaded.collection) return;
+    if (storageLocked) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(collection));
       setStorageError("");
@@ -144,19 +149,15 @@ function App() {
         "This browser could not save your collection. Export a backup before closing this page.",
       );
     }
-  }, [collection, loaded]);
+  }, [collection, storageLocked]);
   useEffect(() => {
     if (!notice) return;
     const timer = setTimeout(() => setNotice(""), 5500);
     return () => clearTimeout(timer);
   }, [notice]);
   const allDecks = useMemo(
-    () => [
-      ...new Map(
-        [...catalog, ...collection.added].map((d) => [d.id, d]),
-      ).values(),
-    ],
-    [collection.added],
+    () => collectionDecks(collection, catalog),
+    [collection],
   );
   const owned = useMemo(
     () => showcaseDecks(collection, catalog, allDecks),
@@ -242,7 +243,7 @@ function App() {
   }
   function backup() {
     const url = URL.createObjectURL(
-      new Blob([JSON.stringify(collection, null, 2)], {
+      new Blob([storageLocked && loaded.raw !== null && loaded.raw !== undefined ? loaded.raw : JSON.stringify(collection, null, 2)], {
         type: "application/json",
       }),
     );
@@ -304,7 +305,7 @@ function App() {
           <button
             className="button button-outline"
             disabled={spinning}
-            onClick={() => setShowCollection(true)}
+            onClick={() => { setPersonalStart(false); setShowCollection(true); }}
           >
             <Library size={16} />
             <span>My collection</span>
@@ -321,6 +322,16 @@ function App() {
         </div>
       )}
       <div className="studio-workspace">
+        {collection.demo && !collection.demo.removed && !collection.disabledGroups?.includes("demo") && (
+          <div className="demo-strip">
+            <span><strong>Commander precons demo</strong> · Explore {collection.demo.decks.length} precons</span>
+            <button className="text-button" disabled={spinning} onClick={() => {
+              setCollection(removeDemo);
+              setPersonalStart(true);
+              setShowCollection(true);
+            }}>Start my collection <ArrowRight size={14} /></button>
+          </div>
+        )}
         <fieldset
           className="studio-toolbar"
           disabled={spinning}
@@ -817,6 +828,8 @@ function App() {
           decks={allDecks}
           collection={collection}
           setCollection={setCollection}
+          startPersonal={personalStart}
+          onRestore={(value) => { setStorageLocked(false); setCollection(value); }}
           onClose={() => setShowCollection(false)}
           backup={backup}
           notify={setNotice}

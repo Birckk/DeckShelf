@@ -852,3 +852,8 @@
     font-size: 13px;
   }
 }
+.demo-strip { display: flex; align-items: center; justify-content: space-between; gap: 8px 20px; flex-wrap: wrap; padding: 8px 0 12px; color: #aaaab3; font-size: 12px; }
+.demo-strip strong { color: #d8cbb4; font-weight: 500; }
+.demo-provenance { margin-top: 6px !important; font-size: 11px !important; }
+.overview-intro .button { flex-shrink: 0; }
+@media (max-width: 700px) { .overview-intro { flex-wrap: wrap; } }

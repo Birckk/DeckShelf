@@ -64,7 +64,7 @@ export function rememberSource(
 export type ShowcaseGroup = {
   key: string;
   name: string;
-  kind: "included" | "manual" | "account" | "folder";
+  kind: "included" | "demo" | "manual" | "account" | "folder";
   ids: string[];
   available: number;
   enabled: boolean;
@@ -95,21 +95,26 @@ export function showcaseGroups(
     available: s.entries.length,
   }));
   const linked = new Set(sourceGroups.flatMap((g) => g.ids));
-  const manual = decks
+  const demoIds = new Set(collection.demo?.decks.map(d => d.id) || []);
+  const manual = collection.added
     .filter(
       (d) =>
         collection.manualIds?.includes(d.id) ||
-        (!seedIds.has(d.id) && !linked.has(d.id)),
+        (!seedIds.has(d.id) && !demoIds.has(d.id) && !linked.has(d.id)),
     )
     .map((d) => d.id);
   return [
-    {
+    ...(collection.starter !== false ? [{
       key: "starter",
       name: "Included precons",
       kind: "included" as const,
       ids: [...seedIds],
       available: catalog.length,
-    },
+    }] : []),
+    ...(collection.demo && !collection.demo.removed ? [{
+      key: "demo", name: "Commander precons demo", kind: "demo" as const,
+      ids: collection.demo.decks.map(d => d.id), available: collection.demo.decks.length,
+    }] : []),
     {
       key: "manual",
       name: "Individual decks",
@@ -190,12 +195,37 @@ export function disconnectSource(
     ...collection,
     sources: (collection.sources || []).filter((s) => s.key !== key),
     disabledGroups: (collection.disabledGroups || []).filter((k) => k !== key),
+    manualIds: [...new Set([...(collection.manualIds || []),
+      ...(collection.sources || []).filter(s => s.key === key).flatMap(s => sourceDeckIds(s, decks)),
+    ])],
   };
   // Orphaned snapshots become individual decks, but a paused source must not reveal them.
   const newlyVisible = showcaseDecks(next, catalog, decks)
     .filter((d) => !visible.has(d.id))
     .map((d) => d.id);
   return setShown(next, newlyVisible, false);
+}
+
+export function collectionDecks(collection: Collection, legacy: Deck[]): Deck[] {
+  return [...new Map([
+    ...(collection.starter !== false ? legacy : []),
+    ...(collection.demo && !collection.demo.removed ? collection.demo.decks : []),
+    ...collection.added,
+  ].map(d => [d.id, d])).values()];
+}
+
+export function addDemo(collection: Collection, snapshot: { snapshotAt: string; decks: Deck[] }): Collection {
+  return enableGroup({ ...collection, demo: collection.demo
+    ? { ...collection.demo, removed: false }
+    : { snapshotAt: snapshot.snapshotAt, decks: snapshot.decks, removed: false } }, "demo", true);
+}
+
+export function removeDemo(collection: Collection): Collection {
+  return collection.demo ? { ...collection, demo: { ...collection.demo, removed: true } } : collection;
+}
+
+export function freshCollection(snapshot: { snapshotAt: string; decks: Deck[] }): Collection {
+  return addDemo({ version: 1, hidden: [], excluded: [], added: [], starter: false }, snapshot);
 }
 
 // A refresh only replaces metadata. Local visibility and picker choices survive.

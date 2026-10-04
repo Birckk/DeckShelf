@@ -18,7 +18,7 @@ async function read(path, signal) {
   return response.json();
 }
 
-export async function discoverSource(kind, value) {
+export async function discoverSource(kind, value, { strict = false } = {}) {
   if (
     !["account", "folder"].includes(kind) ||
     !(kind === "folder" ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(
@@ -31,6 +31,8 @@ export async function discoverSource(kind, value) {
   const pages = new Set();
   let name = value;
   let complete = false;
+  let expectedCount;
+  const seen = new Set();
   for (let page = 1; page <= 50; page++) {
     // Construct pagination ourselves; never fetch a URL supplied by upstream data.
     const path =
@@ -39,6 +41,12 @@ export async function discoverSource(kind, value) {
         : `/api/decks/folders/${value}/?page=${page}`;
     const data = await read(path, signal);
     const rows = kind === "account" ? data.results : data.decks;
+    if (strict) {
+      if (!Number.isInteger(data.count) || data.count < 1 ||
+          (expectedCount !== undefined && expectedCount !== data.count))
+        throw new Error("Catalog count is missing or changed during pagination.");
+      expectedCount = data.count;
+    }
     if (
       !Array.isArray(rows) ||
       (kind === "folder" && (String(data.id) !== value || data.private))
@@ -58,6 +66,9 @@ export async function discoverSource(kind, value) {
       );
     if (kind === "folder") name = String(data.name || `Folder ${value}`);
     for (const row of rows) {
+      if (strict && (seen.has(String(row.id)) || row.private || row.deckFormat !== 3))
+        throw new Error("Catalog contains duplicate or unavailable entries.");
+      seen.add(String(row.id));
       if (row.private || row.deckFormat !== 3) continue;
       if (
         kind === "account" &&
@@ -93,6 +104,8 @@ export async function discoverSource(kind, value) {
     throw new Error(
       "This source is too large to read completely. Link a smaller folder instead.",
     );
+  if (strict && entries.size !== expectedCount)
+    throw new Error(`Incomplete catalog: expected ${expectedCount}, received ${entries.size}.`);
   return {
     key: `${kind}:${value.toLowerCase()}`,
     kind,
@@ -105,5 +118,6 @@ export async function discoverSource(kind, value) {
     checkedAt: new Date().toISOString(),
     entries: [...entries.values()],
     knownIds: [...entries.keys()],
+    ...(strict ? { expectedCount, pages: pages.size } : {}),
   };
 }

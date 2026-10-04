@@ -97,3 +97,10 @@ test('Archidekt rich text becomes readable text, including embedded card names',
   assert.equal(descriptionText('<p>Plain text</p>'),'Plain text');
   assert.equal(descriptionText(null),'');
 });
+
+test('source normalization includes uncategorized cards in older precons', () => {
+  const commander = { categories: ['Commander'], quantity: 1, card: { uid: '687a2b76-3f05-4732-bd9b-513d06d16300', artist: 'Artist', oracleCard: { name: 'Commander', colorIdentity: ['Blue'] }, edition: { editionname: 'Sample' } } };
+  const deck = normalizeDeck({ id: 42, name: 'Old precon', deckFormat: 3, cards: [commander, { categories: null, quantity: 98 }, { quantity: 1 }, { categories: ['Sideboard'], quantity: 5 }] });
+  assert.equal(deck.cardCount, 100);
+  assert.ok(validateDeck(deck));
+});

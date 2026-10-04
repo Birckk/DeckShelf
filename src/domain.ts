@@ -95,6 +95,9 @@ export type Collection = {
   sources?: CollectionSource[];
   disabledGroups?: string[];
   manualIds?: string[];
+  // Absent means the original v1 profile: retain its 29-deck baseline.
+  starter?: boolean;
+  demo?: { snapshotAt: string; decks: Deck[]; removed: boolean };
 };
 export type SourceEntry = {
   id: string;
@@ -227,14 +230,22 @@ export function parseCollection(raw: string): Collection {
     ) ||
     !v.added.every(validateDeck) ||
     v.added.length > 1000 ||
+    (v.starter !== undefined && typeof v.starter !== "boolean") ||
+    (v.demo !== undefined &&
+      (!v.demo || typeof v.demo.removed !== "boolean" ||
+        typeof v.demo.snapshotAt !== "string" || !Number.isFinite(Date.parse(v.demo.snapshotAt)) ||
+        !Array.isArray(v.demo.decks) || !v.demo.decks.length || v.demo.decks.length > 1000 ||
+        !v.demo.decks.every(validateDeck) ||
+        new Set(v.demo.decks.map(d => d.id)).size !== v.demo.decks.length)) ||
     new Set(v.added.map((d) => d.id)).size !== v.added.length ||
     (v.disabledGroups !== undefined &&
       (!Array.isArray(v.disabledGroups) ||
-        v.disabledGroups.length > 52 ||
+        v.disabledGroups.length > 53 ||
         !v.disabledGroups.every(
           (key) =>
             typeof key === "string" &&
             (key === "starter" ||
+              key === "demo" ||
               key === "manual" ||
               v.sources?.some((s) => s?.key === key)),
         ))) ||
@@ -257,6 +268,8 @@ export function parseCollection(raw: string): Collection {
     hidden: [...new Set(v.hidden)],
     excluded: [...new Set(v.excluded)],
     added: v.added,
+    ...(v.starter !== undefined ? { starter: v.starter } : {}),
+    ...(v.demo !== undefined ? { demo: v.demo } : {}),
     ...(v.sources !== undefined ? { sources: v.sources } : {}),
     ...(v.disabledGroups !== undefined
       ? { disabledGroups: [...new Set(v.disabledGroups)] }

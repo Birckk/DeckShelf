@@ -52,7 +52,7 @@ to project 4. Do not store a personal Projects token in a repository workflow.
 1. [Optional Commander precon demo](https://github.com/Bircck/DeckShelf/issues/1):
    replace the arbitrary default 29 decks with a clearly labeled collection based
    on Archidekt's curated catalog. Easy to remove and restore; preserve existing
-   users' saved collections. This is planned work, not the current behavior.
+   users' saved collections. See [catalog and migration rules](PRECON_CATALOG.md).
 2. [Start a personal collection](https://github.com/Bircck/DeckShelf/issues/2):
    make adding your own public source and switching away from the demo obvious.
 3. [Phone usability pass](https://github.com/Bircck/DeckShelf/issues/3):
