@@ -24,6 +24,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 
 - Use the bundled Magic mana symbols for color identity.
 - Use dice for random deck selection; do not substitute generic AI-style sparkles.
+- Cards navigation uses a small fan of cards with its visible label.
 - Do not restore the repeated `COMMANDER ✦` stamps on every carousel card.
 - Keep meaningful labels on unfamiliar controls. Preserve visible keyboard focus even when mouse hover styling is subtle.
 - Keep Outfit and DM Sans, the charcoal palette, and restrained warm accents. No font is inherently an “AI font”; do not churn typography to follow a generic banned-font list.
@@ -32,10 +33,15 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 ## Layout and density
 
 - The cards and collection should dominate the page. Keep navigation, filters, and controls compact.
+- Show a simple deck total by default. Show the full collection total when results differ, and a separate picker count only when exclusions make it different.
+- Keep shared navigation, search, and deck counts anchored across views. Avoid an isolated extra row of Collection controls with wasted space; reserve scrollbar space so switching views does not shift the page sideways.
+- Use one compact row below search: count left, view-specific controls right, wrapping on phones. Give the controls a little breathing room below search.
+- Open Collection on each visit or refresh; the Cards and picker views remain available from navigation.
 - Filters drop down beside their trigger; they do not open a modal.
-- Collection offers Details, Cards only, and List with adjustable size. Large is the default; remember a user's explicit choice.
+- Collection offers Details, Cards only, and List with adjustable size. Cards only at Medium size is the default; remember a user's explicit choice.
 - Details has compact information below the card, without reserved blank title space. Keep names, releases, mana symbols, and picker inclusion easy to locate.
 - The pick button floats over the spiral. Do not restore a large footer console that consumes carousel space.
+- Picker motion controls sit beside the shared deck count. Do not restore a separate status/control strip above the picker scene.
 - Do not remove useful spacing or flatten everything in the name of being “less AI.” Preserve readability and the distinctive card presentation.
 
 ## Collection management

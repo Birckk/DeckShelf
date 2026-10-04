@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowRight,
   ExternalLink,
@@ -44,12 +45,14 @@ export default function HelixPicker({
   setSpinning,
   openDeck,
   onWinner,
+  controlsTarget,
 }: {
   decks: Deck[];
   spinning: boolean;
   setSpinning: (v: boolean) => void;
   openDeck: (d: Deck) => void;
   onWinner: (deck: Deck | null) => void;
+  controlsTarget: HTMLDivElement | null;
 }) {
   const [winner, setWinner] = useState<Deck | null>(null);
   const [paused, setPaused] = useState(false);
@@ -291,8 +294,7 @@ export default function HelixPicker({
       className={`helix-picker ${spinning ? "is-spinning" : ""} ${winner ? "has-winner" : ""} ${reduced ? "reduced-motion" : ""}`}
       aria-label="Random deck picker"
     >
-      <div className="helix-toolbar">
-        <span className="helix-live">
+        <span className="sr-only" role="status">
           {spinning
             ? "Picking a deck…"
             : winner
@@ -301,7 +303,7 @@ export default function HelixPicker({
                 ? "Motion paused"
                 : "Deck picker"}
         </span>
-        <div className="helix-motion-controls">
+        {controlsTarget && createPortal(<div className="helix-motion-controls" role="group" aria-label="Picker motion">
           <button
             className="text-button"
             disabled={spinning || reduced || !!winner || !count}
@@ -320,8 +322,7 @@ export default function HelixPicker({
             />
             Reduce motion
           </label>
-        </div>
-      </div>
+        </div>, controlsTarget)}
       <div className="helix-intro">
         <h2>What are we playing?</h2>
         <p>

@@ -17,6 +17,9 @@ try {
   const started = Date.now();
   await page.goto(base);
   await expect(page.getByText(`Explore ${snapshot.decks.length} precons`, { exact: false })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Collection', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.collection-grid')).toHaveClass(/collection-layout-art collection-size-1/);
+  await page.getByRole('button', { name: 'Cards', exact: true }).click();
   await expect(page.locator('.studio-card')).toHaveCount(7);
   const startup = Date.now() - started;
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -24,6 +27,7 @@ try {
   await page.screenshot({ path: `qa/demo/${viewport.width}-cards.png` });
   await page.getByRole('button', { name: 'Collection', exact: true }).click();
   await expect(page.locator('.collection-tile')).toHaveCount(snapshot.decks.length);
+  await page.getByRole('button', { name: 'Details', exact: true }).click();
   await page.getByRole('button', { name: 'Filter Blue', exact: true }).click();
   await expect(page.locator('.collection-tile')).toHaveCount(snapshot.decks.filter(d => d.colors.includes('U')).length);
   await page.getByRole('button', { name: 'Filter Blue', exact: true }).click();

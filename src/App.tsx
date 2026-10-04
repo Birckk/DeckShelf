@@ -21,7 +21,6 @@ import {
   Search,
   SlidersHorizontal,
   Dices,
-  RectangleVertical,
   RefreshCw,
   X,
 } from "lucide-react";
@@ -39,6 +38,7 @@ import {
   type Filters,
 } from "./domain";
 import { Artwork, Mana, ManaSymbol, Modal } from "./components";
+import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
 import CardStudio from "./CardStudio";
 import CollectionManager from "./CollectionManager";
@@ -56,14 +56,14 @@ function readDisplay(): { layout: CollectionLayout; size: number } {
     return {
       layout: ["grid", "art", "list"].includes(saved?.layout)
         ? saved.layout
-        : "grid",
+        : "art",
       size:
         Number.isInteger(saved?.size) && saved.size >= 0 && saved.size <= 2
           ? saved.size
-          : 2,
+          : 1,
     };
   } catch {
-    return { layout: "grid", size: 2 };
+    return { layout: "art", size: 1 };
   }
 }
 function readSaved(): { collection: Collection; error: string; raw?: string | null } {
@@ -90,7 +90,8 @@ function App() {
   const [storageError, setStorageError] = useState(loaded.error);
   const [storageLocked, setStorageLocked] = useState(!!loaded.error);
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
-  const [view, setView] = useState<View>("cards");
+  const [view, setView] = useState<View>("grid");
+  const [pickerControlsTarget, setPickerControlsTarget] = useState<HTMLDivElement | null>(null);
   const [display, setDisplay] = useState(readDisplay);
   useEffect(() => {
     try {
@@ -278,7 +279,7 @@ function App() {
           {(
             [
               { id: "grid", label: "Collection", Icon: LayoutGrid },
-              { id: "cards", label: "Cards", Icon: RectangleVertical },
+              { id: "cards", label: "Cards", Icon: CardFanIcon },
               { id: "picker", label: "Pick a deck", Icon: Dices },
             ] as const
           ).map(({ id, label, Icon }) => (
@@ -543,14 +544,21 @@ function App() {
             </h1>
             <div className="results-toolbar">
               <div>
-                <span className="result-count">
-                  {visible.length} of {owned.length} decks{" "}
-                  <span className="separator-dot">·</span>{" "}
-                  <span>{eligible.length} in the picker</span>
+                <span className="result-count" role="status">
+                  {visible.length === owned.length
+                    ? `${visible.length} ${visible.length === 1 ? "deck" : "decks"}`
+                    : `${visible.length} of ${owned.length} decks`}
+                  {eligible.length !== visible.length && (
+                    <>
+                      <span className="separator-dot">·</span>
+                      <span>{eligible.length} in picker</span>
+                    </>
+                  )}
                 </span>
               </div>
+              <div className="picker-controls-slot" ref={setPickerControlsTarget} />
               {view === "grid" && (
-                <div className="collection-view-controls">
+                <div className="collection-view-controls collection-display-toolbar">
                   <div
                     className="collection-layout-switch"
                     role="group"
@@ -660,6 +668,7 @@ function App() {
             )}
             {view === "picker" ? (
               <Picker
+                controlsTarget={pickerControlsTarget}
                 decks={eligible}
                 spinning={spinning}
                 setSpinning={setSpinning}
