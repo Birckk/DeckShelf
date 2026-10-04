@@ -106,7 +106,7 @@ function App() {
   const [pickerWinner, setPickerWinner] = useState<Deck | null>(null);
   const revealed = !!pickerWinner;
   const [refreshing, setRefreshing] = useState(false);
-  const [refreshError, setRefreshError] = useState("");
+  const [refreshError, setRefreshError] = useState<{ id: string; message: string } | null>(null);
   const [sort, setSort] = useState("collection");
   const [detail, setDetail] = useState<Deck | null>(null);
   const [showCollection, setShowCollection] = useState(false);
@@ -181,7 +181,7 @@ function App() {
       );
     return decks;
   }, [owned, filters, sort]);
-  useEffect(() => setRefreshError(""), [detail?.id]);
+  useEffect(() => setRefreshError(null), [detail?.id]);
   const eligible = useMemo(
     () => visible.filter((d) => !collection.excluded.includes(d.id)),
     [visible, collection.excluded],
@@ -218,7 +218,7 @@ function App() {
   }
   async function refreshDeck(deck: Deck) {
     setRefreshing(true);
-    setRefreshError("");
+    setRefreshError(null);
     try {
       const response = await fetch(`/api/decks/${deck.id}?refresh=1`, {
         signal: AbortSignal.timeout(25000),
@@ -240,9 +240,7 @@ function App() {
       setDetail((current) => (current?.id === deck.id ? updated : current));
       setNotice(`${updated.name} refreshed from Archidekt.`);
     } catch (error) {
-      setRefreshError(
-        `${(error as Error).message} Your saved deck is unchanged.`,
-      );
+      setRefreshError({ id: deck.id, message: `${(error as Error).message} Your saved deck is unchanged.` });
     } finally {
       setRefreshing(false);
     }
@@ -738,7 +736,7 @@ function App() {
       )}
       {detail && (
         <Modal
-          title="From your collection"
+          title="Deck details"
           onClose={() => setDetail(null)}
           wide
         >
@@ -754,18 +752,18 @@ function App() {
               ))}
             </div>
             <div className="detail-copy">
-              <span className="eyebrow">{detail.set}</span>
+              <span className="detail-set">{detail.set}</span>
               <h2>{detail.name}</h2>
               <Mana colors={detail.colors} />
               <p className="detail-commander">
                 {detail.commanders.map((c) => c.name).join(" & ")}
               </p>
               {detail.theme && <p className="detail-theme">{detail.theme}</p>}
-              <div className="tag-list">
+              {detail.tags.length > 0 && <div className="tag-list">
                 {detail.tags.map((t) => (
                   <span key={t}>{t}</span>
                 ))}
-              </div>
+              </div>}
               {detail.description && (
                 <p className="source-description">{detail.description}</p>
               )}
@@ -785,6 +783,7 @@ function App() {
                     : "Release not listed"}
                 </span>
               </div>
+              <div className="detail-actions">
               <a
                 className="button button-gold"
                 href={detail.sourceUrl}
@@ -793,6 +792,15 @@ function App() {
               >
                 View deck on {detail.sourceName} <ExternalLink size={15} />
               </a>
+              <button
+                className="button button-outline refresh-source"
+                disabled={refreshing}
+                onClick={() => refreshDeck(detail)}
+              >
+                <RefreshCw size={15} className={refreshing ? "refreshing" : ""} />
+                {refreshing ? "Refreshing…" : "Refresh snapshot"}
+              </button>
+              </div>
               {detail.originalUrl &&
                 detail.originalUrl !== detail.sourceUrl && (
                   <a
@@ -804,27 +812,14 @@ function App() {
                     Original reference <ExternalLink size={12} />
                   </a>
                 )}
-              <button
-                className="text-button refresh-source"
-                disabled={refreshing}
-                onClick={() => refreshDeck(detail)}
-              >
-                <RefreshCw
-                  size={14}
-                  className={refreshing ? "refreshing" : ""}
-                />
-                {refreshing ? "Refreshing…" : "Refresh from Archidekt"}
-              </button>
-              {refreshError && (
+              {refreshError?.id === detail.id && (
                 <p className="inline-error" role="alert">
-                  {refreshError}
+                  {refreshError.message}
                 </p>
               )}
               <p className="source-note">
-                Decklists live at the source. This is your window into them.
-                <br />
-                Snapshot saved{" "}
-                {new Date(detail.fetchedAt).toLocaleDateString("en-GB")}.
+                Saved snapshot · {" "}
+                {new Date(detail.fetchedAt).toLocaleDateString("en-GB")}
               </p>
             </div>
           </div>

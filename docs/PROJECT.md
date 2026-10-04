@@ -93,3 +93,17 @@ The hosted web app, public Archidekt source imports, source switches, filtering,
 deck picker, collection backup/restore, Docker/Caddy deployment and GitHub checks
 are working. The optional Windows installer has lifecycle tests. These are the
 baseline, not new backlog items; issues above describe the improvements still due.
+
+## Dialog regression checks
+
+[Deck-detail polish #28](https://github.com/Bircck/DeckShelf/issues/28) tracks
+implementation, validation and deployment. Dialogs share the Modal heading and
+close-control treatment; keep deck-specific layout rules in `studio.css`.
+
+Run `npm run test:dialogs` after shared dialog or deck-detail changes. It uses an
+isolated browser collection on port 4329 and covers keyboard/focus, Guide Back,
+refresh failure isolation, saved choices, and 1440/390/320px layouts. Install
+Playwright Chromium, or set `PLAYWRIGHT_CHANNEL=msedge` to use installed Edge.
+`BASE_URL` targets an already-running build for release verification. Tests mock
+refresh responses and never change a real user's saved collection. CI retains
+screenshots under `qa/dialogs/` alongside the existing Guide and web smoke checks.

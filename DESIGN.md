@@ -63,6 +63,8 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 
 - The Collection guide is an optional three-page dialog opened from a small Guide button beside My collection, or Help. Never open it automatically. Use large visual examples and one short caption per page; no tutorial banner above the collection and no paragraphs of instructions. Its final action adds the official precons only when absent, otherwise opens their selection without changing saved choices. Shared collection entry behavior is tracked separately in #24.
 
+- All dialogs use the shared Modal title treatment. Deck details keep readable metadata, full commander cards, compact source/refresh actions, and one saved-snapshot date; avoid explanatory filler and empty tag spacing. Check shared dialog changes against deck details, About, Guide and My collection.
+
 ## Motion and atmosphere
 
 - Backgrounds stay steady while browsing Collection, Cards, and Pick a deck. Do not change them on hover, keyboard focus, carousel selection, or an idle timer.

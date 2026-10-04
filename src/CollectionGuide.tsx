@@ -30,7 +30,11 @@ export default function CollectionGuide({ present, onClose, onPrecons }: {
 }) {
   const [step, setStep] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
-  useEffect(() => { if (step > 0) heading.current?.focus(); }, [step]);
+  const previousStep = useRef(step);
+  useEffect(() => {
+    if (previousStep.current !== step) heading.current?.focus();
+    previousStep.current = step;
+  }, [step]);
   return <Modal title="Quick guide" onClose={onClose}>
     <div className="collection-guide">
       <GuidePicture step={step} />

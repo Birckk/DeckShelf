@@ -881,9 +881,6 @@
 .guide-actions { display:flex; justify-content:space-between; gap:12px; margin-top:20px; }
 @media(max-width:480px) { .collection-guide { padding:0 16px 20px; } .collection-guide h2 { font-size:23px; } .guide-actions .button { font-size:12px; padding:10px; } .guide-picture { height:270px; } .guide-art-card { height:135px; } .guide-picture-2 .guide-art-card { height:175px; } }
 
-.modal:has(.collection-guide, .about-copy) > .modal-head .eyebrow {
-  font-family:Outfit,sans-serif; font-size:20px; font-weight:500; letter-spacing:0; text-transform:none; color:#eeeaf0;
-}
 
 .about-copy .about-lead { font-size:22px; font-family:Outfit,sans-serif; line-height:1.35; color:#eeeaf0; margin:0 0 22px; }
 .about-points { margin:0; padding-left:20px; display:grid; gap:16px; color:#bbb9c3; font-size:15px; line-height:1.6; }
