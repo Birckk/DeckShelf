@@ -15,3 +15,7 @@ build/windows/
 build/cleanup-backup/
 test-results/
 playwright-report/
+
+# Local familiar-logo tracing tools and discovery previews.
+/work/familiar/
+/outputs/familiar/

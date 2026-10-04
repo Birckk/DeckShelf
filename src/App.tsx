@@ -277,7 +277,7 @@ function App() {
           title="Back to Collection"
           aria-disabled={spinning}
         >
-          <img src="/favicon.svg" alt="" />
+          <img src="/brand-familiar.svg" alt="" />
           <span>
             Deck<span className="brand-sub">Shelf</span>
           </span>

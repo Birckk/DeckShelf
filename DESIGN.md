@@ -22,6 +22,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 
 ## Icons and visual identity
 
+- Use the selected familiar dragon embracing a card (concept 09) as the brand mark. The header uses a warm ivory dragon (#f3f1ec, matching the studio text) with a pale gold card (#f2ddb0, matching the studio accent). Use the simplified mark with a thicker card outline and no eye for the favicon, adapting its colors for light and dark browser themes. Keep the SVG silhouette and restrained flat colors.
 - Use the bundled Magic mana symbols for color identity.
 - Use dice for random deck selection; do not substitute generic AI-style sparkles.
 - Cards navigation uses a small fan of cards with its visible label.
