@@ -112,7 +112,7 @@ export function showcaseGroups(
       available: catalog.length,
     }] : []),
     ...(collection.demo && !collection.demo.removed ? [{
-      key: "demo", name: "Commander precons demo", kind: "demo" as const,
+      key: "demo", name: "Official Commander precons", kind: "demo" as const,
       ids: collection.demo.decks.map(d => d.id), available: collection.demo.decks.length,
     }] : []),
     {

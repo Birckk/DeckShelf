@@ -16,7 +16,7 @@ try {
   page.on('request', r => { if (r.url().includes('/api/')) apiCalls.push(r.url()); });
   const started = Date.now();
   await page.goto(base);
-  await expect(page.getByText(`Explore ${snapshot.decks.length} precons`, { exact: false })).toBeVisible();
+  await expect(page.locator('.count-badge')).toHaveText(String(snapshot.decks.length));
   await expect(page.getByRole('button', { name: 'Collection', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.collection-grid')).toHaveClass(/collection-layout-art collection-size-1/);
   await page.getByRole('button', { name: 'Cards', exact: true }).click();
@@ -44,15 +44,15 @@ try {
   await expect.poll(() => page.locator('.helix-reveal img').evaluateAll(images => images.every(i => i.complete && i.naturalWidth > 0) && images.length > 0), { timeout: 20000 }).toBe(true);
   await page.screenshot({ path: `qa/demo/${viewport.width}-picker.png` });
   await page.getByRole('button', { name: /^My collection/ }).click();
-  await expect(page.getByRole('switch', { name: 'Enable Commander precons demo', exact: true })).toBeChecked();
+  await expect(page.getByRole('switch', { name: 'Enable Official Commander precons', exact: true })).toBeChecked();
   await expect(page.getByText('Complete at snapshot date.', { exact: false })).toBeVisible();
   await page.screenshot({ path: `qa/demo/${viewport.width}-overview.png` });
-  await page.getByRole('switch', { name: 'Enable Commander precons demo', exact: true }).uncheck();
+  await page.getByRole('switch', { name: 'Enable Official Commander precons', exact: true }).uncheck();
   await expect(page.locator('.manager-heading p')).toContainText('0 on display');
-  await page.getByRole('switch', { name: 'Enable Commander precons demo', exact: true }).check();
-  await page.getByRole('button', { name: 'Remove demo', exact: true }).click();
+  await page.getByRole('switch', { name: 'Enable Official Commander precons', exact: true }).check();
+  await page.getByRole('button', { name: 'Remove precons', exact: true }).click();
   await expect(page.locator('.manager-heading p')).toContainText('0 on display');
-  await page.getByRole('button', { name: 'Restore demo', exact: true }).click();
+  await page.getByRole('button', { name: 'Restore precons', exact: true }).click();
   const downloadEvent = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export backup', exact: true }).click();
   const download = await downloadEvent;
@@ -60,6 +60,7 @@ try {
   expect(backup.demo.decks.length).toBe(snapshot.decks.length);
   expect(backup.excluded).toContain(target.id);
   await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await page.getByRole('button', { name: /^My collection/ }).click();
   await page.getByRole('button', { name: 'Start my collection', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Add from Archidekt', exact: true })).toBeVisible();
   await expect(page.locator('.manager-heading p')).toContainText('0 on display');
@@ -83,7 +84,7 @@ try {
   await page.reload();
   await expect(page.getByRole('alert')).toContainText('has not been overwritten');
   await page.getByRole('button', { name: /^My collection/ }).click();
-  await page.getByRole('button', { name: 'Add demo', exact: true }).click();
+  await page.getByRole('button', { name: 'Add precons', exact: true }).click();
   expect(await page.evaluate(k => localStorage.getItem(k), key)).toBe('{broken');
   await page.locator('input[type=file]').setInputFiles({ name: 'recovery.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(old)) });
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();

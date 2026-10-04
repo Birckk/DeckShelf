@@ -14,6 +14,7 @@ import {
   Eye,
   EyeOff,
   Info,
+  BookOpen,
   LayoutGrid,
   List,
   GalleryVerticalEnd,
@@ -41,13 +42,15 @@ import { Artwork, Mana, ManaSymbol, Modal } from "./components";
 import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
 import CardStudio from "./CardStudio";
+import CollectionGuide from "./CollectionGuide";
 import CollectionManager from "./CollectionManager";
-import { showcaseDecks, collectionDecks, freshCollection, removeDemo } from "./collection";
+import { showcaseDecks, collectionDecks, freshCollection, addDemo } from "./collection";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 
 const catalog = seed as Deck[];
 const STORAGE_KEY = "commander-archive.collection.v1";
 type View = "cards" | "grid" | "picker";
+const HOME_VIEW: View = "grid";
 type CollectionLayout = "grid" | "art" | "list";
 const DISPLAY_KEY = "commander-archive.display.v1";
 function readDisplay(): { layout: CollectionLayout; size: number } {
@@ -90,7 +93,7 @@ function App() {
   const [storageError, setStorageError] = useState(loaded.error);
   const [storageLocked, setStorageLocked] = useState(!!loaded.error);
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
-  const [view, setView] = useState<View>("grid");
+  const [view, setView] = useState<View>(HOME_VIEW);
   const [pickerControlsTarget, setPickerControlsTarget] = useState<HTMLDivElement | null>(null);
   const [display, setDisplay] = useState(readDisplay);
   useEffect(() => {
@@ -108,6 +111,8 @@ function App() {
   const [detail, setDetail] = useState<Deck | null>(null);
   const [showCollection, setShowCollection] = useState(false);
   const [personalStart, setPersonalStart] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [collectionSection, setCollectionSection] = useState("overview");
   const [showAbout, setShowAbout] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const filterDropdownRef = useRef<HTMLDivElement>(null);
@@ -266,9 +271,11 @@ function App() {
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            selectView("cards");
+            selectView(HOME_VIEW);
           }}
           aria-label="DeckShelf home"
+          title="Back to Collection"
+          aria-disabled={spinning}
         >
           <img src="/favicon.svg" alt="" />
           <span>
@@ -298,15 +305,17 @@ function App() {
         <div className="header-actions">
           <button
             className="icon-button about-button"
-            aria-label="About DeckShelf"
+            aria-label="Help and about DeckShelf"
+            title="About DeckShelf"
             onClick={() => setShowAbout(true)}
           >
             <Info size={18} />
           </button>
+          <button className="button button-outline guide-trigger" onClick={() => setShowGuide(true)}><BookOpen size={16} /><span>Guide</span></button>
           <button
             className="button button-outline"
             disabled={spinning}
-            onClick={() => { setPersonalStart(false); setShowCollection(true); }}
+            onClick={() => { setPersonalStart(false); setCollectionSection("overview"); setShowCollection(true); }}
           >
             <Library size={16} />
             <span>My collection</span>
@@ -323,16 +332,6 @@ function App() {
         </div>
       )}
       <div className="studio-workspace">
-        {collection.demo && !collection.demo.removed && !collection.disabledGroups?.includes("demo") && (
-          <div className="demo-strip">
-            <span><strong>Commander precons demo</strong> · Explore {collection.demo.decks.length} precons</span>
-            <button className="text-button" disabled={spinning} onClick={() => {
-              setCollection(removeDemo);
-              setPersonalStart(true);
-              setShowCollection(true);
-            }}>Start my collection <ArrowRight size={14} /></button>
-          </div>
-        )}
         <fieldset
           className="studio-toolbar"
           disabled={spinning}
@@ -838,35 +837,41 @@ function App() {
           collection={collection}
           setCollection={setCollection}
           startPersonal={personalStart}
+          initialSection={collectionSection}
           onRestore={(value) => { setStorageLocked(false); setCollection(value); }}
           onClose={() => setShowCollection(false)}
           backup={backup}
           notify={setNotice}
         />
       )}
+      {showGuide && <CollectionGuide
+        present={!!collection.demo && !collection.demo.removed}
+        onClose={() => setShowGuide(false)}
+        onPrecons={() => {
+          setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
+          setShowGuide(false);
+          setPersonalStart(false);
+          setCollectionSection("demo");
+          setShowCollection(true);
+        }}
+      />}
       {showAbout && (
         <Modal
           title="About DeckShelf"
           onClose={() => setShowAbout(false)}
         >
           <div className="about-copy">
-            <img src="/favicon.svg" width="55" height="55" alt="" />
-            <h2>Commander collection</h2>
-            <p>
-              Browse the Commander decks you own, filter by color or set, and
-              pick a deck for your next game.
-            </p>
-            <p>
-              Your collection choices stay in this browser. The starter decks
-              and their artwork are included locally. Adding a source link needs
-              internet access; newly added artwork is loaded from the source.
-            </p>
-            <p>
-              Use <strong>My collection</strong> to choose the decks on display,
-              link public Archidekt accounts or folders, add individual deck
-              links, or back up your selection. Decklists are viewed and edited
-              on their original sites.
-            </p>
+            <p className="about-lead">Your decks, ready for game night.</p>
+            <ul className="about-points">
+              <li><strong>Showcase your collection.</strong> Browse the artwork or pick a deck at random.</li>
+              <li><strong>Make it yours.</strong> Mix public Archidekt decks with official precons. Choose what’s shown.</li>
+              <li><strong>No account needed.</strong> Choices are saved in this browser. Export a backup to keep a copy.</li>
+              <li><strong>Run it locally, too.</strong> Source imports and new artwork need internet. Edit decklists on Archidekt.</li>
+            </ul>
+            <div className="about-actions">
+              <button className="button button-gold" onClick={() => { setShowAbout(false); setPersonalStart(false); setCollectionSection("overview"); setShowCollection(true); }}>My collection <ArrowRight size={16} /></button>
+              <button className="button button-outline" onClick={() => { setShowAbout(false); setShowGuide(true); }}>Quick guide</button>
+            </div>
             <div className="about-credits">
               <a
                 href="https://archidekt.com/commander-precons"

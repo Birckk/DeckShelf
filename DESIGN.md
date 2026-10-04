@@ -36,7 +36,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Show a simple deck total by default. Show the full collection total when results differ, and a separate picker count only when exclusions make it different.
 - Keep shared navigation, search, and deck counts anchored across views. Avoid an isolated extra row of Collection controls with wasted space; reserve scrollbar space so switching views does not shift the page sideways.
 - Use one compact row below search: count left, view-specific controls right, wrapping on phones. Give the controls a little breathing room below search.
-- Open Collection on each visit or refresh; the Cards and picker views remain available from navigation.
+- Open Collection on each visit, refresh, or logo click; use the same home-view definition for these entry points so the displayed view and active navigation stay in sync; the Cards and picker views remain available from navigation.
 - Filters drop down beside their trigger; they do not open a modal.
 - Collection offers Details, Cards only, and List with adjustable size. Cards only at Medium size is the default; remember a user's explicit choice.
 - Details has compact information below the card, without reserved blank title space. Keep names, releases, mana symbols, and picker inclusion easy to locate.
@@ -46,6 +46,8 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 
 ## Collection management
 
+- Guide and About dialog titles use readable normal-case text, not tiny letter-spaced labels. Keep the whole guide card fan visible. All three guide pages share a stable dialog height and navigation position at each viewport size. About uses short purpose/benefit bullets and direct actions rather than paragraphs.
+- Do not show a precon attribution/start-collection strip above search. Keep precon information in My collection and the optional guide.
 - My collection controls the showcase. Deck editing and card inventory stay on the external platform.
 - Public accounts, folders, and individual deck links are read-only sources. Do not ask for platform passwords.
 - Discovering a source does not mean the user owns all its decks. New discoveries wait for selection; refresh preserves display and picker choices.
@@ -55,8 +57,10 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Select all / Deselect all affect the current deck results, including search and status filters. New source entries are staged until Add selected decks; bulk actions preserve choices outside the results. Keep list controls compact, with no repeated introductory banner.
 - Open My collection on its showcase overview. Collection switches pause whole sources without changing individual deck selections or picker exclusions; “Only this” isolates one collection across all viewer modes.
 - Overlapping enabled collections form a unique union of decks. Direct deck links may belong to Individual decks even when the same deck appears in another collection.
-- Fresh profiles start with the optional Commander precons demo: a dated, complete Archidekt_Precons snapshot, clearly labeled as examples. Removing it preserves personal overlaps; restoring it keeps selections and exclusions. Start my collection removes the demo and opens the public-source form.
+- Fresh profiles start with Official Commander precons: a dated, complete snapshot curated by Archidekt. Use precons/catalog in user-facing copy, never demo. Removing it preserves personal overlaps; restoring it keeps selections and exclusions. Start my collection removes the demo and opens the public-source form.
 - “Included precons” remains the original 29 requested decks with bundled artwork for legacy profiles. Never silently expand existing profiles. Browse precons previews Archidekt’s catalog without selecting it; adding the demo is a separate explicit action.
+
+- The Collection guide is an optional three-page dialog opened from a small Guide button beside My collection, or Help. Never open it automatically. Use large visual examples and one short caption per page; no tutorial banner above the collection and no paragraphs of instructions. Its final action adds the official precons only when absent, otherwise opens their selection without changing saved choices. Shared collection entry behavior is tracked separately in #24.
 
 ## Motion and atmosphere
 

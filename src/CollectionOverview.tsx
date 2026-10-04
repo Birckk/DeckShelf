@@ -45,8 +45,8 @@ export default function CollectionOverview({
         <button className="button button-gold" disabled={busy} onClick={startPersonal}>Start my collection <ArrowRight size={14} /></button>
       </div>
       {(!collection.demo || collection.demo.removed) && <div className="overview-catalog">
-        <Library size={20} /><div><h4>Commander precons demo</h4><p>Explore the curated catalog as an optional collection.</p></div>
-        <button className="button button-outline" disabled={busy} onClick={addDemo}>{collection.demo ? "Restore demo" : "Add demo"}</button>
+        <Library size={20} /><div><h4>Official Commander precons</h4><p>Explore the curated catalog as an optional collection.</p></div>
+        <button className="button button-outline" disabled={busy} onClick={addDemo}>{collection.demo ? "Restore precons" : "Add precons"}</button>
       </div>}
       <div className="overview-intro">
         <div>
@@ -133,7 +133,7 @@ export default function CollectionOverview({
                     {!group.enabled ? " · collection off" : ""}
                   </small>
                   {group.kind === "demo" && collection.demo && <p className="demo-provenance">
-                    <a href="https://archidekt.com/commander-precons" target="_blank" rel="noreferrer">Archidekt_Precons</a>
+                    <a href="https://archidekt.com/commander-precons" target="_blank" rel="noreferrer">Curated by Archidekt</a>
                     {" · Snapshot "}{new Date(collection.demo.snapshotAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
                     {Date.now() - Date.parse(collection.demo.snapshotAt) > 30 * 86400000 ? " · More than 30 days old; newer decks may be missing." : " · Complete at snapshot date."}
                     {" Artwork loads online."}
@@ -141,7 +141,7 @@ export default function CollectionOverview({
                 </div>
               </div>
               <div className="overview-group-actions">
-                {group.kind === "demo" && <button className="text-button" disabled={busy} onClick={removeDemo}>Remove demo</button>}
+                {group.kind === "demo" && <button className="text-button" disabled={busy} onClick={removeDemo}>Remove precons</button>}
                 <button
                   className="text-button"
                   disabled={busy}

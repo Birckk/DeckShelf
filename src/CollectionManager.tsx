@@ -55,6 +55,7 @@ type Props = {
   backup: () => void;
   notify: (message: string) => void;
   startPersonal?: boolean;
+  initialSection?: string;
   onRestore: (collection: Collection) => void;
 };
 async function jsonRequest(path: string, signal: AbortSignal) {
@@ -105,9 +106,10 @@ export default function CollectionManager({
   backup,
   notify,
   startPersonal = false,
+  initialSection = "overview",
   onRestore,
 }: Props) {
-  const [section, setSection] = useState("overview");
+  const [section, setSection] = useState(initialSection);
   const [connecting, setConnecting] = useState(startPersonal);
   const [kind, setKind] = useState<"account" | "folder" | "deck">("account");
   const [value, setValue] = useState("");
@@ -427,7 +429,7 @@ export default function CollectionManager({
               {collection.starter !== false && <option value="starter">
                 Included precons ({catalog.length})
               </option>}
-              {collection.demo && !collection.demo.removed && <option value="demo">Commander precons demo ({collection.demo.decks.length})</option>}
+              {collection.demo && !collection.demo.removed && <option value="demo">Official Commander precons ({collection.demo.decks.length})</option>}
               <option value="manual">Individual decks ({manual.length})</option>
               {sources.map((s) => (
                 <option key={s.key} value={s.key}>
@@ -472,7 +474,7 @@ export default function CollectionManager({
             {collection.demo && !collection.demo.removed && <button
               aria-current={section === "demo" && !connecting ? "page" : undefined}
               disabled={!!busy} onClick={() => navigate("demo")}
-            ><Library size={16} /><span>Commander precons demo</span><small>{collection.demo.decks.length}</small></button>}
+            ><Library size={16} /><span>Official Commander precons</span><small>{collection.demo.decks.length}</small></button>}
             <button
               aria-current={
                 section === "manual" && !connecting ? "page" : undefined
@@ -633,7 +635,7 @@ export default function CollectionManager({
                       {source
                         ? `${source.kind === "folder" ? "Folder · direct decks only" : "Archidekt account"} · Checked ${new Date(source.checkedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
                         : section === "demo"
-                          ? "Optional demo. These decks are examples, not your personal collection."
+                          ? "Curated by Archidekt. Choose which precons to display; this does not mark them as owned."
                         : section === "starter"
                           ? "The original 29 decks from your supplied list, bundled with local artwork. This is not the full precon catalog."
                           : section === "manual"
