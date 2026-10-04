@@ -28,7 +28,7 @@ export function normalizeDeck(data) {
     tags:(data.deckTags || []).map(t => t.tag?.name || t.name).filter(t => typeof t === 'string'),
     description:descriptionText(data.description).slice(0, 12000), commanders,
     sourceUrl:`https://archidekt.com/decks/${data.id}`, sourceName:'Archidekt',
-    cardCount:data.cards.filter(c => !c.categories.some(k => ['Maybeboard','Sideboard'].includes(k))).reduce((n,c) => n + c.quantity, 0),
+    cardCount:data.cards.filter(c => !c.categories?.some(k => ['Maybeboard','Sideboard'].includes(k))).reduce((n,c) => n + c.quantity, 0),
     releasedAt:cards[0].releasedAt || '', fetchedAt:new Date().toISOString(),
   };
 }

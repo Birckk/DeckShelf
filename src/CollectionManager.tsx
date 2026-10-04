@@ -39,7 +39,10 @@ import {
   sourceDeckIds,
   selectSourceDecks,
   disconnectSource,
+  addDemo,
+  removeDemo,
 } from "./collection";
+import precons from "./data/precons.json";
 import CollectionOverview from "./CollectionOverview";
 import "./collection.css";
 
@@ -51,6 +54,8 @@ type Props = {
   onClose: () => void;
   backup: () => void;
   notify: (message: string) => void;
+  startPersonal?: boolean;
+  onRestore: (collection: Collection) => void;
 };
 async function jsonRequest(path: string, signal: AbortSignal) {
   const response = await fetch(path, {
@@ -99,9 +104,11 @@ export default function CollectionManager({
   onClose,
   backup,
   notify,
+  startPersonal = false,
+  onRestore,
 }: Props) {
   const [section, setSection] = useState("overview");
-  const [connecting, setConnecting] = useState(false);
+  const [connecting, setConnecting] = useState(startPersonal);
   const [kind, setKind] = useState<"account" | "folder" | "deck">("account");
   const [value, setValue] = useState("");
   const [search, setSearch] = useState("");
@@ -141,6 +148,8 @@ export default function CollectionManager({
       ]
     : (section === "starter"
         ? catalog.map((d) => saved.get(d.id) || d)
+        : section === "demo"
+          ? collection.demo?.decks || []
         : section === "manual"
           ? manual
           : decks
@@ -288,7 +297,7 @@ export default function CollectionManager({
         ...selected.filter((id) => saved.has(id)).map((id) => saved.get(id)!),
       ];
       const next = setShown(
-        saveSnapshots(collection, loaded, true),
+        saveSnapshots(collection, accepted, true),
         accepted.map((d) => d.id),
         true,
       );
@@ -415,9 +424,10 @@ export default function CollectionManager({
             >
               <option value="overview">Showcase overview</option>
               <option value="all">All saved decks ({decks.length})</option>
-              <option value="starter">
+              {collection.starter !== false && <option value="starter">
                 Included precons ({catalog.length})
-              </option>
+              </option>}
+              {collection.demo && !collection.demo.removed && <option value="demo">Commander precons demo ({collection.demo.decks.length})</option>}
               <option value="manual">Individual decks ({manual.length})</option>
               {sources.map((s) => (
                 <option key={s.key} value={s.key}>
@@ -448,7 +458,7 @@ export default function CollectionManager({
               <span>All saved decks</span>
               <small>{decks.length}</small>
             </button>
-            <button
+            {collection.starter !== false && <button
               aria-current={
                 section === "starter" && !connecting ? "page" : undefined
               }
@@ -458,7 +468,11 @@ export default function CollectionManager({
               <Folder size={16} />
               <span>Included precons</span>
               <small>{catalog.length}</small>
-            </button>
+            </button>}
+            {collection.demo && !collection.demo.removed && <button
+              aria-current={section === "demo" && !connecting ? "page" : undefined}
+              disabled={!!busy} onClick={() => navigate("demo")}
+            ><Library size={16} /><span>Commander precons demo</span><small>{collection.demo.decks.length}</small></button>}
             <button
               aria-current={
                 section === "manual" && !connecting ? "page" : undefined
@@ -599,6 +613,9 @@ export default function CollectionManager({
                   setCollection((c) => ({ ...c, disabledGroups: [] }))
                 }
                 browsePrecons={browsePrecons}
+                addDemo={() => setCollection(c => addDemo(c, precons as { snapshotAt: string; decks: Deck[] }))}
+                removeDemo={() => setCollection(removeDemo)}
+                startPersonal={() => { setCollection(removeDemo); setConnecting(true); }}
               />
             ) : (
               <>
@@ -615,6 +632,8 @@ export default function CollectionManager({
                     <p>
                       {source
                         ? `${source.kind === "folder" ? "Folder · direct decks only" : "Archidekt account"} · Checked ${new Date(source.checkedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
+                        : section === "demo"
+                          ? "Optional demo. These decks are examples, not your personal collection."
                         : section === "starter"
                           ? "The original 29 decks from your supplied list, bundled with local artwork. This is not the full precon catalog."
                           : section === "manual"
@@ -968,7 +987,7 @@ export default function CollectionManager({
               className="button button-gold"
               disabled={!!busy}
               onClick={() => {
-                setCollection(restorePreview);
+                onRestore(restorePreview);
                 setRestorePreview(null);
                 navigate("all");
                 notify("Collection restored from backup.");

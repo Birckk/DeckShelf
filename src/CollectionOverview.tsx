@@ -20,6 +20,9 @@ export default function CollectionOverview({
   only,
   enableAll,
   browsePrecons,
+  addDemo,
+  removeDemo,
+  startPersonal,
 }: {
   groups: ShowcaseGroup[];
   collection: Collection;
@@ -30,10 +33,21 @@ export default function CollectionOverview({
   only: (key: string) => void;
   enableAll: () => void;
   browsePrecons: () => void;
+  addDemo: () => void;
+  removeDemo: () => void;
+  startPersonal: () => void;
 }) {
   const saved = new Map(decks.map((d) => [d.id, d]));
   return (
     <div className="collection-overview">
+      <div className="overview-intro">
+        <div><h3>Your own decks</h3><p>Add a public account, folder or deck link. Your choices stay in this browser.</p></div>
+        <button className="button button-gold" disabled={busy} onClick={startPersonal}>Start my collection <ArrowRight size={14} /></button>
+      </div>
+      {(!collection.demo || collection.demo.removed) && <div className="overview-catalog">
+        <Library size={20} /><div><h4>Commander precons demo</h4><p>Explore the curated catalog as an optional collection.</p></div>
+        <button className="button button-outline" disabled={busy} onClick={addDemo}>{collection.demo ? "Restore demo" : "Add demo"}</button>
+      </div>}
       <div className="overview-intro">
         <div>
           <h3>What’s on display?</h3>
@@ -49,7 +63,7 @@ export default function CollectionOverview({
       <div className="overview-groups">
         {[
           ...groups.filter((g) => g.kind === "folder" || g.kind === "account"),
-          ...groups.filter((g) => g.kind === "included" || g.kind === "manual"),
+          ...groups.filter((g) => g.kind === "demo" || g.kind === "included" || g.kind === "manual"),
         ].map((group) => {
           const count = group.ids.filter(
             (id) => !collection.hidden.includes(id),
@@ -101,7 +115,9 @@ export default function CollectionOverview({
                 </div>
                 <div>
                   <p>
-                    {group.kind === "included"
+                    {group.kind === "demo"
+                      ? "Optional examples for browsing and picking. Not decks you own."
+                      : group.kind === "included"
                       ? "The original 29 decks supplied with this app, with offline artwork."
                       : group.kind === "manual"
                         ? "Decks added individually, or kept after disconnecting a source."
@@ -116,9 +132,16 @@ export default function CollectionOverview({
                       : ` of ${group.ids.length} saved`}
                     {!group.enabled ? " · collection off" : ""}
                   </small>
+                  {group.kind === "demo" && collection.demo && <p className="demo-provenance">
+                    <a href="https://archidekt.com/commander-precons" target="_blank" rel="noreferrer">Archidekt_Precons</a>
+                    {" · Snapshot "}{new Date(collection.demo.snapshotAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
+                    {Date.now() - Date.parse(collection.demo.snapshotAt) > 30 * 86400000 ? " · More than 30 days old; newer decks may be missing." : " · Complete at snapshot date."}
+                    {" Artwork loads online."}
+                  </p>}
                 </div>
               </div>
               <div className="overview-group-actions">
+                {group.kind === "demo" && <button className="text-button" disabled={busy} onClick={removeDemo}>Remove demo</button>}
                 <button
                   className="text-button"
                   disabled={busy}
@@ -141,9 +164,9 @@ export default function CollectionOverview({
       <div className="overview-catalog">
         <Library size={20} />
         <div>
-          <h4>Looking for another precon?</h4>
+          <h4>Choose precons you own</h4>
           <p>
-            Browse Archidekt’s larger catalog and add the decks you own. Nothing
+            Browse Archidekt’s catalog and save personal copies. Nothing
             is selected automatically.
           </p>
           <a

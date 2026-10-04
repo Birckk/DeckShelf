@@ -49,7 +49,8 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Select all / Deselect all affect the current deck results, including search and status filters. New source entries are staged until Add selected decks; bulk actions preserve choices outside the results. Keep list controls compact, with no repeated introductory banner.
 - Open My collection on its showcase overview. Collection switches pause whole sources without changing individual deck selections or picker exclusions; “Only this” isolates one collection across all viewer modes.
 - Overlapping enabled collections form a unique union of decks. Direct deck links may belong to Individual decks even when the same deck appears in another collection.
-- “Included precons” means the original 29 requested decks with bundled artwork. Keep that distinct from Archidekt’s larger curated precon catalog; browsing the catalog never selects decks automatically.
+- Fresh profiles start with the optional Commander precons demo: a dated, complete Archidekt_Precons snapshot, clearly labeled as examples. Removing it preserves personal overlaps; restoring it keeps selections and exclusions. Start my collection removes the demo and opens the public-source form.
+- “Included precons” remains the original 29 requested decks with bundled artwork for legacy profiles. Never silently expand existing profiles. Browse precons previews Archidekt’s catalog without selecting it; adding the demo is a separate explicit action.
 
 ## Motion and atmosphere
 

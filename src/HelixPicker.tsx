@@ -79,6 +79,10 @@ export default function HelixPicker({
   const key = decks.map((d) => d.id).join(",");
   // Visual repetitions never enter the unique pool used by randomIndex.
   const items = useMemo(() => repeatDecks(decks), [decks]);
+  const firstSlots = useMemo(() => {
+    const seen = new Set<string>();
+    return items.map(deck => { const first = !seen.has(deck.id); seen.add(deck.id); return first; });
+  }, [items]);
   preferences.current = { paused, reduced };
   useEffect(() => {
     onWinner(winner);
@@ -161,6 +165,14 @@ export default function HelixPicker({
             width,
             height,
           );
+          if (p.opacity === 0) {
+            if (node.style.visibility !== "hidden") {
+              node.style.visibility = "hidden";
+              node.tabIndex = -1;
+            }
+            return;
+          }
+          node.style.visibility = "visible";
           node.style.transform = `translate3d(${p.x}px,${p.y}px,${p.z}px) rotateY(${p.yaw}deg) rotateZ(${p.roll}deg)`;
           node.style.opacity = String(p.opacity * (m.winner ? 0.1 : 1));
           node.style.filter = `brightness(${p.brightness}) blur(${quiet ? 0 : p.blur}px)`;
@@ -168,7 +180,7 @@ export default function HelixPicker({
           node.style.pointerEvents =
             p.opacity < 0.2 || !!m.flight || !!m.winner ? "none" : "auto";
           node.tabIndex =
-            items.findIndex((d) => d.id === items[index].id) === index &&
+            firstSlots[index] &&
             !m.flight &&
             !m.winner &&
             p.opacity > 0.3 &&
@@ -185,7 +197,7 @@ export default function HelixPicker({
       resize.disconnect();
       observer.disconnect();
     };
-  }, [items, count, setSpinning]);
+  }, [items, firstSlots, count, setSpinning]);
   function explore() {
     motion.current.winner = null;
     setWinner(null);
@@ -355,7 +367,7 @@ export default function HelixPicker({
               }}
               className="helix-card"
               tabIndex={
-                items.findIndex((d) => d.id === items[index].id) === index &&
+                firstSlots[index] &&
                 !spinning &&
                 !winner
                   ? 0
@@ -371,7 +383,7 @@ export default function HelixPicker({
               <Artwork
                 src={deck.commanders[0].art}
                 alt={deck.commanders[0].name}
-                eager
+                eager={index < 42}
               />
               <span className="helix-card-shade" />
               <span className="helix-card-caption">

@@ -106,6 +106,7 @@ export default function CardStudio({
           let offset = (i - index + count) % count;
           if (offset > count / 2) offset -= count;
           const distance = Math.abs(offset);
+          if (distance > 3) return null;
           const active = offset === 0;
           return (
             <button
