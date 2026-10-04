@@ -1,5 +1,50 @@
 # Deployment and desktop validation
 
+## Optional precon demo — October 4, 2026
+
+[PR #18](https://github.com/Bircck/DeckShelf/pull/18) shipped the complete
+Archidekt_Precons metadata snapshot: 184 unique Commander decks across four
+pages, checked again after normalization, with no unavailable entries. Snapshot
+time is 2026-10-04T12:54:56Z. The repeatable updater and migration rules are in
+[PRECON_CATALOG.md](PRECON_CATALOG.md).
+
+The initial fetch was rate limited and correctly produced no replacement snapshot.
+Sequential requests with bounded backoff completed the catalog. Older precons
+exposed null card categories in the existing adapter; the fix has a regression test.
+
+Validation passed before deployment:
+
+- 55 unit tests and the TypeScript/Vite production build.
+- [PR checks](https://github.com/Bircck/DeckShelf/actions/runs/37204024979):
+  Linux and Windows tests/builds, production-container browser tests, Windows
+  packaging, desktop smoke and NSIS install/reinstall/uninstall lifecycle.
+- Disposable Chromium contexts at 1440px and 390px: full demo, color/search filters,
+  picker exclusions, pause/remove/restore, personal start, legacy and new v1 backup
+  restoration, corrupt-profile protection and recovery. Browsing issued no deck
+  or catalog API requests. The workflow retains desktop/phone visual evidence.
+- Keyboard Home/End carousel navigation, full-pool animated selection, and a real
+  public deck-link import overlapping the demo. Removing the demo retained the
+  personal copy, including after reload. Existing profiles and port 4317 were untouched.
+
+The server built feature commit `a269247` and deployed the exact tested image
+`sha256:<digest>`.
+Merge commit `162942b` has the identical tree. A disposable network-isolated,
+read-only candidate container passed health/HTML checks before the service update.
+The previous image remains available and configuration backups were kept on the server. Only the DeckShelf service was recreated.
+
+After deployment, the same desktop/phone smoke tests passed over public HTTPS,
+including old/new backups and corrupt profiles, followed by successful live
+public imports and animated picks. The container and public health endpoint
+remained healthy. The public first view was ready in about 250ms in this test
+environment, before remote artwork finished loading. Full-pool animation frame
+intervals were median/p95 33.3/33.4ms at 1440px and 16.7/33.3ms at 390px.
+These are desktop Chromium viewport measurements, not physical-phone benchmarks.
+
+Artwork remains online; metadata browsing uses the shipped snapshot. Existing demo
+profiles retain their pinned snapshot so a later catalog release cannot silently
+expand their collection. Windows packaging keeps the existing Commander Archive
+identity. PWA/offline installation and sync remain separate work.
+
 ## Hosted application and GitHub checks
 
 On September 29, 2026, DeckShelf was deployed on the server in a

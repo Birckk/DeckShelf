@@ -22,7 +22,8 @@ Sub-issues progress fields. Views cover the release board, first-use work, epics
 public readiness, hierarchy and backlog with areas. The Hierarchy view exposes
 real parent/sub-issue relationships and completion progress, not just title prefixes.
 `Ready` means available to pick up, not already active.
-The first ready task is the catalog snapshot (#14).
+Use current issue status to choose the next task; the catalog snapshot (#14)
+and removable demo (#15) shipped with the October 4 precon release.
 
 ### Areas
 
