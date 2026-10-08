@@ -18,6 +18,9 @@ jobs:
       - run: docker build -t deckshelf:test .
       - run: docker run -d --name deckshelf-test --read-only --cap-drop ALL --security-opt no-new-privileges --memory 256m -p 127.0.0.1:4319:4317 deckshelf:test
       - run: node scripts/smoke-web.mjs
+      - run: node scripts/smoke-guide.mjs
+        env:
+          BASE_URL: http://127.0.0.1:4319
       - run: node scripts/smoke-demo.mjs
         env:
           BASE_URL: http://127.0.0.1:4319
@@ -30,6 +33,7 @@ jobs:
           path: |
             qa/web/
             qa/demo/
+            qa/guide/
             qa/dialogs/
   publish-image:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
