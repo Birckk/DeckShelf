@@ -372,7 +372,7 @@ test("bulk selection handles saved and new decks while preserving choices outsid
 
 test('persistent disabling survives bulk enabling, backup, overlaps and disconnection', async () => {
   const { archiveGroups, enableGroups } = await import('../src/collection.ts');
-  const second = { ...source, key: 'folder:43', value: '43' };
+  const second = { ...source, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43' };
   const base = { version: 1, starter: false, hidden: [], excluded: [], added: [deck], sources: [source, second] };
   let next = archiveGroups(base, [source.key], true);
   assert.equal(showcaseGroups(next, [], [deck]).find(g => g.key === source.key).enabled, false);
