@@ -1,195 +1,83 @@
-import {
-  ArrowRight,
-  ExternalLink,
-  Folder,
-  Library,
-  Link2,
-  UserRound,
-} from "lucide-react";
-import { Artwork } from "./components";
-import { type Collection, type Deck } from "./domain";
-import { type ShowcaseGroup } from "./collection";
+import PreconRemoval from './PreconRemoval';
+import { useEffect, useState } from 'react';
+import { ArrowUpRight, ExternalLink, Folder, Library, Link2, UserRound, Power, Focus, ChevronDown, ChevronUp, PowerOff, Trash2, Plus } from 'lucide-react';
+import { Artwork } from './components';
+import type { Collection, Deck } from './domain';
+import type { ShowcaseGroup } from './collection';
 
-export default function CollectionOverview({
-  groups,
-  collection,
-  decks,
-  busy,
-  navigate,
-  toggle,
-  only,
-  enableAll,
-  browsePrecons,
-  addDemo,
-  removeDemo,
-  startPersonal,
-}: {
-  groups: ShowcaseGroup[];
-  collection: Collection;
-  decks: Deck[];
-  busy: boolean;
-  navigate: (key: string) => void;
-  toggle: (key: string, enabled: boolean) => void;
-  only: (key: string) => void;
-  enableAll: () => void;
-  browsePrecons: () => void;
-  addDemo: () => void;
-  removeDemo: () => void;
-  startPersonal: () => void;
+export default function CollectionOverview({ groups, collection, decks, busy, navigate, openScope, toggle, only, onlyMany, enableAll, browsePrecons, addDemo, removeDemo, removeSources, disable }: {
+  groups: ShowcaseGroup[]; collection: Collection; decks: Deck[]; busy: boolean;
+  navigate: (key: string) => void; openScope: (key: string, name: string, keys: string[]) => void;
+  toggle: (keys: string[], enabled: boolean, all?: boolean) => void; only: (key: string) => void;
+  onlyMany: (keys: string[]) => void; enableAll: () => void;
+  disable: (keys: string[]) => void;
+  removeSources: (keys: string[]) => void;
+  browsePrecons: () => void; addDemo: () => void; removeDemo: () => void;
 }) {
-  const saved = new Map(decks.map((d) => [d.id, d]));
-  return (
-    <div className="collection-overview">
-      <div className="overview-intro">
-        <div><h3>Your own decks</h3><p>Add a public account, folder or deck link. Your choices stay in this browser.</p></div>
-        <button className="button button-gold" disabled={busy} onClick={startPersonal}>Start my collection <ArrowRight size={14} /></button>
-      </div>
-      {(!collection.demo || collection.demo.removed) && <div className="overview-catalog">
-        <Library size={20} /><div><h4>Commander precons demo</h4><p>Explore the curated catalog as an optional collection.</p></div>
-        <button className="button button-outline" disabled={busy} onClick={addDemo}>{collection.demo ? "Restore demo" : "Add demo"}</button>
-      </div>}
-      <div className="overview-intro">
-        <div>
-          <h3>What’s on display?</h3>
-          <p>
-            Enable the collections you want to browse and pick from. Turning one
-            off keeps your deck selections.
-          </p>
-        </div>
-        <button className="text-button" disabled={busy} onClick={enableAll}>
-          Enable all
-        </button>
-      </div>
-      <div className="overview-groups">
-        {[
-          ...groups.filter((g) => g.kind === "folder" || g.kind === "account"),
-          ...groups.filter((g) => g.kind === "demo" || g.kind === "included" || g.kind === "manual"),
-        ].map((group) => {
-          const count = group.ids.filter(
-            (id) => !collection.hidden.includes(id),
-          ).length;
-          const preview = group.ids
-            .map((id) => saved.get(id))
-            .filter((d): d is Deck => !!d)
-            .slice(0, 3);
-          const Icon =
-            group.kind === "folder"
-              ? Folder
-              : group.kind === "account"
-                ? UserRound
-                : group.kind === "manual"
-                  ? Link2
-                  : Library;
-          return (
-            <article
-              className={`overview-group ${group.enabled ? "" : "is-paused"}`}
-              key={group.key}
-            >
-              <div className="overview-group-top">
-                <Icon size={18} />
-                <button
-                  className="overview-group-title"
-                  disabled={busy}
-                  onClick={() => navigate(group.key)}
-                >
-                  {group.name}
-                </button>
-                <label className="overview-switch">
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    aria-label={`Enable ${group.name}`}
-                    checked={group.enabled}
-                    disabled={busy}
-                    onChange={(e) => toggle(group.key, e.target.checked)}
-                  />
-                  <span>{group.enabled ? "On" : "Off"}</span>
-                </label>
-              </div>
-              <div className="overview-group-info">
-                <div className="overview-previews" aria-hidden="true">
-                  {preview.map((d) => (
-                    <Artwork key={d.id} src={d.commanders[0].art} alt="" />
-                  ))}
-                  {!preview.length && <Icon size={25} />}
-                </div>
-                <div>
-                  <p>
-                    {group.kind === "demo"
-                      ? "Optional examples for browsing and picking. Not decks you own."
-                      : group.kind === "included"
-                      ? "The original 29 decks supplied with this app, with offline artwork."
-                      : group.kind === "manual"
-                        ? "Decks added individually, or kept after disconnecting a source."
-                        : group.key === "account:archidekt_precons"
-                          ? "Your selections from Archidekt’s curated precon catalog."
-                          : `Public Archidekt ${group.kind}${group.kind === "folder" ? " · direct decks only" : ""}.`}
-                  </p>
-                  <small>
-                    {count} selected
-                    {group.kind === "account" || group.kind === "folder"
-                      ? ` · ${group.available} found at source`
-                      : ` of ${group.ids.length} saved`}
-                    {!group.enabled ? " · collection off" : ""}
-                  </small>
-                  {group.kind === "demo" && collection.demo && <p className="demo-provenance">
-                    <a href="https://archidekt.com/commander-precons" target="_blank" rel="noreferrer">Archidekt_Precons</a>
-                    {" · Snapshot "}{new Date(collection.demo.snapshotAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
-                    {Date.now() - Date.parse(collection.demo.snapshotAt) > 30 * 86400000 ? " · More than 30 days old; newer decks may be missing." : " · Complete at snapshot date."}
-                    {" Artwork loads online."}
-                  </p>}
-                </div>
-              </div>
-              <div className="overview-group-actions">
-                {group.kind === "demo" && <button className="text-button" disabled={busy} onClick={removeDemo}>Remove demo</button>}
-                <button
-                  className="text-button"
-                  disabled={busy}
-                  onClick={() => only(group.key)}
-                >
-                  Only this
-                </button>
-                <button
-                  className="text-button"
-                  disabled={busy}
-                  onClick={() => navigate(group.key)}
-                >
-                  Choose decks <ArrowRight size={13} />
-                </button>
-              </div>
-            </article>
-          );
-        })}
-      </div>
-      <div className="overview-catalog">
-        <Library size={20} />
-        <div>
-          <h4>Choose precons you own</h4>
-          <p>
-            Browse Archidekt’s catalog and save personal copies. Nothing
-            is selected automatically.
-          </p>
-          <a
-            href="https://archidekt.com/commander-precons"
-            target="_blank"
-            rel="noreferrer"
-          >
-            View catalog on Archidekt <ExternalLink size={12} />
-          </a>
-        </div>
-        <button
-          className="button button-outline"
-          disabled={busy}
-          onClick={browsePrecons}
-        >
-          Browse precons <ArrowRight size={14} />
-        </button>
-      </div>
-      <p className="overview-note">
-        A deck in several collections appears once, as long as one of those
-        collections is enabled. Individual deck selections and picker exclusions
-        still apply.
-      </p>
+  const [expanded, setExpanded] = useState(() => { try { return localStorage.getItem('deckshelf.expanded-collections') === 'true'; } catch { return false; } });
+  useEffect(() => { try { localStorage.setItem('deckshelf.expanded-collections', String(expanded)); } catch { /* Keep session state if storage is unavailable. */ } }, [expanded]);
+  const summaries: { group: ShowcaseGroup; children: ShowcaseGroup[]; keys: string[] }[] = [];
+  const saved = new Map(decks.map(deck => [deck.id, deck]));
+  const seen = new Set<string>();
+  const ordered = [...groups.filter(g => ['account', 'folder'].includes(g.kind)), ...groups.filter(g => !['account', 'folder'].includes(g.kind))];
+  for (const group of ordered) {
+    const source = collection.sources?.find(s => s.key === group.key);
+    if (source?.connectionKey) {
+      if (seen.has(source.connectionKey)) continue;
+      seen.add(source.connectionKey);
+      const sources = collection.sources!.filter(s => s.connectionKey === source.connectionKey);
+      const keys = sources.map(s => s.key);
+      const children = groups.filter(g => keys.includes(g.key));
+      summaries.push({ keys, children, group: { ...group, key: `connection:${source.connectionKey}`, name: source.connectionName || source.name, kind: 'account',
+        ids: [...new Set(children.flatMap(g => g.ids))], available: new Set(sources.flatMap(s => s.knownIds)).size, enabled: children.some(g => g.enabled) } });
+    } else summaries.push({ group, children: [], keys: [group.key] });
+  }
+  return <div className={`collection-overview ${expanded ? 'is-expanded' : ''}`}>
+    <div className="overview-intro"><div><h3>Collections</h3></div><button className="text-button" disabled={busy} onClick={enableAll}><Power size={14} />Enable all</button></div>
+    <button className="text-button overview-expand" aria-expanded={expanded} onClick={() => setExpanded(v => !v)}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}{expanded ? 'Collapse collections' : 'Expand collections'}</button>
+    <div className="overview-groups">
+      {summaries.filter(({keys}) => !keys.every(key => collection.archivedGroups?.includes(key))).map(({ group, children, keys }) => {
+        const Icon = group.kind === 'account' ? UserRound : group.kind === 'folder' ? Folder : group.kind === 'manual' ? Link2 : Library;
+        const partial = group.enabled && children.some(child => !child.enabled);
+        const activeIds = children.length ? children.filter(child => child.enabled).flatMap(child => child.ids) : group.enabled ? group.ids : [];
+        const active = new Set(activeIds.filter(id => !collection.hidden.includes(id))).size;
+        const previews = [...new Map(group.ids.flatMap(id => {
+          const commander = saved.get(id)?.commanders[0];
+          return commander?.art ? [[commander.art, commander] as const] : [];
+        })).values()].slice(0, 3);
+        const open = () => children.length ? openScope('scope:' + group.key, group.name, keys) : navigate(group.key);
+        return <article key={group.key} className={`overview-group collection-box ${group.enabled ? '' : 'is-paused'}`}>
+          <button className="collection-box-cover" disabled={busy} aria-label={`Open ${group.name}`} onClick={open}>
+            {previews.length ? <span className="collection-box-art" aria-hidden="true">{previews.map(commander => <Artwork key={commander.art} src={commander.art} alt="" />)}</span>
+              : <span className="collection-box-empty"><Icon size={28} /><span>{group.available ? 'Choose decks to preview' : 'No decks added'}</span></span>}
+            <span className="collection-box-open" aria-hidden="true"><ArrowUpRight size={17} /></span>
+          </button>
+          <div className="collection-box-body">
+          <div className="overview-group-top"><Icon size={17} />
+            <button className="overview-group-title" disabled={busy} onClick={() => children.length ? openScope(`scope:${group.key}`, group.name, keys) : navigate(group.key)}>{group.name}</button>
+            <label className={`overview-switch ${partial ? 'is-partial' : ''}`}><input type="checkbox" role="switch" aria-label={`Enable ${group.name} in overview`} aria-description={partial ? 'Some folders enabled' : undefined} checked={group.enabled} disabled={busy} title="Click to pause/resume. Ctrl-click or Cmd-click to enable all folders; repeat to disable all." onChange={e => { const event = e.nativeEvent as MouseEvent; const all = event.ctrlKey || event.metaKey; toggle(keys, all ? keys.some(key => collection.disabledGroups?.includes(key)) : e.target.checked, all); }} /><span>{partial ? 'Some' : group.enabled ? 'On' : 'Off'}</span></label>
+          </div>
+          <div className="overview-group-info"><small>{active}/{group.available} active</small></div>
+          <div className="overview-group-actions">
+            <button className="text-button" disabled={busy} title="Keep out of Enable all until explicitly enabled" onClick={() => disable(keys)}><PowerOff size={14} />Disable</button>
+            <button className="text-button" disabled={busy} onClick={() => children.length ? onlyMany(keys) : only(group.key)}><Focus size={14} />Only this</button>
+            {['account', 'folder'].includes(group.kind) && <details className="precon-removal"><summary><Trash2 size={13} />Remove…</summary><p>Remove this connection and its folders from DeckShelf. Saved decks stay in Individual decks. You can add the source again anytime.</p><button className="text-button" disabled={busy} onClick={() => removeSources(keys)}><Trash2 size={14} />Remove collection</button></details>}
+            {group.kind === 'demo' && <PreconRemoval busy={busy} remove={removeDemo} />}
+          </div>
+          {expanded && children.length > 0 && <div className="overview-folder-summary">{children.map(folder => <button key={folder.key} disabled={busy} onClick={() => navigate(folder.key)}><Folder size={12} /><span>{collection.sources?.find(s => s.key === folder.key)?.folderPath || folder.name}</span><small>{folder.enabled ? folder.ids.filter(id => !collection.hidden.includes(id)).length : 0}/{folder.available} active</small></button>)}</div>}
+          {expanded && group.kind === 'demo' && collection.demo && <p className="overview-provenance">Snapshot {new Date(collection.demo.snapshotAt).toLocaleDateString(undefined, { dateStyle: 'medium' })} · Curated by Archidekt</p>}
+          </div>
+        </article>;
+      })}
     </div>
-  );
+    <div className="disabled-collections">
+      {summaries.filter(({keys}) => keys.every(key => collection.archivedGroups?.includes(key))).map(({group, children, keys}) => <button key={group.key} disabled={busy} onClick={() => children.length ? openScope('scope:' + group.key, group.name, keys) : navigate(group.key)}><Library size={14} /><span>{group.name}</span><small>Disabled</small></button>)}
+      {collection.demo?.removed && <button disabled={busy} onClick={() => navigate('demo')}><Library size={14} /><span>Official Commander precons</span><small>Disabled</small></button>}
+    </div>
+    <div className="overview-precon-actions">
+      <a href="https://archidekt.com/commander-precons" target="_blank" rel="noreferrer">Archidekt precons <ExternalLink size={12} /></a>
+      <button className="text-button" disabled={busy} onClick={browsePrecons}><Library size={14} />Browse catalog</button>
+      {!collection.demo && <button className="text-button" disabled={busy} onClick={addDemo}><Plus size={14} />Add official precons</button>}
+    </div>
+  </div>;
 }

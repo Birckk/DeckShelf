@@ -94,6 +94,8 @@ export type Collection = {
   added: Deck[];
   sources?: CollectionSource[];
   disabledGroups?: string[];
+  archivedGroups?: string[];
+  pausedGroups?: { keys: string[]; enabled: string[] }[];
   manualIds?: string[];
   // Absent means the original v1 profile: retain its 29-deck baseline.
   starter?: boolean;
@@ -115,6 +117,10 @@ export type CollectionSource = {
   entries: SourceEntry[];
   knownIds: string[];
   selectedIds?: string[];
+  ownedIds?: string[];
+  folderPath?: string;
+  connectionKey?: string;
+  connectionName?: string;
 };
 export const EMPTY_COLLECTION: Collection = {
   version: 1,
@@ -140,6 +146,7 @@ export function validateSource(value: unknown): value is CollectionSource {
   if (!value || typeof value !== "object") return false;
   const s = value as CollectionSource;
   return (
+    [s.folderPath, s.connectionKey, s.connectionName].every(v => v === undefined || (typeof v === "string" && v.length <= 2000)) &&
     ["account", "folder"].includes(s.kind) &&
     typeof s.value === "string" &&
     (s.kind === "folder"
@@ -162,6 +169,7 @@ export function validateSource(value: unknown): value is CollectionSource {
         s.selectedIds.every(
           (id) => typeof id === "string" && s.knownIds.includes(id),
         ))) &&
+    (s.ownedIds === undefined || (Array.isArray(s.ownedIds) && s.ownedIds.length <= 2000 && s.ownedIds.every(id => typeof id === "string" && s.knownIds.includes(id)))) &&
     Array.isArray(s.entries) &&
     s.entries.length <= 1000 &&
     new Set(s.entries.map((e) => e?.id)).size === s.entries.length &&
@@ -218,7 +226,7 @@ export function validateDeck(value: unknown): value is Deck {
   );
 }
 export function parseCollection(raw: string): Collection {
-  const v = JSON.parse(raw) as Collection;
+  const v = JSON.parse(raw) as Collection & { disabledDecks?: string[] };
   if (
     !v ||
     v.version !== 1 ||
@@ -249,6 +257,23 @@ export function parseCollection(raw: string): Collection {
               key === "manual" ||
               v.sources?.some((s) => s?.key === key)),
         ))) ||
+    (v.archivedGroups !== undefined &&
+      (!Array.isArray(v.archivedGroups) ||
+        v.archivedGroups.length > 53 ||
+        !v.archivedGroups.every(
+          (key) =>
+            typeof key === "string" &&
+            (key === "starter" ||
+              key === "demo" ||
+              key === "manual" ||
+              v.sources?.some((s) => s?.key === key)),
+        ))) ||
+    (v.disabledDecks !== undefined && (!Array.isArray(v.disabledDecks) || v.disabledDecks.length > 2000 || !v.disabledDecks.every(id => typeof id === "string" && /^\d{1,12}$/.test(id)))) ||
+    (v.pausedGroups !== undefined &&
+      (!Array.isArray(v.pausedGroups) || v.pausedGroups.length > 100 ||
+        !v.pausedGroups.every(p => p && Array.isArray(p.keys) && p.keys.length > 1 && p.keys.length <= 50 &&
+          p.keys.every(key => typeof key === "string" && Array.isArray(v.sources) && v.sources.some(s => s?.key === key)) &&
+          Array.isArray(p.enabled) && p.enabled.length <= p.keys.length && p.enabled.every(key => p.keys.includes(key))))) ||
     (v.manualIds !== undefined &&
       (!Array.isArray(v.manualIds) ||
         v.manualIds.length > 2000 ||
@@ -265,12 +290,15 @@ export function parseCollection(raw: string): Collection {
   }
   return {
     version: 1,
-    hidden: [...new Set(v.hidden)],
+    ...(v.archivedGroups !== undefined ? { archivedGroups: [...new Set(v.archivedGroups)] } : {}),
+    // Fold the brief per-deck disable experiment into ordinary hidden choices.
+    hidden: [...new Set([...v.hidden, ...(v.disabledDecks || [])])],
     excluded: [...new Set(v.excluded)],
     added: v.added,
     ...(v.starter !== undefined ? { starter: v.starter } : {}),
     ...(v.demo !== undefined ? { demo: v.demo } : {}),
     ...(v.sources !== undefined ? { sources: v.sources } : {}),
+    ...(v.pausedGroups !== undefined ? { pausedGroups: v.pausedGroups } : {}),
     ...(v.disabledGroups !== undefined
       ? { disabledGroups: [...new Set(v.disabledGroups)] }
       : {}),

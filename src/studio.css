@@ -34,7 +34,7 @@ body {
   letter-spacing: -0.65px;
 }
 .studio-header .brand img {
-  width: 27px;
+  width: 30px;
   height: 30px;
 }
 .studio-header .brand-sub {
@@ -728,7 +728,6 @@ option {
     font-size: 13px;
     padding: 0 11px;
   }
-  .studio-header .about-button,
   .studio-header .count-badge {
     display: none;
   }
@@ -1102,27 +1101,6 @@ option {
 .collection-view-controls {
   gap: 18px;
   flex-wrap: wrap;
-}
-.collection-layout-switch {
-  padding: 3px;
-  gap: 2px;
-  border: 1px solid #ffffff16;
-  border-radius: 7px;
-  background: #191a1d;
-}
-.collection-layout-switch button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 28px;
-  padding: 5px 8px;
-  font-size: 11px;
-  color: #96969e;
-  border-radius: 4px;
-}
-.collection-layout-switch button[aria-pressed="true"] {
-  background: #343339;
-  color: #f2e5c9;
 }
 .collection-size-control {
   gap: 8px;
@@ -1566,3 +1544,90 @@ html { scrollbar-gutter: stable; }
   .studio-color-controls { padding: 2px 10px; gap: 8px; }
   .inline-colors .color-button { min-height: 36px; }
 }
+
+.studio-header .about-button { display: inline-flex; flex-shrink: 0; }
+
+/* Deck details share the readable scale and compact actions of About/Guide. */
+.deck-detail { grid-template-columns: minmax(0, 280px) minmax(0, 1fr); align-items: start; }
+.detail-copy { min-width: 0; overflow-wrap: anywhere; }
+.detail-set { display: block; font-size: 13px; line-height: 1.5; color: #c8c3b7; }
+.detail-copy h2 { line-height: 1.15; margin: 10px 0 16px; }
+.detail-commander { font-size: 15px; line-height: 1.6; margin: 0; }
+.detail-cards > div > span { font-size: 11px; color: #aaa6b3; margin-top: 10px; }
+.deck-detail:has(.partners) { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); }
+.detail-cards.partners { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.detail-copy .detail-facts { font-size: 13px; flex-wrap: wrap; gap: 8px 22px; margin: 20px 0; }
+.detail-copy .tag-list > span { font-size: 12px; }
+.detail-copy .source-description { font-size: 14px; max-height: none; overflow: visible; }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.detail-actions .button { min-height: 44px; font-size: 13px; white-space: normal; text-align: center; }
+.detail-actions .refresh-source { margin: 0; }
+.detail-copy .original-link { min-height: 44px; font-size: 13px; }
+.detail-copy .source-note { font-size: 12px; color: #aaa6b3; margin: 18px 0 0; }
+@media (max-width: 700px) {
+  .deck-detail { padding: 22px; gap: 22px; }
+  .detail-copy h2 { font-size: 27px; }
+  .detail-cards { width: 100%; max-width: 210px; }
+  .detail-cards.partners { width: 100%; gap: 12px; }
+  .detail-cards.partners > div { flex: 1; }
+}
+
+.shortlist-controls { display:flex; align-items:center; flex-wrap:wrap; gap:3px; font-size:12px; width:fit-content; max-width:100%; min-height:42px; padding:0; border:0; border-radius:3px; box-sizing:border-box; flex-shrink:0; }
+.shortlist-controls.is-active { background:transparent; }
+.shortlist-entry, .shortlist-icon, .shortlist-mode { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:34px; border:0; border-radius:3px; color:#b9b7b1; background:transparent; cursor:pointer; }
+.shortlist-entry { padding:7px 12px; color:#e1cda4; border:0; background:#1d1c1a; font-size:13px; font-weight:500; }
+.shortlist-icon { width:34px; }
+.shortlist-mode { padding:6px 10px; font-size:12px; }
+.shortlist-mode[aria-pressed=true] { color:#ead9b8; background:#2c2923; }
+.shortlist-icon:hover, .shortlist-mode:hover { background:#2c2c2f; color:#f3f1ec; }
+.shortlist-controls button:focus-visible { outline:2px solid #d3bd91; outline-offset:2px; }
+.shortlist-controls .shortlist-pick { min-height:34px; padding:7px 12px; gap:7px; border:0; border-radius:3px; background:#d0bb93; box-shadow:none; color:#24211c; }
+.shortlist-controls .shortlist-pick:disabled { background:#1d1c1a; color:#e1cda4; opacity:1; }
+.shortlist-hidden, .shortlist-pool { padding:0 6px; font-size:12px; color:#aaa9b1; }
+.collection-tile.is-shortlisted .collection-card { outline:1px solid #d3bd91; outline-offset:3px; }
+.shortlist-mark { position:absolute; z-index:2; top:9px; right:9px; display:grid; place-items:center; min-width:28px; height:28px; padding:0 4px; border:1px solid #b8a582; border-radius:4px; background:#201e1a; color:#ead9b8; font-family:Outfit,sans-serif; font-size:13px; font-variant-numeric:tabular-nums; box-shadow:0 2px 6px #0008; }
+@media(max-width:600px) { .shortlist-controls { min-height:48px; } .shortlist-icon { min-height:40px; width:40px; } .shortlist-entry, .shortlist-mode, .shortlist-controls .shortlist-pick { min-height:40px; } }
+
+/* Keep the quick-choice trigger identical in every text state. */
+.shortlist-controls .shortlist-entry, .shortlist-controls .shortlist-pick { width:136px; height:36px; min-height:36px; flex-shrink:0; box-sizing:border-box; padding:7px 10px; font-family:inherit; font-size:13px; font-weight:500; line-height:20px; letter-spacing:normal; gap:8px; white-space:nowrap; display:inline-flex; align-items:center; justify-content:flex-start; text-align:left; }
+.shortlist-controls .shortlist-entry svg, .shortlist-controls .shortlist-pick svg { width:17px; height:17px; flex-shrink:0; }
+@media(max-width:600px) { .shortlist-controls .shortlist-entry, .shortlist-controls .shortlist-pick { height:40px; min-height:40px; } }
+.shortlist-controls .shortlist-pick:not(:disabled) { justify-content:center; text-align:center; }
+
+body:has(.helix-picker) { min-width:320px; }
+@media(max-width:360px) {
+  body:has(.helix-picker) .studio-nav { gap:2px; }
+  body:has(.helix-picker) .studio-nav button { padding-inline:7px; gap:5px; }
+  body:has(.helix-picker) .studio-header .brand { font-size:18px; gap:6px; }
+  body:has(.helix-picker) .studio-header .brand img { width:23px; }
+}
+
+/* A shared compact baseline across Collection, Cards and the picker. */
+.studio-workspace .results-toolbar { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; column-gap:18px; row-gap:6px; padding:8px 2px 6px; min-height:50px; }
+.studio-workspace .results-toolbar > div:first-child { padding-top:0; }
+.results-toolbar .shortlist-controls { min-height:36px; justify-self:start; }
+.results-toolbar .collection-display-toolbar, .results-toolbar .picker-controls-slot { grid-column:3; justify-self:end; }
+@media(max-width:1100px) {
+  .studio-workspace .results-toolbar.view-grid { grid-template-columns:auto minmax(0,1fr); }
+  .results-toolbar.view-grid .collection-display-toolbar { grid-column:1 / -1; justify-self:stretch; justify-content:flex-start; }
+}
+@media(max-width:700px) {
+  .studio-workspace .results-toolbar { grid-template-columns:minmax(0,1fr) auto; column-gap:10px; }
+  .results-toolbar .shortlist-controls { min-height:40px; }
+  .results-toolbar.view-grid .shortlist-controls { grid-column:1 / -1; }
+  .results-toolbar .picker-controls-slot { grid-column:1 / -1; justify-self:end; }
+  .results-toolbar.view-picker > div:first-child { min-height:32px; display:flex; align-items:center; }
+}
+
+.shortlist-clear { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:34px; padding:6px 9px; border:1px solid #49433a; border-radius:4px; background:#25221e; color:#e1cda4; font:inherit; font-size:12px; white-space:nowrap; cursor:pointer; }
+.shortlist-clear:hover:not(:disabled) { background:#302b23; border-color:#887657; }
+.shortlist-clear svg { width:14px; height:14px; }
+@media(max-width:600px) { .shortlist-clear { min-height:40px; padding-inline:6px; font-size:11px; } }
+
+
+/* The same count/edit control across every browsing view. */
+.shortlist-controls .shortlist-entry { justify-content:center; text-align:center; }
+.shortlist-entry[aria-pressed=true] { background:#2b2720; color:#ead9b8; }
+.shortlist-action { display:inline-flex; gap:6px; align-items:center; justify-content:center; height:34px; padding:6px 10px; border:0; border-radius:4px; background:#d0bb93; color:#24211c; font:inherit; cursor:pointer; }
+.shortlist-action:disabled { background:#29272a; color:#99958e; cursor:default; }
+@media(max-width:600px) { .shortlist-action { height:40px; padding-inline:6px; gap:4px; } .shortlist-mode { padding-inline:6px; } }

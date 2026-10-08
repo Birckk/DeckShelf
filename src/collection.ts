@@ -2,7 +2,7 @@ import { type Collection, type CollectionSource, type Deck } from "./domain.ts";
 
 export function parseSourceInput(
   input: string,
-  kind: "account" | "folder" | "deck",
+  kind: "account" | "folder" | "deck" = "account",
 ) {
   let value = input.trim();
   if (/^https?:/i.test(value)) {
@@ -41,6 +41,10 @@ export function rememberSource(
   const previous = collection.sources?.find((s) => s.key === source.key);
   const updated = {
     ...source,
+    ...(previous?.ownedIds ? { ownedIds: previous.ownedIds } : {}),
+    ...((source.folderPath ?? previous?.folderPath) !== undefined ? { folderPath: source.folderPath ?? previous?.folderPath } : {}),
+    ...((source.connectionKey ?? previous?.connectionKey) !== undefined ? { connectionKey: source.connectionKey ?? previous?.connectionKey } : {}),
+    ...((source.connectionName ?? previous?.connectionName) !== undefined ? { connectionName: source.connectionName ?? previous?.connectionName } : {}),
     ...(previous?.selectedIds !== undefined
       ? { selectedIds: previous.selectedIds }
       : {}),
@@ -59,6 +63,24 @@ export function rememberSource(
       updated,
     ],
   };
+}
+
+export function importFolderSelection(collection: Collection, sources: CollectionSource[], accepted: Deck[], existing: Deck[], pauseGroups: string[] = []): Collection {
+  let next = saveSnapshots(collection, accepted, true);
+  const acceptedIds = new Set(accepted.map(deck => deck.id));
+  for (const source of sources) {
+    const ids = source.entries.map(entry => entry.id).filter(id => acceptedIds.has(id));
+    if (!ids.length) continue;
+    next = rememberSource(next, { ...source, selectedIds: [] });
+    next = selectSourceDecks(next, source.key, ids, existing);
+    next = enableGroup(next, source.key, true);
+  }
+  if ((next.sources?.length || 0) > 50) throw new Error('Choose fewer folders. A collection can link up to 50 sources.');
+  if (accepted.length && pauseGroups.length) {
+    const enabled = new Set(sources.filter(s => s.entries.some(e => acceptedIds.has(e.id))).map(s => s.key));
+    next = { ...next, disabledGroups: [...new Set([...(next.disabledGroups || []), ...pauseGroups.filter(key => !enabled.has(key))])] };
+  }
+  return next;
 }
 
 export type ShowcaseGroup = {
@@ -94,7 +116,7 @@ export function showcaseGroups(
     ids: sourceDeckIds(s, decks),
     available: s.entries.length,
   }));
-  const linked = new Set(sourceGroups.flatMap((g) => g.ids));
+  const linked = new Set([...sourceGroups.flatMap(g => g.ids), ...(collection.sources || []).flatMap(s => s.ownedIds || [])]);
   const demoIds = new Set(collection.demo?.decks.map(d => d.id) || []);
   const manual = collection.added
     .filter(
@@ -112,7 +134,7 @@ export function showcaseGroups(
       available: catalog.length,
     }] : []),
     ...(collection.demo && !collection.demo.removed ? [{
-      key: "demo", name: "Commander precons demo", kind: "demo" as const,
+      key: "demo", name: "Official Commander precons", kind: "demo" as const,
       ids: collection.demo.decks.map(d => d.id), available: collection.demo.decks.length,
     }] : []),
     {
@@ -125,7 +147,7 @@ export function showcaseGroups(
     ...sourceGroups,
   ].map((g) => ({
     ...g,
-    enabled: !collection.disabledGroups?.includes(g.key),
+    enabled: groupActive(collection, g.key),
   }));
 }
 export function showcaseDecks(
@@ -142,6 +164,15 @@ export function showcaseDecks(
     (d) => ids.has(d.id) && !collection.hidden.includes(d.id),
   );
 }
+export function groupActive(collection: Collection, key: string): boolean {
+  return !collection.disabledGroups?.includes(key) && !collection.archivedGroups?.includes(key);
+}
+// Persistent disabling is independent of temporary on/off choices.
+export function archiveGroups(collection: Collection, keys: string[], disabled: boolean): Collection {
+  return { ...collection, archivedGroups: disabled
+    ? [...new Set([...(collection.archivedGroups || []), ...keys])]
+    : (collection.archivedGroups || []).filter(key => !keys.includes(key)) };
+}
 export function enableGroup(
   collection: Collection,
   key: string,
@@ -149,11 +180,31 @@ export function enableGroup(
 ): Collection {
   return {
     ...collection,
+    ...(collection.pausedGroups ? { pausedGroups: collection.pausedGroups.filter(p => !p.keys.includes(key)) } : {}),
     disabledGroups: enabled
       ? (collection.disabledGroups || []).filter((k) => k !== key)
       : [...new Set([...(collection.disabledGroups || []), key])],
   };
 }
+// A parent pill pauses its current subset; explicit bulk actions replace that subset.
+export function enableGroups(collection: Collection, keys: string[], enabled: boolean, all = false): Collection {
+  if (keys.length === 1) return enableGroup(collection, keys[0], enabled);
+  const same = (p: { keys: string[] }) => p.keys.length === keys.length && p.keys.every(key => keys.includes(key));
+  const previous = collection.pausedGroups?.find(same);
+  const active = keys.filter(key => !collection.disabledGroups?.includes(key));
+  const restore = enabled ? (all ? keys : previous?.enabled ?? keys) : [];
+  let pausedGroups = (collection.pausedGroups || []).filter(p => !same(p) &&
+    // Editing a subtree supersedes a remembered enclosing pause.
+    !keys.some(key => p.keys.includes(key) && !p.keys.every(k => keys.includes(k))));
+  if (all) pausedGroups = pausedGroups.filter(p => !p.keys.some(key => keys.includes(key)));
+  else if (!enabled && active.length) pausedGroups = [...pausedGroups, { keys: [...keys], enabled: active }].slice(-100);
+  else if (!enabled && previous) pausedGroups.push(previous);
+  return { ...collection, pausedGroups, disabledGroups: [...new Set([
+    ...(collection.disabledGroups || []).filter(key => !keys.includes(key)),
+    ...keys.filter(key => !restore.includes(key)),
+  ])] };
+}
+
 export function onlyGroup(
   collection: Collection,
   key: string,
@@ -161,6 +212,7 @@ export function onlyGroup(
 ): Collection {
   return {
     ...collection,
+    pausedGroups: [],
     disabledGroups: groups.filter((g) => g.key !== key).map((g) => g.key),
   };
 }
@@ -177,6 +229,7 @@ export function selectSourceDecks(
         ? {
             ...s,
             selectedIds: [...new Set([...sourceDeckIds(s, decks), ...ids])],
+            ownedIds: [...new Set([...(s.ownedIds || []), ...sourceDeckIds(s, decks), ...ids])],
           }
         : s,
     ),
@@ -194,6 +247,8 @@ export function disconnectSource(
   const next = {
     ...collection,
     sources: (collection.sources || []).filter((s) => s.key !== key),
+    archivedGroups: (collection.archivedGroups || []).filter(k => k !== key),
+    ...(collection.pausedGroups ? { pausedGroups: collection.pausedGroups.filter(p => !p.keys.includes(key)) } : {}),
     disabledGroups: (collection.disabledGroups || []).filter((k) => k !== key),
     manualIds: [...new Set([...(collection.manualIds || []),
       ...(collection.sources || []).filter(s => s.key === key).flatMap(s => sourceDeckIds(s, decks)),
@@ -294,4 +349,18 @@ export function setDeckSelection(
         ]
       : pending.filter((id) => !ids.has(id)),
   };
+}
+
+// Source membership stays independent when several sources contain the same deck.
+export function setSourceSelection(collection: Collection, keys: string[], ids: string[], selected: boolean, decks: Deck[]): Collection {
+  const wanted = new Set(ids);
+  const next = { ...collection, sources: (collection.sources || []).map(source => {
+    if (!keys.includes(source.key)) return source;
+    const current = sourceDeckIds(source, decks);
+    const available = new Set(source.knownIds);
+    return { ...source, ownedIds: [...new Set([...(source.ownedIds || []), ...current, ...(selected ? ids.filter(id => available.has(id)) : [])])], selectedIds: selected
+      ? [...new Set([...current, ...ids.filter(id => available.has(id))])]
+      : current.filter(id => !wanted.has(id)) };
+  }) };
+  return selected ? setShown(next, ids, true) : next;
 }

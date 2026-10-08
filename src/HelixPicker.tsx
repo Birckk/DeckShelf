@@ -55,8 +55,9 @@ export default function HelixPicker({
   controlsTarget: HTMLDivElement | null;
 }) {
   const [winner, setWinner] = useState<Deck | null>(null);
-  const [paused, setPaused] = useState(false);
-  const [reduced, setReduced] = useState(
+  const [systemReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const [paused, setPaused] = useState(systemReduced);
+  const [instantPick, setInstantPick] = useState(
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
   const [dragging, setDragging] = useState(false);
@@ -69,7 +70,7 @@ export default function HelixPicker({
     dragging: false,
     winner: null,
   });
-  const preferences = useRef({ paused, reduced });
+  const preferences = useRef({ paused, reduced: systemReduced });
   const pointer = useRef<{
     id: number;
     x: number;
@@ -86,7 +87,7 @@ export default function HelixPicker({
     const seen = new Set<string>();
     return items.map(deck => { const first = !seen.has(deck.id); seen.add(deck.id); return first; });
   }, [items]);
-  preferences.current = { paused, reduced };
+  preferences.current = { paused, reduced: systemReduced };
   useEffect(() => {
     onWinner(winner);
     return () => onWinner(null);
@@ -148,14 +149,12 @@ export default function HelixPicker({
             setSpinning(false);
           }
         } else if (
-          !hold &&
-          !quiet &&
           !m.winner &&
           !m.dragging &&
           count > 0 &&
           !document.querySelector("dialog[open]")
         ) {
-          m.travel += (0.025 + m.velocity) * delta;
+          m.travel += ((hold ? 0 : 0.025) + (quiet && hold ? 0 : m.velocity)) * delta;
           m.velocity *= Math.exp(-3.4 * delta);
         }
         nodes.current.forEach((node, index) => {
@@ -209,13 +208,13 @@ export default function HelixPicker({
     if (spinning || !count) return;
     stage.current?.parentElement?.scrollIntoView({
       block: "start",
-      behavior: reduced ? "instant" : "smooth",
+      behavior: instantPick ? "instant" : "smooth",
     });
     const deck = decks[randomIndex(count)];
     explore();
     const m = motion.current;
     m.velocity = 0;
-    if (reduced || count === 1) {
+    if (instantPick || count === 1) {
       m.winner = deck.id;
       setWinner(deck);
       return;
@@ -291,7 +290,7 @@ export default function HelixPicker({
   }
   return (
     <section
-      className={`helix-picker ${spinning ? "is-spinning" : ""} ${winner ? "has-winner" : ""} ${reduced ? "reduced-motion" : ""}`}
+      className={`helix-picker ${spinning ? "is-spinning" : ""} ${winner ? "has-winner" : ""} ${systemReduced ? "reduced-motion" : ""}`}
       aria-label="Random deck picker"
     >
         <span className="sr-only" role="status">
@@ -299,28 +298,29 @@ export default function HelixPicker({
             ? "Picking a deck…"
             : winner
               ? "Deck selected"
-              : paused || reduced
+              : paused
                 ? "Motion paused"
                 : "Deck picker"}
         </span>
         {controlsTarget && createPortal(<div className="helix-motion-controls" role="group" aria-label="Picker motion">
           <button
             className="text-button"
-            disabled={spinning || reduced || !!winner || !count}
+            disabled={spinning || !!winner || !count}
             onClick={() => setPaused((p) => !p)}
-            aria-label={paused ? "Resume motion" : "Pause motion"}
+            aria-label={paused ? "Resume drift" : "Pause drift"}
+            title="Stop or resume automatic drift. Dragging still coasts after release."
           >
             {paused ? <Play size={12} /> : <Pause size={12} />}
-            <span>{paused ? "Resume" : "Pause"}</span>
+            <span>{paused ? "Resume drift" : "Pause drift"}</span>
           </button>
-          <label>
+          <label title="Show the chosen deck immediately without a spin. Drift is controlled separately.">
             <input
               type="checkbox"
-              checked={reduced}
+              checked={instantPick}
               disabled={spinning}
-              onChange={(e) => setReduced(e.target.checked)}
+              onChange={(e) => setInstantPick(e.target.checked)}
             />
-            Reduce motion
+            Instant pick
           </label>
         </div>, controlsTarget)}
       <div className="helix-intro">
@@ -328,7 +328,7 @@ export default function HelixPicker({
         <p>
           {count
             ? "Browse your decks or pick one at random."
-            : "No eligible decks. Adjust your filters or include more decks."}
+            : "No matching decks. Adjust your filters or clear your selection."}
         </p>
       </div>
       <div

@@ -1,3 +1,4 @@
+import QuickChoiceControls from './QuickChoiceControls';
 import {
   useEffect,
   useMemo,
@@ -12,11 +13,9 @@ import {
   ChevronDown,
   ExternalLink,
   Eye,
-  EyeOff,
   Info,
+  BookOpen,
   LayoutGrid,
-  List,
-  GalleryVerticalEnd,
   Library,
   Search,
   SlidersHorizontal,
@@ -38,16 +37,19 @@ import {
   type Filters,
 } from "./domain";
 import { Artwork, Mana, ManaSymbol, Modal } from "./components";
+import { CollectionLayoutSwitch } from "./CollectionLayoutSwitch";
 import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
 import CardStudio from "./CardStudio";
+import CollectionGuide from "./CollectionGuide";
 import CollectionManager from "./CollectionManager";
-import { showcaseDecks, collectionDecks, freshCollection, removeDemo } from "./collection";
+import { showcaseDecks, collectionDecks, freshCollection, addDemo } from "./collection";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 
 const catalog = seed as Deck[];
 const STORAGE_KEY = "commander-archive.collection.v1";
 type View = "cards" | "grid" | "picker";
+const HOME_VIEW: View = "grid";
 type CollectionLayout = "grid" | "art" | "list";
 const DISPLAY_KEY = "commander-archive.display.v1";
 function readDisplay(): { layout: CollectionLayout; size: number } {
@@ -90,7 +92,7 @@ function App() {
   const [storageError, setStorageError] = useState(loaded.error);
   const [storageLocked, setStorageLocked] = useState(!!loaded.error);
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
-  const [view, setView] = useState<View>("grid");
+  const [view, setView] = useState<View>(HOME_VIEW);
   const [pickerControlsTarget, setPickerControlsTarget] = useState<HTMLDivElement | null>(null);
   const [display, setDisplay] = useState(readDisplay);
   useEffect(() => {
@@ -103,11 +105,16 @@ function App() {
   const [pickerWinner, setPickerWinner] = useState<Deck | null>(null);
   const revealed = !!pickerWinner;
   const [refreshing, setRefreshing] = useState(false);
-  const [refreshError, setRefreshError] = useState("");
+  const [refreshError, setRefreshError] = useState<{ id: string; message: string } | null>(null);
   const [sort, setSort] = useState("collection");
   const [detail, setDetail] = useState<Deck | null>(null);
+  const collectionTrigger = useRef<HTMLButtonElement>(null);
   const [showCollection, setShowCollection] = useState(false);
   const [personalStart, setPersonalStart] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [collectionSection, setCollectionSection] = useState("overview");
+  const [collectionScope, setCollectionScope] = useState<{ name: string; keys: string[] } | null>(null);
+  const [collectionVisit, setCollectionVisit] = useState(0);
   const [showAbout, setShowAbout] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const filterDropdownRef = useRef<HTMLDivElement>(null);
@@ -176,11 +183,22 @@ function App() {
       );
     return decks;
   }, [owned, filters, sort]);
-  useEffect(() => setRefreshError(""), [detail?.id]);
+  useEffect(() => setRefreshError(null), [detail?.id]);
+  const [selecting, setSelecting] = useState(false);
+  const [shortlist, setShortlist] = useState<string[]>([]);
+  const selectionAnchor = useRef<string | null>(null);
+  function selectDeck(id: string, range: boolean) {
+    const end = visible.findIndex(deck => deck.id === id);
+    const start = range ? visible.findIndex(deck => deck.id === selectionAnchor.current) : -1;
+    const ids = start < 0 ? [id] : visible.slice(Math.min(start, end), Math.max(start, end) + 1).map(deck => deck.id);
+    setShortlist(current => current.includes(id) ? current.filter(key => !ids.includes(key)) : [...new Set([...current, ...ids])]);
+    selectionAnchor.current = id;
+  }
   const eligible = useMemo(
-    () => visible.filter((d) => !collection.excluded.includes(d.id)),
-    [visible, collection.excluded],
+    () => shortlist.length ? visible.filter(d => shortlist.includes(d.id)) : visible,
+    [visible, shortlist],
   );
+  const shortlistNumbers = new Map(visible.filter(deck => shortlist.includes(deck.id)).map((deck, index) => [deck.id, index + 1]));
   const sets = useMemo(
     () => [...new Set(owned.map((d) => d.set))].sort(),
     [owned],
@@ -198,14 +216,6 @@ function App() {
   function updateFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
     setFilters((f) => ({ ...f, [key]: value }));
   }
-  function exclude(id: string) {
-    setCollection((c) => ({
-      ...c,
-      excluded: c.excluded.includes(id)
-        ? c.excluded.filter((v) => v !== id)
-        : [...c.excluded, id],
-    }));
-  }
   function selectView(next: View) {
     if (spinning) return;
     setView(next);
@@ -213,7 +223,7 @@ function App() {
   }
   async function refreshDeck(deck: Deck) {
     setRefreshing(true);
-    setRefreshError("");
+    setRefreshError(null);
     try {
       const response = await fetch(`/api/decks/${deck.id}?refresh=1`, {
         signal: AbortSignal.timeout(25000),
@@ -235,9 +245,7 @@ function App() {
       setDetail((current) => (current?.id === deck.id ? updated : current));
       setNotice(`${updated.name} refreshed from Archidekt.`);
     } catch (error) {
-      setRefreshError(
-        `${(error as Error).message} Your saved deck is unchanged.`,
-      );
+      setRefreshError({ id: deck.id, message: `${(error as Error).message} Your saved deck is unchanged.` });
     } finally {
       setRefreshing(false);
     }
@@ -266,11 +274,14 @@ function App() {
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            selectView("cards");
+            setShowCollection(false);
+            selectView(HOME_VIEW);
           }}
           aria-label="DeckShelf home"
+          title="Back to Collection"
+          aria-disabled={spinning}
         >
-          <img src="/favicon.svg" alt="" />
+          <img src="/brand-familiar.svg" alt="" />
           <span>
             Deck<span className="brand-sub">Shelf</span>
           </span>
@@ -288,7 +299,7 @@ function App() {
               aria-pressed={view === id}
               className={view === id ? "active" : ""}
               disabled={spinning}
-              onClick={() => selectView(id)}
+              onClick={() => { setShowCollection(false); selectView(id); }}
             >
               <Icon size={15} />
               <span>{label}</span>
@@ -298,15 +309,19 @@ function App() {
         <div className="header-actions">
           <button
             className="icon-button about-button"
-            aria-label="About DeckShelf"
+            aria-label="Help and about DeckShelf"
+            title="About DeckShelf"
             onClick={() => setShowAbout(true)}
           >
             <Info size={18} />
           </button>
+          <button className="button button-outline guide-trigger" onClick={() => setShowGuide(true)}><BookOpen size={16} /><span>Guide</span></button>
           <button
             className="button button-outline"
             disabled={spinning}
-            onClick={() => { setPersonalStart(false); setShowCollection(true); }}
+            ref={collectionTrigger}
+            aria-label="My collection"
+            onClick={() => { setPersonalStart(false); if (showCollection) { setCollectionSection("overview"); setCollectionScope(null); setCollectionVisit(v => v + 1); } setShowCollection(true); }}
           >
             <Library size={16} />
             <span>My collection</span>
@@ -322,17 +337,7 @@ function App() {
           </button>
         </div>
       )}
-      <div className="studio-workspace">
-        {collection.demo && !collection.demo.removed && !collection.disabledGroups?.includes("demo") && (
-          <div className="demo-strip">
-            <span><strong>Commander precons demo</strong> · Explore {collection.demo.decks.length} precons</span>
-            <button className="text-button" disabled={spinning} onClick={() => {
-              setCollection(removeDemo);
-              setPersonalStart(true);
-              setShowCollection(true);
-            }}>Start my collection <ArrowRight size={14} /></button>
-          </div>
-        )}
+      {!showCollection && <div className="studio-workspace">
         <fieldset
           className="studio-toolbar"
           disabled={spinning}
@@ -542,47 +547,26 @@ function App() {
                   ? "Commander cards"
                   : "Your collection"}
             </h1>
-            <div className="results-toolbar">
+            <div className={`results-toolbar ${`view-${view}`}`}>
               <div>
                 <span className="result-count" role="status">
                   {visible.length === owned.length
                     ? `${visible.length} ${visible.length === 1 ? "deck" : "decks"}`
                     : `${visible.length} of ${owned.length} decks`}
-                  {eligible.length !== visible.length && (
-                    <>
-                      <span className="separator-dot">·</span>
-                      <span>{eligible.length} in picker</span>
-                    </>
-                  )}
                 </span>
               </div>
+              <QuickChoiceControls view={view} selecting={selecting} total={shortlist.length} eligible={eligible.length} busy={spinning}
+                hasVisible={visible.length > 0} allSelected={visible.length > 0 && visible.every(d => shortlist.includes(d.id))}
+                edit={() => { if (view === 'grid') setSelecting(value => !value); else { setSelecting(true); selectView('grid'); } }}
+                pick={() => { setSelecting(false); selectView('picker'); }}
+                clear={() => { setShortlist([]); setSelecting(false); selectionAnchor.current = null; }}
+                toggleAll={() => setShortlist(current => visible.every(d => current.includes(d.id)) ? current.filter(id => !visible.some(d => d.id === id)) : [...new Set([...current, ...visible.map(d => d.id)])])} />
               <div className="picker-controls-slot" ref={setPickerControlsTarget} />
               {view === "grid" && (
                 <div className="collection-view-controls collection-display-toolbar">
-                  <div
-                    className="collection-layout-switch"
-                    role="group"
-                    aria-label="Collection layout"
-                  >
-                    {(
-                      [
-                        ["grid", "Details", LayoutGrid],
-                        ["art", "Cards only", GalleryVerticalEnd],
-                        ["list", "List", List],
-                      ] as const
-                    ).map(([layout, label, Icon]) => (
-                      <button
-                        key={layout}
-                        title={label}
-                        aria-label={label}
-                        aria-pressed={display.layout === layout}
-                        onClick={() => setDisplay((d) => ({ ...d, layout }))}
-                      >
-                        <Icon size={14} />
-                        <span>{label}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <CollectionLayoutSwitch value={display.layout} onChange={(layout) => {
+                    if (layout !== "compact") setDisplay((d) => ({ ...d, layout }));
+                  }} />
                   <label className="collection-size-control">
                     <span>Size</span>
                     <input
@@ -698,9 +682,10 @@ function App() {
                       key={deck.id}
                       deck={deck}
                       index={index}
-                      excluded={collection.excluded.includes(deck.id)}
+                      selecting={selecting}
+                      selected={shortlistNumbers.get(deck.id) || 0}
                       onOpen={() => setDetail(deck)}
-                      onExclude={() => exclude(deck.id)}
+                      onSelect={shift => selectDeck(deck.id, shift)}
                     />
                   ))}
                 </div>
@@ -731,6 +716,7 @@ function App() {
           </section>
         </main>
       </div>
+      }
       {notice && (
         <div className="toast" role="status">
           <Check size={15} />
@@ -739,7 +725,7 @@ function App() {
       )}
       {detail && (
         <Modal
-          title="From your collection"
+          title="Deck details"
           onClose={() => setDetail(null)}
           wide
         >
@@ -755,18 +741,18 @@ function App() {
               ))}
             </div>
             <div className="detail-copy">
-              <span className="eyebrow">{detail.set}</span>
+              <span className="detail-set">{detail.set}</span>
               <h2>{detail.name}</h2>
               <Mana colors={detail.colors} />
               <p className="detail-commander">
                 {detail.commanders.map((c) => c.name).join(" & ")}
               </p>
               {detail.theme && <p className="detail-theme">{detail.theme}</p>}
-              <div className="tag-list">
+              {detail.tags.length > 0 && <div className="tag-list">
                 {detail.tags.map((t) => (
                   <span key={t}>{t}</span>
                 ))}
-              </div>
+              </div>}
               {detail.description && (
                 <p className="source-description">{detail.description}</p>
               )}
@@ -786,6 +772,7 @@ function App() {
                     : "Release not listed"}
                 </span>
               </div>
+              <div className="detail-actions">
               <a
                 className="button button-gold"
                 href={detail.sourceUrl}
@@ -794,6 +781,15 @@ function App() {
               >
                 View deck on {detail.sourceName} <ExternalLink size={15} />
               </a>
+              <button
+                className="button button-outline refresh-source"
+                disabled={refreshing}
+                onClick={() => refreshDeck(detail)}
+              >
+                <RefreshCw size={15} className={refreshing ? "refreshing" : ""} />
+                {refreshing ? "Refreshing…" : "Refresh snapshot"}
+              </button>
+              </div>
               {detail.originalUrl &&
                 detail.originalUrl !== detail.sourceUrl && (
                   <a
@@ -805,27 +801,14 @@ function App() {
                     Original reference <ExternalLink size={12} />
                   </a>
                 )}
-              <button
-                className="text-button refresh-source"
-                disabled={refreshing}
-                onClick={() => refreshDeck(detail)}
-              >
-                <RefreshCw
-                  size={14}
-                  className={refreshing ? "refreshing" : ""}
-                />
-                {refreshing ? "Refreshing…" : "Refresh from Archidekt"}
-              </button>
-              {refreshError && (
+              {refreshError?.id === detail.id && (
                 <p className="inline-error" role="alert">
-                  {refreshError}
+                  {refreshError.message}
                 </p>
               )}
               <p className="source-note">
-                Decklists live at the source. This is your window into them.
-                <br />
-                Snapshot saved{" "}
-                {new Date(detail.fetchedAt).toLocaleDateString("en-GB")}.
+                Saved snapshot · {" "}
+                {new Date(detail.fetchedAt).toLocaleDateString("en-GB")}
               </p>
             </div>
           </div>
@@ -833,40 +816,50 @@ function App() {
       )}
       {showCollection && (
         <CollectionManager
+          key={collectionVisit}
           catalog={catalog}
           decks={allDecks}
           collection={collection}
           setCollection={setCollection}
           startPersonal={personalStart}
+          initialSection={collectionSection}
+          initialScope={collectionScope}
+          onLocationChange={(section, scope) => { setCollectionSection(section); setCollectionScope(scope); }}
           onRestore={(value) => { setStorageLocked(false); setCollection(value); }}
-          onClose={() => setShowCollection(false)}
+          onClose={() => { setShowCollection(false); requestAnimationFrame(() => collectionTrigger.current?.focus()); }}
           backup={backup}
           notify={setNotice}
         />
       )}
+      {showGuide && <CollectionGuide
+        present={!!collection.demo && !collection.demo.removed}
+        onClose={() => setShowGuide(false)}
+        onPrecons={() => {
+          setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
+          setShowGuide(false);
+          setPersonalStart(false);
+          setCollectionSection("demo");
+          setCollectionScope(null);
+          setShowCollection(true);
+        }}
+      />}
       {showAbout && (
         <Modal
           title="About DeckShelf"
           onClose={() => setShowAbout(false)}
         >
           <div className="about-copy">
-            <img src="/favicon.svg" width="55" height="55" alt="" />
-            <h2>Commander collection</h2>
-            <p>
-              Browse the Commander decks you own, filter by color or set, and
-              pick a deck for your next game.
-            </p>
-            <p>
-              Your collection choices stay in this browser. The starter decks
-              and their artwork are included locally. Adding a source link needs
-              internet access; newly added artwork is loaded from the source.
-            </p>
-            <p>
-              Use <strong>My collection</strong> to choose the decks on display,
-              link public Archidekt accounts or folders, add individual deck
-              links, or back up your selection. Decklists are viewed and edited
-              on their original sites.
-            </p>
+            <p className="about-lead">Your decks, ready for game night.</p>
+            <ul className="about-points">
+              <li><strong>Showcase your collection.</strong> Browse the artwork or pick a deck at random.</li>
+              <li><strong>Make it yours.</strong> Mix public Archidekt decks with official precons. Choose what’s shown.</li>
+              <li><strong>No account needed.</strong> Choices are saved in this browser. Export a backup to keep a copy.</li>
+              <li><strong>Run it locally, too.</strong> Source imports and new artwork need internet. Edit decklists on Archidekt.</li>
+            </ul>
+            <div className="about-actions">
+              <button className="button button-gold" onClick={() => { setShowAbout(false); setPersonalStart(false); setShowCollection(true); }}>My collection <ArrowRight size={16} /></button>
+              <button className="button button-outline" onClick={() => { setShowAbout(false); setShowGuide(true); }}>Quick guide</button>
+            </div>
             <div className="about-credits">
               <a
                 href="https://archidekt.com/commander-precons"
@@ -890,28 +883,32 @@ function App() {
 function DeckTile({
   deck,
   index,
-  excluded,
+  selecting,
+  selected,
   onOpen,
-  onExclude,
+  onSelect,
 }: {
   deck: Deck;
   index: number;
-  excluded: boolean;
+  selecting: boolean;
+  selected: number;
   onOpen: () => void;
-  onExclude: () => void;
+  onSelect: (shift: boolean) => void;
 }) {
   return (
     <article
-      className={`collection-tile ${excluded ? "deck-excluded" : ""}`}
+      className={`collection-tile ${selected ? "is-shortlisted" : ""}`}
       style={{ "--order": Math.min(index, 11) } as CSSProperties}
     >
       <button
         className="collection-card"
         onPointerMove={tiltCard}
         onPointerLeave={resetTilt}
-        onClick={onOpen}
-        aria-label={`View ${deck.name}`}
+        onClick={e => selecting ? onSelect(e.shiftKey) : onOpen()}
+        aria-pressed={selecting ? !!selected : undefined}
+        aria-label={`${selecting ? "Select" : "View"} ${deck.name}`}
       >
+        {selected > 0 && <span className="shortlist-mark" aria-hidden="true">{String(selected).padStart(2, "0")}</span>}
         <Artwork
           src={deck.commanders[0].image}
           alt={deck.commanders[0].name}
@@ -919,7 +916,7 @@ function DeckTile({
         />
       </button>
       <div className="collection-caption">
-        <button className="collection-deck-title" onClick={onOpen}>
+        <button className="collection-deck-title" onClick={e => selecting ? onSelect(e.shiftKey) : onOpen()} aria-pressed={selecting ? !!selected : undefined}>
           {deck.name}
           <ExternalLink size={14} />
         </button>
@@ -929,16 +926,7 @@ function DeckTile({
         </div>
         <div className="collection-deck-bottom">
           <span>{deck.theme || deck.tags.slice(0, 2).join(" · ")}</span>
-          <button
-            className={`collection-eligibility ${excluded ? "is-excluded" : ""}`}
-            title={excluded ? "Include in picker" : "Exclude from picker"}
-            aria-label={`${excluded ? "Include" : "Exclude"} ${deck.name} ${excluded ? "in" : "from"} picker`}
-            aria-pressed={!excluded}
-            onClick={onExclude}
-          >
-            {excluded ? <EyeOff size={14} /> : <Dices size={14} />}
-            <span>{excluded ? "Excluded" : "In picker"}</span>
-          </button>
+
         </div>
       </div>
     </article>

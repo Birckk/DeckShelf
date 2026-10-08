@@ -369,3 +369,29 @@ test("bulk selection handles saved and new decks while preserving choices outsid
     pending: ["new"],
   });
 });
+
+test('persistent disabling survives bulk enabling, backup, overlaps and disconnection', async () => {
+  const { archiveGroups, enableGroups } = await import('../src/collection.ts');
+  const second = { ...source, key: 'folder:43', value: '43' };
+  const base = { version: 1, starter: false, hidden: [], excluded: [], added: [deck], sources: [source, second] };
+  let next = archiveGroups(base, [source.key], true);
+  assert.equal(showcaseGroups(next, [], [deck]).find(g => g.key === source.key).enabled, false);
+  assert.equal(showcaseDecks(next, [], [deck]).length, 1, 'another enabled source still contributes its overlapping deck');
+  next = archiveGroups(next, [second.key], true);
+  next = enableGroups(next, [source.key, second.key], true, true);
+  assert.equal(showcaseDecks(next, [], [deck]).length, 0);
+  next = parseCollection(JSON.stringify(next));
+  assert.deepEqual(next.archivedGroups, [source.key, second.key]);
+  next = archiveGroups(next, [source.key], false);
+  assert.equal(showcaseDecks(next, [], [deck]).length, 1);
+  const migrated = parseCollection(JSON.stringify({ ...next, disabledDecks: [deck.id] }));
+  assert.deepEqual(migrated.hidden, [deck.id]);
+  assert.equal('disabledDecks' in migrated, false);
+  assert.equal(showcaseDecks(migrated, [], [deck]).length, 0);
+  assert.equal(showcaseDecks(setShown(migrated, [deck.id], true), [], [deck]).length, 1);
+  const detached = disconnectSource(next, second.key, [], [deck]);
+  assert.doesNotThrow(() => parseCollection(JSON.stringify(detached)));
+  assert.ok(!detached.archivedGroups.includes(second.key));
+  assert.throws(() => parseCollection(JSON.stringify({ ...base, archivedGroups: ['bad'] })));
+  assert.throws(() => parseCollection(JSON.stringify({ ...base, disabledDecks: [123] })));
+});

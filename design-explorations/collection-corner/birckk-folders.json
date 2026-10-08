@@ -1,0 +1,442 @@
+{
+  "name": "birckk",
+  "folders": [
+    {
+      "source": {
+        "key": "folder:1894739",
+        "kind": "folder",
+        "value": "1894739",
+        "name": "Home",
+        "url": "https://archidekt.com/folders/1894739",
+        "checkedAt": "2026-10-04T19:22:19.832Z",
+        "entries": [],
+        "knownIds": []
+      },
+      "path": "Home",
+      "root": true
+    },
+    {
+      "source": {
+        "key": "folder:1916319",
+        "kind": "folder",
+        "value": "1916319",
+        "name": "DeckShelf Test Collection",
+        "url": "https://archidekt.com/folders/1916319",
+        "checkedAt": "2026-10-04T19:22:19.994Z",
+        "entries": [
+          {
+            "id": "27088578",
+            "name": "TEST - Calling All Angels - Copy B",
+            "image": "https://card-images.archidekt.com/art/front/4/e/4ebc7622-08a1-4f43-92dd-8675d395e8f6.webp",
+            "colors": [
+              "W"
+            ]
+          }
+        ],
+        "knownIds": [
+          "27088578"
+        ]
+      },
+      "path": "Home / DeckShelf Test Collection",
+      "root": false
+    },
+    {
+      "source": {
+        "key": "folder:1894789",
+        "kind": "folder",
+        "value": "1894789",
+        "name": "Precons owned",
+        "url": "https://archidekt.com/folders/1894789",
+        "checkedAt": "2026-10-04T19:22:20.073Z",
+        "entries": [
+          {
+            "id": "26904131",
+            "name": "Copy of - Multiverse Reforged - Reality Fracture",
+            "image": "https://card-images.archidekt.com/art/front/5/5/55cd03d9-2535-4cf3-a8b2-1418e1190f4a.webp",
+            "colors": [
+              "W",
+              "U",
+              "B",
+              "R"
+            ]
+          },
+          {
+            "id": "26903985",
+            "name": "Copy of - Hobbits Precon",
+            "image": "https://storage.googleapis.com/archidekt-card-images/ltc/687a2b76-3f05-4732-bd9b-513d06d16300_art_crop.jpg",
+            "colors": [
+              "W",
+              "B",
+              "G"
+            ]
+          }
+        ],
+        "knownIds": [
+          "26904131",
+          "26903985"
+        ]
+      },
+      "path": "Home / Precons owned",
+      "root": false
+    },
+    {
+      "source": {
+        "key": "folder:1915781",
+        "kind": "folder",
+        "value": "1915781",
+        "name": "test folder 2",
+        "url": "https://archidekt.com/folders/1915781",
+        "checkedAt": "2026-10-04T19:22:20.08Z",
+        "entries": [
+          {
+            "id": "27080793",
+            "name": "Copy of - Keen Engineering - Foundations Commander",
+            "image": "https://card-images.archidekt.com/art/front/5/6/5650587a-27a5-4d68-97e2-5745627bd094.webp",
+            "colors": [
+              "U"
+            ]
+          }
+        ],
+        "knownIds": [
+          "27080793"
+        ]
+      },
+      "path": "Home / test folder 2",
+      "root": false
+    },
+    {
+      "source": {
+        "key": "folder:1916320",
+        "kind": "folder",
+        "value": "1916320",
+        "name": "01 - Mono-color",
+        "url": "https://archidekt.com/folders/1916320",
+        "checkedAt": "2026-10-04T19:22:20.237Z",
+        "entries": [
+          {
+            "id": "27088908",
+            "name": "TEST - Wretched Ranks",
+            "image": "https://card-images.archidekt.com/art/front/9/0/909e62fa-4585-495e-812b-5df56af24610.webp",
+            "colors": [
+              "B"
+            ]
+          },
+          {
+            "id": "27088898",
+            "name": "TEST - Tramplesaurus Rex",
+            "image": "https://card-images.archidekt.com/art/front/5/d/5d9951d1-3228-4d69-8e63-6e6f0a893a86.webp",
+            "colors": [
+              "G"
+            ]
+          },
+          {
+            "id": "27088874",
+            "name": "TEST - Reign of Dragons",
+            "image": "https://card-images.archidekt.com/art/front/8/a/8a17ec4e-b508-41af-803b-32acd863e598.webp",
+            "colors": [
+              "R"
+            ]
+          },
+          {
+            "id": "27088589",
+            "name": "TEST - Keen Engineering",
+            "image": "https://card-images.archidekt.com/art/front/5/6/5650587a-27a5-4d68-97e2-5745627bd094.webp",
+            "colors": [
+              "U"
+            ]
+          },
+          {
+            "id": "27088575",
+            "name": "TEST - Calling All Angels",
+            "image": "https://card-images.archidekt.com/art/front/4/e/4ebc7622-08a1-4f43-92dd-8675d395e8f6.webp",
+            "colors": [
+              "W"
+            ]
+          }
+        ],
+        "knownIds": [
+          "27088908",
+          "27088898",
+          "27088874",
+          "27088589",
+          "27088575"
+        ]
+      },
+      "path": "Home / DeckShelf Test Collection / 01 - Mono-color",
+      "root": false
+    },
+    {
+      "source": {
+        "key": "folder:1916321",
+        "kind": "folder",
+        "value": "1916321",
+        "name": "02 - Multicolor",
+        "url": "https://archidekt.com/folders/1916321",
+        "checkedAt": "2026-10-04T19:22:20.297Z",
+        "entries": [
+          {
+            "id": "27089225",
+            "name": "TEST - Peace Offering",
+            "image": "https://storage.googleapis.com/archidekt-card-images/blc/42bbedc1-6b83-46b4-8b3b-a4e05ce77d87_art_crop.jpg",
+            "colors": [
+              "W",
+              "U",
+              "G"
+            ]
+          },
+          {
+            "id": "27089216",
+            "name": "TEST - Family Matters",
+            "image": "https://storage.googleapis.com/archidekt-card-images/blc/dfe36901-5841-4942-8b61-c273111f715e_art_crop.jpg",
+            "colors": [
+              "W",
+              "U",
+              "R"
+            ]
+          },
+          {
+            "id": "27089185",
+            "name": "TEST - Animated Army",
+            "image": "https://storage.googleapis.com/archidekt-card-images/blc/31e4b7a1-b377-49d2-a92e-4bcb0db35f16_art_crop.jpg",
+            "colors": [
+              "R",
+              "G"
+            ]
+          },
+          {
+            "id": "27089177",
+            "name": "TEST - Miracle Worker",
+            "image": "https://storage.googleapis.com/archidekt-card-images/dsc/9f868023-6035-403d-ba91-7a4840c6c392_art_crop.jpg",
+            "colors": [
+              "W",
+              "U",
+              "B"
+            ]
+          },
+          {
+            "id": "27089174",
+            "name": "TEST - Jump Scare!",
+            "image": "https://storage.googleapis.com/archidekt-card-images/dsc/30f23588-5064-48d9-a271-039df757f8d2_art_crop.jpg",
+            "colors": [
+              "U",
+              "G"
+            ]
+          },
+          {
+            "id": "27089142",
+            "name": "TEST - Endless Punishment",
+            "image": "https://storage.googleapis.com/archidekt-card-images/dsc/8d7c1f6c-af45-4449-8cf8-e13830b3df8a_art_crop.jpg",
+            "colors": [
+              "B",
+              "R"
+            ]
+          },
+          {
+            "id": "27089140",
+            "name": "TEST - Death Toll",
+            "image": "https://storage.googleapis.com/archidekt-card-images/dsc/94dc35e4-a492-4019-afcd-cbef6f59a512_art_crop.jpg",
+            "colors": [
+              "B",
+              "G"
+            ]
+          },
+          {
+            "id": "27089133",
+            "name": "TEST - Temur Roar",
+            "image": "https://storage.googleapis.com/archidekt-card-images/tdc/ff9aa863-8773-452d-946c-ae334c632e11_art_crop.jpg",
+            "colors": [
+              "U",
+              "R",
+              "G"
+            ]
+          },
+          {
+            "id": "27089094",
+            "name": "TEST - Sultai Arisen",
+            "image": "https://storage.googleapis.com/archidekt-card-images/tdc/b5d1955a-9ff0-4f8b-9af8-341371957299_art_crop.jpg",
+            "colors": [
+              "U",
+              "B",
+              "G"
+            ]
+          },
+          {
+            "id": "27089091",
+            "name": "TEST - Mardu Surge",
+            "image": "https://storage.googleapis.com/archidekt-card-images/tdc/dc8eb325-75c9-4331-830d-3f7d62d77290_art_crop.jpg",
+            "colors": [
+              "W",
+              "B",
+              "R"
+            ]
+          },
+          {
+            "id": "27089082",
+            "name": "TEST - Jeskai Striker",
+            "image": "https://storage.googleapis.com/archidekt-card-images/tdc/5a42fc7d-52ac-4e95-9e04-8f8fa7f687c8_art_crop.jpg",
+            "colors": [
+              "W",
+              "U",
+              "R"
+            ]
+          },
+          {
+            "id": "27089050",
+            "name": "TEST - Abzan Armor",
+            "image": "https://storage.googleapis.com/archidekt-card-images/tdc/2c3549f6-25df-4ea7-84ad-922ccd4af6b2_art_crop.jpg",
+            "colors": [
+              "W",
+              "B",
+              "G"
+            ]
+          },
+          {
+            "id": "27089038",
+            "name": "TEST - Scions & Spellcraft",
+            "image": "https://storage.googleapis.com/archidekt-card-images/fic/c7f2c2d5-e052-49e8-b5de-712858c2ea78_art_crop.jpg",
+            "colors": [
+              "W",
+              "U",
+              "B"
+            ]
+          },
+          {
+            "id": "27089034",
+            "name": "TEST - Revival Trance",
+            "image": "https://storage.googleapis.com/archidekt-card-images/fic/5aa1a2d7-6133-41a9-9662-9008d1309935_art_crop.jpg",
+            "colors": [
+              "W",
+              "B",
+              "R"
+            ]
+          },
+          {
+            "id": "27089031",
+            "name": "TEST - Limit Break",
+            "image": "https://storage.googleapis.com/archidekt-card-images/fic/07b4e4f8-6a31-4533-be51-668ce3ddc84f_art_crop.jpg",
+            "colors": [
+              "W",
+              "R",
+              "G"
+            ]
+          },
+          {
+            "id": "27088970",
+            "name": "TEST - Counter Blitz",
+            "image": "https://storage.googleapis.com/archidekt-card-images/fic/2cfd4494-346c-4cbc-8072-e267254cefcc_art_crop.jpg",
+            "colors": [
+              "W",
+              "U",
+              "G"
+            ]
+          },
+          {
+            "id": "27088966",
+            "name": "TEST - Witherbloom Pestilence",
+            "image": "https://storage.googleapis.com/archidekt-card-images/soc/9fe237b8-c02c-41ea-9fc4-b771b91d2157_art_crop.jpg",
+            "colors": [
+              "B",
+              "G"
+            ]
+          },
+          {
+            "id": "27088954",
+            "name": "TEST - Silverquill Influence",
+            "image": "https://storage.googleapis.com/archidekt-card-images/soc/76b6c35a-bb92-4ad3-8f85-88b9bafc6266_art_crop.jpg",
+            "colors": [
+              "W",
+              "B"
+            ]
+          },
+          {
+            "id": "27088949",
+            "name": "TEST - Quandrix Unlimited",
+            "image": "https://storage.googleapis.com/archidekt-card-images/soc/605afac4-d2e5-4e68-97d2-3ac2ead5f3a9_art_crop.jpg",
+            "colors": [
+              "U",
+              "G"
+            ]
+          },
+          {
+            "id": "27088946",
+            "name": "TEST - Prismari Artistry",
+            "image": "https://storage.googleapis.com/archidekt-card-images/soc/a5b3dbb2-c090-4118-9e47-56c16202572c_art_crop.jpg",
+            "colors": [
+              "U",
+              "R"
+            ]
+          },
+          {
+            "id": "27088945",
+            "name": "TEST - Lorehold Spirit",
+            "image": "https://storage.googleapis.com/archidekt-card-images/soc/0742f19d-179c-43c4-ab95-4160c56b4384_art_crop.jpg",
+            "colors": [
+              "W",
+              "R"
+            ]
+          },
+          {
+            "id": "27088918",
+            "name": "TEST - Multiverse Reforged",
+            "image": "https://card-images.archidekt.com/art/front/5/5/55cd03d9-2535-4cf3-a8b2-1418e1190f4a.webp",
+            "colors": [
+              "W",
+              "U",
+              "B",
+              "R"
+            ]
+          },
+          {
+            "id": "27088634",
+            "name": "TEST - Draconic Domination",
+            "image": "https://storage.googleapis.com/archidekt-card-images/c17/7e78b70b-0c67-4f14-8ad7-c9f8e3f59743_art_crop.jpg",
+            "colors": [
+              "W",
+              "U",
+              "B",
+              "R",
+              "G"
+            ]
+          },
+          {
+            "id": "27088615",
+            "name": "TEST - Squirreled Away",
+            "image": "https://storage.googleapis.com/archidekt-card-images/blc/1269ca79-907e-4932-9e77-a9a5d2929060_art_crop.jpg",
+            "colors": [
+              "B",
+              "G"
+            ]
+          }
+        ],
+        "knownIds": [
+          "27089225",
+          "27089216",
+          "27089185",
+          "27089177",
+          "27089174",
+          "27089142",
+          "27089140",
+          "27089133",
+          "27089094",
+          "27089091",
+          "27089082",
+          "27089050",
+          "27089038",
+          "27089034",
+          "27089031",
+          "27088970",
+          "27088966",
+          "27088954",
+          "27088949",
+          "27088946",
+          "27088945",
+          "27088918",
+          "27088634",
+          "27088615"
+        ]
+      },
+      "path": "Home / DeckShelf Test Collection / 02 - Multicolor",
+      "root": false
+    }
+  ]
+}

@@ -24,8 +24,8 @@ try {
     await expect(page.getByRole('link', { name: 'DeckShelf home' })).toBeVisible();
     await expect(page.getByRole('button', { name: /^My collection/ })).toBeVisible();
     if (viewport.width > 600) {
-      await page.getByRole('button', { name: 'About DeckShelf' }).click();
-      await expect(page.getByRole('heading', { name: 'Commander collection', exact: true })).toBeVisible();
+      await page.getByRole('button', { name: 'Help and about DeckShelf' }).click();
+      await expect(page.getByText('Your decks, ready for game night.', { exact: true })).toBeVisible();
       await page.keyboard.press('Escape');
     }
     await page.getByRole('button', { name: 'Collection', exact: true }).click();

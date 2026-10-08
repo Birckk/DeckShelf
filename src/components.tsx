@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { X, ImageOff } from "lucide-react";
 import { COLORS, type Color } from "./domain";
 
@@ -84,6 +84,7 @@ export function Modal({
   headerActions?: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   useEffect(() => {
     const dialog = ref.current!;
     const previous = document.activeElement as HTMLElement | null;
@@ -100,14 +101,17 @@ export function Modal({
     <dialog
       ref={ref}
       className={`modal ${wide ? "modal-wide" : ""}`}
-      aria-label={title}
+      aria-labelledby={titleId}
       onCancel={onClose}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        const bounds = e.currentTarget.getBoundingClientRect();
+        if (e.target === e.currentTarget &&
+          (e.clientX < bounds.left || e.clientX > bounds.right ||
+           e.clientY < bounds.top || e.clientY > bounds.bottom)) onClose();
       }}
     >
       <div className="modal-head">
-        <span className="eyebrow">{title}</span>
+        <h2 className="modal-title" id={titleId}>{title}</h2>
         {headerActions}
         <button
           className="icon-button"

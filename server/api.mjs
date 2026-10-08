@@ -1,4 +1,4 @@
-import { discoverSource } from './sources.mjs';
+import { discoverSource, discoverFolders } from './sources.mjs';
 const cache = new Map();
 const colors = { White:'W', Blue:'U', Black:'B', Red:'R', Green:'G' };
 const plain = value => String(value || '').replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
@@ -39,9 +39,10 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
   const match = /^\/api\/decks\/(\d{1,12})$/.exec(url.pathname);
   res.setHeader('Content-Type','application/json; charset=utf-8');
   res.setHeader('X-Content-Type-Options','nosniff');
-  if (url.pathname === '/api/sources' && req.method === 'GET') {
+  if (['/api/sources', '/api/source-folders'].includes(url.pathname) && req.method === 'GET') {
     try {
-      const source = await discoverSource(url.searchParams.get('kind'), url.searchParams.get('value') || '');
+      const discover = url.pathname === '/api/source-folders' ? discoverFolders : discoverSource;
+      const source = await discover(url.searchParams.get('kind'), url.searchParams.get('value') || '');
       res.end(JSON.stringify(source));
     } catch (error) {
       res.writeHead(502);

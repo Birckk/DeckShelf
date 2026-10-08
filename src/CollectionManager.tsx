@@ -1,22 +1,27 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import PreconRemoval from './PreconRemoval';
+import CollectionDeckTile from "./CollectionDeckTile";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ChangeEvent } from "react";
 import {
   ArrowLeft,
+  Power,
+  PowerOff,
+  Focus,
+  ListChecks,
+  Square,
+  FolderTree,
+  Trash2,
   Check,
   Download,
   ExternalLink,
-  Folder,
   Library,
-  Link2,
   Plus,
   RefreshCw,
   Search,
   Unplug,
   Upload,
-  UserRound,
   X,
-  LayoutGrid,
 } from "lucide-react";
-import { Artwork, Mana, Modal } from "./components";
+
 import {
   parseCollection,
   validateDeck,
@@ -32,18 +37,26 @@ import {
   saveSnapshots,
   setShown,
   setDeckSelection,
+  setSourceSelection,
   showcaseGroups,
   showcaseDecks,
+  archiveGroups,
+  groupActive,
   enableGroup,
+  enableGroups,
   onlyGroup,
   sourceDeckIds,
-  selectSourceDecks,
   disconnectSource,
   addDemo,
   removeDemo,
+  importFolderSelection,
 } from "./collection";
 import precons from "./data/precons.json";
+import CollectionNavigator from "./CollectionNavigator";
+import { CollectionLayoutSwitch } from "./CollectionLayoutSwitch";
+import "./collection-workspace.css";
 import CollectionOverview from "./CollectionOverview";
+import SourceSetup, { type FolderDiscovery } from "./SourceSetup";
 import "./collection.css";
 
 type Props = {
@@ -55,6 +68,9 @@ type Props = {
   backup: () => void;
   notify: (message: string) => void;
   startPersonal?: boolean;
+  initialSection?: string;
+  initialScope?: { name: string; keys: string[] } | null;
+  onLocationChange: (section: string, scope: { name: string; keys: string[] } | null) => void;
   onRestore: (collection: Collection) => void;
 };
 async function jsonRequest(path: string, signal: AbortSignal) {
@@ -105,11 +121,21 @@ export default function CollectionManager({
   backup,
   notify,
   startPersonal = false,
+  initialSection = "overview",
+  initialScope = null,
+  onLocationChange,
   onRestore,
 }: Props) {
-  const [section, setSection] = useState("overview");
+  const heading = useRef<HTMLHeadingElement>(null);
+  const [layout, setLayout] = useState<'grid' | 'art' | 'compact' | 'list'>('grid');
+  const [size, setSize] = useState(175);
+  const [scope, setScope] = useState<{ name: string; keys: string[] } | null>(initialScope);
+  const [mobileNav, setMobileNav] = useState(false);
+  useEffect(() => { heading.current?.focus(); }, []);
+  const [section, setSection] = useState(initialSection);
+  useEffect(() => { onLocationChange(section, scope); }, [section, scope]);
   const [connecting, setConnecting] = useState(startPersonal);
-  const [kind, setKind] = useState<"account" | "folder" | "deck">("account");
+  const [discovery, setDiscovery] = useState<FolderDiscovery | null>(null);
   const [value, setValue] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -120,9 +146,12 @@ export default function CollectionManager({
   const [restorePreview, setRestorePreview] = useState<Collection | null>(null);
   const input = useRef<HTMLInputElement>(null);
   const controller = useRef<AbortController | null>(null);
+  const importedFolderKeys = useRef(new Set<string>());
   useEffect(() => () => controller.current?.abort(), []);
   const sources = collection.sources || [];
   const source = sources.find((s) => s.key === section);
+  const scopedSources = scope ? sources.filter(s => scope.keys.includes(s.key)) : source ? [source] : [];
+  const scopedKeys = scopedSources.map(s => s.key);
   const saved = useMemo(() => new Map(decks.map((d) => [d.id, d])), [decks]);
   const groups = showcaseGroups(collection, catalog, decks);
   const activeGroup = groups.find((g) => g.key === section);
@@ -133,19 +162,21 @@ export default function CollectionManager({
   const manual = decks.filter((d) =>
     groups.find((g) => g.key === "manual")!.ids.includes(d.id),
   );
-  const sourceIds = new Set(source ? sourceDeckIds(source, decks) : []);
+  const enabledScopeIds = new Set(scopedSources.filter(s => groupActive(collection, s.key)).flatMap(s => sourceDeckIds(s, decks)));
+  const displayedHere = (id: string) => onDisplayIds.has(id) && (scopedSources.length ? enabledScopeIds.has(id) : !activeGroup || activeGroup.enabled);
+  const sourceIds = new Set(scopedSources.flatMap(s => sourceDeckIds(s, decks)));
   const isSavedHere = (id: string) =>
-    saved.has(id) && (!source || sourceIds.has(id));
-  const rows: SourceEntry[] = source
-    ? [
-        ...source.entries,
+    saved.has(id) && (!scopedSources.length || scopedSources.some(s => s.knownIds.includes(id)));
+  const rows: SourceEntry[] = scopedSources.length
+    ? [...new Map([
+        ...scopedSources.flatMap(s => s.entries),
         ...decks
           .filter(
             (d) =>
-              sourceIds.has(d.id) && !source.entries.some((e) => e.id === d.id),
+              scopedSources.some(s => s.knownIds.includes(d.id)) && !scopedSources.some(s => s.entries.some((e) => e.id === d.id)),
           )
           .map(toEntry),
-      ]
+      ].map(row => [row.id, row])).values()]
     : (section === "starter"
         ? catalog.map((d) => saved.get(d.id) || d)
         : section === "demo"
@@ -159,7 +190,7 @@ export default function CollectionManager({
     const text = [row.name, ...(deck?.commanders.map((c) => c.name) || [])]
       .join(" ")
       .toLowerCase();
-    const display = isSavedHere(row.id) && onDisplayIds.has(row.id);
+    const display = isSavedHere(row.id) && (!scopedSources.length || sourceIds.has(row.id)) && displayedHere(row.id);
     return (
       text.includes(search.toLowerCase()) &&
       (status === "all" ||
@@ -169,6 +200,13 @@ export default function CollectionManager({
     );
   });
   function selectAll(select: boolean) {
+    if (scopedSources.length) {
+      const ids = shown.filter(row => isSavedHere(row.id)).map(row => row.id);
+      setCollection(c => setSourceSelection(c, scopedKeys, ids, select, decks));
+      const pending = shown.filter(row => !isSavedHere(row.id)).map(row => row.id);
+      setSelected(current => select ? [...new Set([...current, ...pending])] : current.filter(id => !pending.includes(id)));
+      return;
+    }
     const next = setDeckSelection(
       collection,
       selected,
@@ -179,6 +217,9 @@ export default function CollectionManager({
     setSelected(next.pending);
   }
   function navigate(next: string) {
+    setDiscovery(null);
+    setScope(null);
+    setMobileNav(false);
     setSection(next);
     setSearch("");
     setStatus("all");
@@ -208,7 +249,7 @@ export default function CollectionManager({
     event.preventDefault();
     const signal = begin("Finding decks…");
     try {
-      const parsed = parseSourceInput(value, kind);
+      const parsed = parseSourceInput(value);
       if (parsed.kind === "deck") {
         if (
           collection.added.length >= 1000 &&
@@ -226,24 +267,47 @@ export default function CollectionManager({
         navigate("manual");
         notify(`${deck.name} added to Individual decks.`);
       } else {
-        if (sources.length >= 50 && !sources.some((s) => s.key === parsed.key))
-          throw new Error("You can link up to 50 sources.");
-        const found = await loadSource(parsed.kind, parsed.value, signal);
+        const found = await jsonRequest(`/api/source-folders?${new URLSearchParams({ kind: parsed.kind, value: parsed.value })}`, signal);
+        if (typeof found.name !== 'string' || !Array.isArray(found.folders) || found.folders.length > 80 ||
+          !found.folders.every((f: FolderDiscovery['folders'][number]) => f && validateSource(f.source) && typeof f.path === 'string' && typeof f.root === 'boolean'))
+          throw new Error('The source returned incomplete folder information.');
         signal.throwIfAborted();
-        setCollection(
-          rememberSource(collection, { ...found, selectedIds: [] }),
-        );
-        navigate(found.key);
-        notify(
-          `${found.entries.length} public Commander decks found. Choose which to show.`,
-        );
+        setDiscovery(found);
+        setSelected([]);
+        importedFolderKeys.current.clear();
       }
-      setValue("");
     } catch (e) {
       report(e);
     } finally {
       setBusy("");
     }
+  }
+  async function addFolders(onlyFolders: boolean) {
+    if (!discovery) return;
+    const signal = begin('Adding selected decks…');
+    try {
+      const parsed = parseSourceInput(value);
+      const chosen = discovery.folders.map(f => ({ ...f.source, folderPath: f.path, connectionKey: parsed.key, connectionName: discovery.name })).filter(s => s.entries.some(e => selected.includes(e.id)));
+      if (new Set([...sources.map(s => s.key), ...chosen.map(s => s.key)]).size > 50)
+        throw new Error('Choose fewer folders. A collection can link up to 50 sources.');
+      if (collection.added.length + selected.filter(id => !collection.added.some(d => d.id === id)).length > 1000)
+        throw new Error('A local collection can hold up to 1,000 imported decks. Choose fewer decks.');
+      const { loaded, errors } = await fetchDecks(selected.filter(id => !saved.has(id)), signal, false);
+      signal.throwIfAborted();
+      const accepted = [...loaded, ...selected.filter(id => saved.has(id)).map(id => saved.get(id)!)];
+      const next = importFolderSelection(collection, chosen, accepted, decks, onlyFolders && !errors.length ? groups.map(g => g.key).filter(key => !importedFolderKeys.current.has(key)) : []);
+      setCollection(next);
+      chosen.filter(s => s.entries.some(e => accepted.some(d => d.id === e.id))).forEach(s => importedFolderKeys.current.add(s.key));
+      if (errors.length) {
+        setSelected(ids => ids.filter(id => !accepted.some(d => d.id === id)));
+        setFailures(errors);
+        notify(`${accepted.length} decks added. The remaining decks can be retried.`);
+      } else {
+        notify(`${accepted.length} ${accepted.length === 1 ? 'deck' : 'decks'} added to your collection.`);
+        navigate("overview");
+      }
+    } catch (e) { report(e); }
+    finally { setBusy(''); }
   }
   async function fetchDecks(
     ids: string[],
@@ -264,7 +328,7 @@ export default function CollectionManager({
           } catch (e) {
             if (signal.aborted) throw e;
             errors.push(
-              `${saved.get(id)?.name || rows.find((r) => r.id === id)?.name || id}: ${(e as Error).message}`,
+              `${saved.get(id)?.name || discovery?.folders.flatMap(f => f.source.entries).find(e => e.id === id)?.name || rows.find((r) => r.id === id)?.name || id}: ${(e as Error).message}`,
             );
           }
         }),
@@ -302,13 +366,8 @@ export default function CollectionManager({
         true,
       );
       setCollection(
-        source
-          ? selectSourceDecks(
-              next,
-              source.key,
-              accepted.map((d) => d.id),
-              decks,
-            )
+        scopedSources.length
+          ? setSourceSelection(next, scopedKeys, accepted.map(d => d.id), true, [...decks, ...accepted])
           : next,
       );
       setSelected((ids) =>
@@ -359,6 +418,11 @@ export default function CollectionManager({
     }
     event.target.value = "";
   }
+  function removeSources(keys: string[]) {
+    setCollection(c => keys.reduce((next, key) => disconnectSource(next, key, catalog, decks), c));
+    navigate("overview");
+    notify("Collection removed. Saved decks are kept in Individual decks. Add the source again anytime.");
+  }
   function disconnect() {
     if (!source) return;
     setCollection((c) => disconnectSource(c, source.key, catalog, decks));
@@ -386,260 +450,99 @@ export default function CollectionManager({
     }
   }
   return (
-    <Modal
-      title="My collection"
-      onClose={onClose}
-      wide
-      headerActions={
-        <div className="manager-heading">
-          <div>
-            <p>
-              {onDisplay} on display <span>·</span> {sources.length} linked{" "}
-              {sources.length === 1 ? "source" : "sources"}
-            </p>
-          </div>
-          <button
-            className="button button-gold"
-            onClick={() => {
-              setConnecting(true);
-              setError("");
-              setFailures([]);
-            }}
-            disabled={!!busy}
-          >
-            <Plus size={16} /> Add decks
-          </button>
-        </div>
-      }
-    >
+    <main className="collection-workspace" aria-label="My collection">
+      <header className="workspace-heading">
+        <div><h1 ref={heading} tabIndex={-1}>My collection</h1><p>{onDisplay} on display</p></div>
+        <button className="text-button workspace-back" aria-label="Back to collection" title="Back to collection" onClick={onClose}><ArrowLeft size={15} /><span>Back to collection</span></button>
+        <button className="button button-gold" disabled={!!busy} onClick={() => { setConnecting(true); setDiscovery(null); setSelected([]); setError(''); setFailures([]); }}><Plus size={16} /> Add decks</button>
+      </header>
       <div className="collection-manager">
         <div className="manager-body">
-          <label className="manager-mobile-nav">
-            <span>Source</span>
-            <select
-              aria-label="Collection source"
-              value={section}
-              disabled={!!busy}
-              onChange={(e) => navigate(e.target.value)}
-            >
-              <option value="overview">Showcase overview</option>
-              <option value="all">All saved decks ({decks.length})</option>
-              {collection.starter !== false && <option value="starter">
-                Included precons ({catalog.length})
-              </option>}
-              {collection.demo && !collection.demo.removed && <option value="demo">Commander precons demo ({collection.demo.decks.length})</option>}
-              <option value="manual">Individual decks ({manual.length})</option>
-              {sources.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.name} · {s.kind} ({s.entries.length})
-                </option>
-              ))}
-            </select>
-          </label>
-          <nav className="manager-nav" aria-label="Collection sources">
-            <button
-              aria-current={
-                section === "overview" && !connecting ? "page" : undefined
-              }
-              disabled={!!busy}
-              onClick={() => navigate("overview")}
-            >
-              <LayoutGrid size={16} />
-              <span>Showcase overview</span>
-            </button>
-            <button
-              aria-current={
-                section === "all" && !connecting ? "page" : undefined
-              }
-              disabled={!!busy}
-              onClick={() => navigate("all")}
-            >
-              <Library size={16} />
-              <span>All saved decks</span>
-              <small>{decks.length}</small>
-            </button>
-            {collection.starter !== false && <button
-              aria-current={
-                section === "starter" && !connecting ? "page" : undefined
-              }
-              disabled={!!busy}
-              onClick={() => navigate("starter")}
-            >
-              <Folder size={16} />
-              <span>Included precons</span>
-              <small>{catalog.length}</small>
-            </button>}
-            {collection.demo && !collection.demo.removed && <button
-              aria-current={section === "demo" && !connecting ? "page" : undefined}
-              disabled={!!busy} onClick={() => navigate("demo")}
-            ><Library size={16} /><span>Commander precons demo</span><small>{collection.demo.decks.length}</small></button>}
-            <button
-              aria-current={
-                section === "manual" && !connecting ? "page" : undefined
-              }
-              disabled={!!busy}
-              onClick={() => navigate("manual")}
-            >
-              <Link2 size={16} />
-              <span>Individual decks</span>
-              <small>{manual.length}</small>
-            </button>
-            <span className="manager-nav-label">Linked sources</span>
-            {!sources.length && (
-              <p className="manager-nav-hint">
-                Connect an account or folder, or add deck links individually.
-              </p>
-            )}
-            {sources.map((s) => (
-              <button
-                key={s.key}
-                title={s.name}
-                aria-current={
-                  section === s.key && !connecting ? "page" : undefined
-                }
-                disabled={!!busy}
-                onClick={() => navigate(s.key)}
-              >
-                {s.kind === "folder" ? (
-                  <Folder size={16} />
-                ) : (
-                  <UserRound size={16} />
-                )}
-                <span>
-                  {s.name}
-                  <small>{s.kind === "folder" ? "Folder" : "Account"}</small>
-                </span>
-                <small>{s.entries.length}</small>
-              </button>
-            ))}
-          </nav>
+          <button className="workspace-mobile-toggle button button-outline" aria-expanded={mobileNav} onClick={() => setMobileNav(v => !v)}><FolderTree size={15} />Sources and folders</button>
+          <div className={mobileNav ? 'workspace-navigation is-open' : 'workspace-navigation'}>
+            <CollectionNavigator collection={collection} decks={decks} groups={groups} section={connecting ? '' : section} busy={!!busy} navigate={navigate}
+              openScope={(key, name, keys) => { navigate(key); setScope({ name, keys }); }}
+              toggle={(keys, enabled, all) => setCollection(c => enableGroups(c, keys, enabled, all))} />
+          </div>
           <section
             className="manager-content"
             aria-label="Manage collection decks"
           >
-            {connecting ? (
-              <form className="manager-connect" onSubmit={connect}>
+            {busy && (
+              <div className="manager-progress" role="status">
+                <RefreshCw size={14} />
+                {busy}
                 <button
-                  type="button"
                   className="text-button"
-                  disabled={!!busy}
-                  onClick={() => {
-                    setConnecting(false);
-                    setError("");
-                  }}
+                  onClick={() => controller.current?.abort()}
                 >
-                  <ArrowLeft size={14} /> Back to decks
+                  Cancel
                 </button>
-                <h3>Add from Archidekt</h3>
-                <p>
-                  Choose a public account or folder to follow, or add a deck by
-                  its link. Decklists stay on Archidekt.
-                </p>
-                <div
-                  className="manager-kinds"
-                  role="group"
-                  aria-label="Source type"
-                >
-                  {(
-                    [
-                      ["account", "Account", UserRound],
-                      ["folder", "Folder", Folder],
-                      ["deck", "Deck link", Link2],
-                    ] as const
-                  ).map(([id, label, Icon]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      aria-pressed={kind === id}
-                      disabled={!!busy}
-                      onClick={() => setKind(id)}
-                    >
-                      <Icon size={18} />
-                      {label}
-                    </button>
+              </div>
+            )}
+            {error && (
+              <p className="inline-error" role="alert">
+                {error}
+              </p>
+            )}
+            {!!failures.length && (
+              <details className="manager-failures" open>
+                <summary>
+                  {failures.length} decks could not be loaded. Existing copies
+                  were kept.
+                </summary>
+                <ul>
+                  {failures.map((f) => (
+                    <li key={f}>{f}</li>
                   ))}
-                </div>
-                <label htmlFor="collection-source-input">
-                  {kind === "account"
-                    ? "Username or profile link"
-                    : kind === "folder"
-                      ? "Folder link or ID"
-                      : "Deck link or ID"}
-                </label>
-                <div className="manager-input-line">
-                  <input
-                    id="collection-source-input"
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    placeholder={
-                      kind === "account"
-                        ? "Username or https://archidekt.com/u/…"
-                        : `https://archidekt.com/${kind === "folder" ? "folders" : "decks"}/…`
-                    }
-                    required
-                    disabled={!!busy}
-                  />
-                  <button className="button button-gold" disabled={!!busy}>
-                    {busy || (kind === "deck" ? "Add deck" : "Find decks")}
-                  </button>
-                </div>
-                <p className="manager-note">
-                  {kind === "folder"
-                    ? "Reads decks directly inside this folder. Link subfolders separately."
-                    : kind === "account"
-                      ? "Finds public Commander decks across this account. You choose which are on display."
-                      : "A local selection of external decks. No connected account needed."}
-                </p>
-                <div className="manager-connect-foot">
-                  <Check size={16} />
-                  <span>
-                    No sign-in or password. Connections are read-only; your
-                    choices are saved in this browser.
-                  </span>
-                </div>
-              </form>
-            ) : section === "overview" ? (
+                </ul>
+              </details>
+            )}
+            {connecting ? (
+              <SourceSetup value={value} setValue={setValue} discovery={discovery}
+                selected={selected} setSelected={setSelected} busy={!!busy}
+                back={() => { if (discovery) { setDiscovery(null); setSelected([]); } else setConnecting(false); setError(''); setFailures([]); }}
+                connect={connect} save={addFolders} />
+            ) : (
+              <>
+              {section === "overview" && (
               <CollectionOverview
                 groups={groups}
                 collection={collection}
                 decks={decks}
                 busy={!!busy}
                 navigate={navigate}
-                toggle={(key, enabled) =>
-                  setCollection((c) => enableGroup(c, key, enabled))
+                openScope={(key, name, keys) => { navigate(key); setScope({ name, keys }); }}
+                onlyMany={keys => setCollection(c => ({ ...c, pausedGroups: [], disabledGroups: groups.filter(g => !keys.includes(g.key)).map(g => g.key) }))}
+                toggle={(keys, enabled, all) =>
+                  setCollection((c) => enableGroups(c, keys, enabled, all))
                 }
                 only={(key) => setCollection((c) => onlyGroup(c, key, groups))}
                 enableAll={() =>
-                  setCollection((c) => ({ ...c, disabledGroups: [] }))
+                  setCollection((c) => ({ ...c, pausedGroups: [], disabledGroups: [] }))
                 }
                 browsePrecons={browsePrecons}
                 addDemo={() => setCollection(c => addDemo(c, precons as { snapshotAt: string; decks: Deck[] }))}
                 removeDemo={() => setCollection(removeDemo)}
-                startPersonal={() => { setCollection(removeDemo); setConnecting(true); }}
+                removeSources={removeSources}
+                disable={keys => setCollection(c => archiveGroups(c, keys, true))}
               />
-            ) : (
-              <>
+              )}
+              {section !== "overview" && <>
                 <div className="manager-section-heading">
                   <div>
                     <h3>
-                      {activeGroup?.name ||
+                      {scope?.name || activeGroup?.name ||
                         (section === "starter"
                           ? "Included precons"
                           : section === "manual"
                             ? "Individual decks"
                             : "All saved decks")}
                     </h3>
-                    <p>
-                      {source
-                        ? `${source.kind === "folder" ? "Folder · direct decks only" : "Archidekt account"} · Checked ${new Date(source.checkedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
-                        : section === "demo"
-                          ? "Optional demo. These decks are examples, not your personal collection."
-                        : section === "starter"
-                          ? "The original 29 decks from your supplied list, bundled with local artwork. This is not the full precon catalog."
-                          : section === "manual"
-                            ? "Added by link, or kept after disconnecting a source."
-                            : "Saved locally. Show what you own; choose what goes in the picker."}
-                    </p>
+                    {(source || scope || section === "demo") && <p className="workspace-scope-note">
+                      {source ? source.folderPath ? source.folderPath + ' · Direct decks' : 'Archidekt source'
+                        : scope ? 'Includes connected subfolders' : 'Curated by Archidekt · Turn off to keep your selections'}
+                    </p>}
                   </div>
                   {source && (
                     <a
@@ -654,6 +557,19 @@ export default function CollectionManager({
                   )}
                 </div>
                 <div className="manager-toolbar">
+                  {scope && <div className="manager-group-control">
+                    <label className="overview-switch"><input type="checkbox" role="switch" aria-label={`Enable ${scope.name} folders`} disabled={!!busy || scopedKeys.every(key => collection.archivedGroups?.includes(key))}
+                      checked={scopedKeys.some(key => groupActive(collection, key))}
+                      title="Click to pause/resume. Ctrl-click or Cmd-click to enable all folders; repeat to disable all." onChange={e => { const event = e.nativeEvent as MouseEvent; const all = event.ctrlKey || event.metaKey; const enabled = e.target.checked; setCollection(c => enableGroups(c, scopedKeys, all ? scopedKeys.some(key => c.disabledGroups?.includes(key)) : enabled, all)); }} /><span>{scopedKeys.every(key => !groupActive(collection, key)) ? "Folders off" : scopedKeys.some(key => !groupActive(collection, key)) ? "Some folders enabled" : "Folders enabled"}</span></label>
+                    <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => enableGroups(c, scopedKeys, true, true))}><Power size={14} />Enable all folders</button>
+                    <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => enableGroups(c, scopedKeys, false, true))}><PowerOff size={14} />Disable all folders</button>
+                    <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => ({ ...c, pausedGroups: [], disabledGroups: groups.filter(g => !scopedKeys.includes(g.key)).map(g => g.key) }))}><Focus size={14} />Only these folders</button>
+                    <details className="precon-removal"><summary><Trash2 size={13} />Remove…</summary><p>Remove these folder connections from DeckShelf. Saved decks stay in Individual decks. You can add the source again anytime.</p><button className="text-button" disabled={!!busy} onClick={() => removeSources(scopedKeys)}><Trash2 size={14} />Remove collection</button></details>
+                  </div>}
+                  {(activeGroup || scope || (section === "demo" && collection.demo?.removed)) && <div className="collection-disable-control">
+                    <button className="text-button" disabled={!!busy} title="Disabled collections stay out of Enable all" onClick={() => setCollection(c => { const keys = scope ? scopedKeys : [section]; const disabled = keys.every(key => c.archivedGroups?.includes(key)) || (section === "demo" && c.demo?.removed); return archiveGroups(section === "demo" && c.demo?.removed ? addDemo(c, precons as { snapshotAt: string; decks: Deck[] }) : c, keys, !disabled); })}>{(scope ? scopedKeys : [section]).every(key => collection.archivedGroups?.includes(key)) || (section === "demo" && collection.demo?.removed) ? <><Power size={14} />Enable collection</> : <><PowerOff size={14} />Disable collection</>}</button>
+                    {((scope ? scopedKeys : [section]).some(key => collection.archivedGroups?.includes(key)) || (section === "demo" && collection.demo?.removed)) && <small>Disabled · excluded from Enable all</small>}
+                  </div>}
                   {activeGroup && (
                     <div className="manager-group-control">
                       <label className="overview-switch">
@@ -662,7 +578,7 @@ export default function CollectionManager({
                           role="switch"
                           aria-label={`Enable ${activeGroup.name}`}
                           checked={activeGroup.enabled}
-                          disabled={!!busy}
+                          disabled={!!busy || collection.archivedGroups?.includes(activeGroup.key)}
                           onChange={(e) =>
                             setCollection((c) =>
                               enableGroup(c, activeGroup.key, e.target.checked),
@@ -684,10 +600,11 @@ export default function CollectionManager({
                           )
                         }
                       >
-                        Only this collection
+                        <Focus size={14} /> Only this collection
                       </button>
                     </div>
                   )}
+                  {section === "demo" && !collection.demo?.removed && <PreconRemoval busy={!!busy} remove={() => { setCollection(removeDemo); navigate("overview"); notify("Precons removed. Restore them anytime; your selections are kept."); }} />}
                   {section === "starter" && (
                     <div className="manager-precon-link">
                       <button
@@ -741,8 +658,12 @@ export default function CollectionManager({
                     <option value="all">All decks</option>
                     <option value="shown">On display</option>
                     <option value="hidden">Hidden</option>
-                    {source && <option value="new">Not added</option>}
+                    {scopedSources.length > 0 && <option value="new">Not added</option>}
                   </select>
+                </div>
+                <div className="workspace-view-controls">
+                  <CollectionLayoutSwitch compact value={layout} onChange={setLayout} />
+                  <label>Size <input aria-label="Deck size" type="range" min="130" max="250" step="10" value={size} onChange={e => setSize(Number(e.target.value))} /></label>
                 </div>
                 <div className="manager-bulk">
                   <span>
@@ -754,7 +675,7 @@ export default function CollectionManager({
                     title="Select every deck in the current results. New decks wait for Add selected decks."
                     onClick={() => selectAll(true)}
                   >
-                    Select all
+                    <ListChecks size={14} /> Select all
                   </button>
                   <button
                     className="text-button"
@@ -762,115 +683,29 @@ export default function CollectionManager({
                     title="Deselect every deck in the current results"
                     onClick={() => selectAll(false)}
                   >
-                    Deselect all
+                    <Square size={14} /> Deselect all
                   </button>
                 </div>
-                <div className="manager-list">
-                  <div className="manager-columns">
-                    <span>Deck</span>
-                    <span>Selected</span>
-                    <span>Picker</span>
-                  </div>
+                <div className={`manager-list workspace-decks layout-${layout}`} style={{ "--manager-card-size": `${size}px` } as CSSProperties}>
+
                   {shown.map((row) => {
                     const deck = saved.get(row.id);
                     const displaying =
                       isSavedHere(row.id) &&
-                      !collection.hidden.includes(row.id);
+                      !collection.hidden.includes(row.id) && (!scopedSources.length || sourceIds.has(row.id));
                     const member = isSavedHere(row.id);
                     const missing =
                       !!source &&
                       !!deck &&
                       !source.entries.some((e) => e.id === row.id);
-                    return (
-                      <div
-                        key={row.id}
-                        className={`manager-row ${deck && !displaying ? "is-hidden" : ""}`}
-                      >
-                        <div className="manager-deck">
-                          {deck?.commanders[0].art || row.image ? (
-                            <Artwork
-                              src={deck?.commanders[0].art || row.image}
-                              alt=""
-                            />
-                          ) : (
-                            <div className="manager-art-placeholder">
-                              <Library size={20} />
-                            </div>
-                          )}
-                          <div>
-                            <a
-                              href={
-                                deck?.sourceUrl ||
-                                `https://archidekt.com/decks/${row.id}`
-                              }
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              {deck?.name || row.name}
-                              <ExternalLink size={11} />
-                            </a>
-                            <small>
-                              {missing
-                                ? "No longer listed · saved copy kept"
-                                : !member
-                                  ? "Not selected for this collection"
-                                  : !onDisplayIds.has(row.id) && displaying
-                                    ? "Collection off · selection kept"
-                                    : deck?.commanders
-                                        .map((c) => c.name)
-                                        .join(" & ") ||
-                                      "Not added · details load when selected"}
-                            </small>
-                            <Mana
-                              colors={deck?.colors || row.colors}
-                              size="mini"
-                            />
-                          </div>
-                        </div>
-                        <label className="manager-toggle">
-                          <input
-                            type="checkbox"
-                            disabled={!!busy}
-                            aria-label={`${member ? "Show" : "Select"} ${row.name}`}
-                            checked={
-                              member ? displaying : selected.includes(row.id)
-                            }
-                            onChange={(e) =>
-                              member
-                                ? setCollection((c) =>
-                                    setShown(c, [row.id], e.target.checked),
-                                  )
-                                : setSelected((ids) =>
-                                    e.target.checked
-                                      ? [...ids, row.id]
-                                      : ids.filter((id) => id !== row.id),
-                                  )
-                            }
-                          />
-                          <span>{member ? "Show" : "Add"}</span>
-                        </label>
-                        <label className="manager-toggle">
-                          <input
-                            type="checkbox"
-                            disabled={!!busy || !displaying}
-                            aria-label={`Include ${row.name} in picker`}
-                            checked={
-                              displaying &&
-                              !collection.excluded.includes(row.id)
-                            }
-                            onChange={(e) =>
-                              setCollection((c) => ({
-                                ...c,
-                                excluded: e.target.checked
-                                  ? c.excluded.filter((id) => id !== row.id)
-                                  : [...new Set([...c.excluded, row.id])],
-                              }))
-                            }
-                          />
-                          <span>Pick</span>
-                        </label>
-                      </div>
-                    );
+                    const checked = member ? displaying : selected.includes(row.id);
+                    const toggle = (on: boolean) => member
+                      ? setCollection(c => scopedSources.length ? setSourceSelection(c, scopedKeys, [row.id], on, decks) : setShown(c, [row.id], on))
+                      : setSelected(ids => on ? [...new Set([...ids, row.id])] : ids.filter(id => id !== row.id));
+                    return <CollectionDeckTile key={row.id} row={row} deck={deck} layout={layout} checked={checked} member={member} busy={!!busy}
+                      toggle={toggle}
+                      note={missing ? 'No longer listed · saved copy kept' : !member ? 'Not added' : !displayedHere(row.id) && displaying ? 'Collection off · selection kept' : deck?.commanders.map(c => c.name).join(' & ') || ''}
+                      />;
                   })}
                   {!shown.length && (
                     <div className="manager-empty">
@@ -911,37 +746,8 @@ export default function CollectionManager({
                     </button>
                   </div>
                 )}
+              </>}
               </>
-            )}
-            {busy && (
-              <div className="manager-progress" role="status">
-                <RefreshCw size={14} />
-                {busy}
-                <button
-                  className="text-button"
-                  onClick={() => controller.current?.abort()}
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-            {error && (
-              <p className="inline-error" role="alert">
-                {error}
-              </p>
-            )}
-            {!!failures.length && (
-              <details className="manager-failures" open>
-                <summary>
-                  {failures.length} decks could not be loaded. Existing copies
-                  were kept.
-                </summary>
-                <ul>
-                  {failures.map((f) => (
-                    <li key={f}>{f}</li>
-                  ))}
-                </ul>
-              </details>
             )}
           </section>
         </div>
@@ -1005,7 +811,7 @@ export default function CollectionManager({
           </div>
         )}
       </div>
-    </Modal>
+    </main>
   );
 }
 function toEntry(deck: Deck): SourceEntry {

@@ -18,7 +18,7 @@ async function read(path, signal) {
   return response.json();
 }
 
-export async function discoverSource(kind, value, { strict = false } = {}) {
+export async function discoverSource(kind, value, { strict = false, verifyCount = false, signal: outerSignal, firstPage } = {}) {
   if (
     !["account", "folder"].includes(kind) ||
     !(kind === "folder" ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(
@@ -27,7 +27,7 @@ export async function discoverSource(kind, value, { strict = false } = {}) {
   )
     throw new Error("Use an Archidekt username or folder ID.");
   const entries = new Map();
-  const signal = AbortSignal.timeout(45000);
+  const signal = outerSignal || AbortSignal.timeout(45000);
   const pages = new Set();
   let name = value;
   let complete = false;
@@ -39,8 +39,13 @@ export async function discoverSource(kind, value, { strict = false } = {}) {
       kind === "account"
         ? `/api/decks/v3/?${new URLSearchParams({ ownerUsername: value, deckFormat: "3", page: String(page) })}`
         : `/api/decks/folders/${value}/?page=${page}`;
-    const data = await read(path, signal);
+    const data = page === 1 && firstPage ? firstPage : await read(path, signal);
     const rows = kind === "account" ? data.results : data.decks;
+    if (verifyCount) {
+      if (!Number.isInteger(data.count) || data.count < 0 || (expectedCount !== undefined && expectedCount !== data.count))
+        throw new Error('The folder count changed or is unavailable. Try again.');
+      expectedCount = data.count;
+    }
     if (strict) {
       if (!Number.isInteger(data.count) || data.count < 1 ||
           (expectedCount !== undefined && expectedCount !== data.count))
@@ -66,6 +71,7 @@ export async function discoverSource(kind, value, { strict = false } = {}) {
       );
     if (kind === "folder") name = String(data.name || `Folder ${value}`);
     for (const row of rows) {
+      if (verifyCount && seen.has(String(row.id))) throw new Error('Archidekt repeated a deck during pagination. Try again.');
       if (strict && (seen.has(String(row.id)) || row.private || row.deckFormat !== 3))
         throw new Error("Catalog contains duplicate or unavailable entries.");
       seen.add(String(row.id));
@@ -106,6 +112,8 @@ export async function discoverSource(kind, value, { strict = false } = {}) {
     );
   if (strict && entries.size !== expectedCount)
     throw new Error(`Incomplete catalog: expected ${expectedCount}, received ${entries.size}.`);
+  if (verifyCount && seen.size !== expectedCount)
+    throw new Error('The folder listing was incomplete. Try again; saved decks are unchanged.');
   return {
     key: `${kind}:${value.toLowerCase()}`,
     kind,
@@ -120,4 +128,57 @@ export async function discoverSource(kind, value, { strict = false } = {}) {
     knownIds: [...entries.keys()],
     ...(strict ? { expectedCount, pages: pages.size } : {}),
   };
+}
+
+// Discovery is a preview. It never changes a visitor's saved source selections.
+export async function discoverFolders(kind, value) {
+  if (!['account', 'folder'].includes(kind) ||
+      !(kind === 'folder' ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(value))
+    throw new Error('Enter an Archidekt username, profile or folder link.');
+  const signal = AbortSignal.timeout(45000);
+  let root = value;
+  if (kind === 'account') {
+    const response = await fetch(`${ORIGIN}/u/${encodeURIComponent(value)}`, {
+      headers: { Accept: 'text/html', 'User-Agent': 'CommanderArchive/1.0 (personal deck showcase)' },
+      signal, redirect: 'error',
+    });
+    if (!response.ok) throw new Error('Account not found or not public. Check the username.');
+    const html = await response.text();
+    const match = /<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/.exec(html);
+    let user;
+    try { user = JSON.parse(match?.[1] || '').props.pageProps.user; } catch { /* Report a changed upstream shape below. */ }
+    if (user?.username?.toLowerCase() !== value.toLowerCase() || !idPattern.test(String(user.rootFolderId)))
+      throw new Error('Could not read this account’s folders. Try a public folder link instead.');
+    root = String(user.rootFolderId);
+  }
+  const queue = [{ id: root, path: '' }];
+  const seen = new Set([root]);
+  const folders = [];
+  const ids = new Set();
+  while (queue.length) {
+    const batch = queue.splice(0, 4);
+    const results = await Promise.all(batch.map(async item => {
+      const data = await read(`/api/decks/folders/${item.id}/?page=1`, signal);
+      if (kind === 'account' && data.owner?.username?.toLowerCase() !== value.toLowerCase())
+        throw new Error('Archidekt returned a folder for a different account.');
+      const source = await discoverSource('folder', item.id, { signal, firstPage: data, verifyCount: true });
+      if (!Array.isArray(data.subfolders)) throw new Error('Could not read the complete folder listing. Try a smaller folder link.');
+      return { item, source, children: data.subfolders };
+    }));
+    for (const { item, source, children } of results) {
+      const path = item.path ? `${item.path} / ${source.name}` : source.name;
+      folders.push({ source, path, root: item.id === root });
+      source.entries.forEach(entry => ids.add(entry.id));
+      if (ids.size > 1000) throw new Error('This collection has more than 1,000 Commander decks. Paste a smaller folder link.');
+      for (const child of children) {
+        if (child.private) continue;
+        const id = String(child.id);
+        if (!idPattern.test(id) || seen.has(id)) throw new Error('Archidekt returned an inconsistent folder tree. Try a smaller folder link.');
+        seen.add(id);
+        if (seen.size > 80) throw new Error('This account has more than 80 folders. Paste a smaller folder link.');
+        queue.push({ id, path });
+      }
+    }
+  }
+  return { name: kind === 'account' ? value : folders[0].source.name, folders };
 }

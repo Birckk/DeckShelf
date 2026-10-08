@@ -1,0 +1,763 @@
+[
+  {
+    "id": "27088578",
+    "name": "TEST - Calling All Angels - Copy B",
+    "set": "Foundations Commander",
+    "colors": [
+      "W"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Giada, Font of Hope",
+        "image": "https://card-images.archidekt.com/grid/front/4/e/4ebc7622-08a1-4f43-92dd-8675d395e8f6.webp",
+        "art": "https://card-images.archidekt.com/art/front/4/e/4ebc7622-08a1-4f43-92dd-8675d395e8f6.webp",
+        "artist": "Johannes Voss"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088578",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-10-05T19:02:52.714Z"
+  },
+  {
+    "id": "27088908",
+    "name": "TEST - Wretched Ranks",
+    "set": "Foundations Commander",
+    "colors": [
+      "B"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Ghoulcaller Gisa",
+        "image": "https://card-images.archidekt.com/grid/front/9/0/909e62fa-4585-495e-812b-5df56af24610.webp",
+        "art": "https://card-images.archidekt.com/art/front/9/0/909e62fa-4585-495e-812b-5df56af24610.webp",
+        "artist": "Miguel Mercado"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088908",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-10-05T19:02:52.929Z"
+  },
+  {
+    "id": "27088898",
+    "name": "TEST - Tramplesaurus Rex",
+    "set": "Foundations Commander",
+    "colors": [
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Ghalta, Primal Hunger",
+        "image": "https://card-images.archidekt.com/grid/front/5/d/5d9951d1-3228-4d69-8e63-6e6f0a893a86.webp",
+        "art": "https://card-images.archidekt.com/art/front/5/d/5d9951d1-3228-4d69-8e63-6e6f0a893a86.webp",
+        "artist": "Raph Lomotan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088898",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-10-05T19:02:53.160Z"
+  },
+  {
+    "id": "27088874",
+    "name": "TEST - Reign of Dragons",
+    "set": "Foundations Commander",
+    "colors": [
+      "R"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Lathliss, Dragon Queen",
+        "image": "https://card-images.archidekt.com/grid/front/8/a/8a17ec4e-b508-41af-803b-32acd863e598.webp",
+        "art": "https://card-images.archidekt.com/art/front/8/a/8a17ec4e-b508-41af-803b-32acd863e598.webp",
+        "artist": "Zoltan Boros"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088874",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-10-05T19:02:53.384Z"
+  },
+  {
+    "id": "27088589",
+    "name": "TEST - Keen Engineering",
+    "set": "Foundations Commander",
+    "colors": [
+      "U"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Sai, Master Thopterist",
+        "image": "https://card-images.archidekt.com/grid/front/5/6/5650587a-27a5-4d68-97e2-5745627bd094.webp",
+        "art": "https://card-images.archidekt.com/art/front/5/6/5650587a-27a5-4d68-97e2-5745627bd094.webp",
+        "artist": "Bryan Sola"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088589",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-10-05T19:02:53.597Z"
+  },
+  {
+    "id": "27088575",
+    "name": "TEST - Calling All Angels",
+    "set": "Foundations Commander",
+    "colors": [
+      "W"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Giada, Font of Hope",
+        "image": "https://card-images.archidekt.com/grid/front/4/e/4ebc7622-08a1-4f43-92dd-8675d395e8f6.webp",
+        "art": "https://card-images.archidekt.com/art/front/4/e/4ebc7622-08a1-4f43-92dd-8675d395e8f6.webp",
+        "artist": "Johannes Voss"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088575",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-10-05T19:02:53.796Z"
+  },
+  {
+    "id": "27089225",
+    "name": "TEST - Peace Offering",
+    "set": "Bloomburrow Commander",
+    "colors": [
+      "W",
+      "U",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Ms. Bumbleflower",
+        "image": "https://card-images.archidekt.com/grid/front/4/2/42bbedc1-6b83-46b4-8b3b-a4e05ce77d87.webp",
+        "art": "https://card-images.archidekt.com/art/front/4/2/42bbedc1-6b83-46b4-8b3b-a4e05ce77d87.webp",
+        "artist": "Marta Nael"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089225",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2024-08-02",
+    "fetchedAt": "2026-10-05T19:02:54.033Z"
+  },
+  {
+    "id": "27089216",
+    "name": "TEST - Family Matters",
+    "set": "Bloomburrow Commander",
+    "colors": [
+      "W",
+      "U",
+      "R"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Zinnia, Valley's Voice",
+        "image": "https://card-images.archidekt.com/grid/front/d/f/dfe36901-5841-4942-8b61-c273111f715e.webp",
+        "art": "https://card-images.archidekt.com/art/front/d/f/dfe36901-5841-4942-8b61-c273111f715e.webp",
+        "artist": "Aldo Domínguez"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089216",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2024-08-02",
+    "fetchedAt": "2026-10-05T19:02:54.269Z"
+  },
+  {
+    "id": "27089185",
+    "name": "TEST - Animated Army",
+    "set": "Bloomburrow Commander",
+    "colors": [
+      "R",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Bello, Bard of the Brambles",
+        "image": "https://card-images.archidekt.com/grid/front/3/1/31e4b7a1-b377-49d2-a92e-4bcb0db35f16.webp",
+        "art": "https://card-images.archidekt.com/art/front/3/1/31e4b7a1-b377-49d2-a92e-4bcb0db35f16.webp",
+        "artist": "Slawomir Maniak"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089185",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2024-08-02",
+    "fetchedAt": "2026-10-05T19:02:54.516Z"
+  },
+  {
+    "id": "27089177",
+    "name": "TEST - Miracle Worker",
+    "set": "Duskmourn: House of Horror Commander",
+    "colors": [
+      "W",
+      "U",
+      "B"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Aminatou, Veil Piercer",
+        "image": "https://card-images.archidekt.com/grid/front/9/f/9f868023-6035-403d-ba91-7a4840c6c392.webp",
+        "art": "https://card-images.archidekt.com/art/front/9/f/9f868023-6035-403d-ba91-7a4840c6c392.webp",
+        "artist": "David Palumbo"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089177",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2024-09-27",
+    "fetchedAt": "2026-10-05T19:02:54.748Z"
+  },
+  {
+    "id": "27089174",
+    "name": "TEST - Jump Scare!",
+    "set": "Duskmourn: House of Horror Commander",
+    "colors": [
+      "U",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Zimone, Mystery Unraveler",
+        "image": "https://card-images.archidekt.com/grid/front/3/0/30f23588-5064-48d9-a271-039df757f8d2.webp",
+        "art": "https://card-images.archidekt.com/art/front/3/0/30f23588-5064-48d9-a271-039df757f8d2.webp",
+        "artist": "Mila Pesic"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089174",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2024-09-27",
+    "fetchedAt": "2026-10-05T19:02:54.978Z"
+  },
+  {
+    "id": "27089142",
+    "name": "TEST - Endless Punishment",
+    "set": "Duskmourn: House of Horror Commander",
+    "colors": [
+      "B",
+      "R"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Valgavoth, Harrower of Souls",
+        "image": "https://card-images.archidekt.com/grid/front/8/d/8d7c1f6c-af45-4449-8cf8-e13830b3df8a.webp",
+        "art": "https://card-images.archidekt.com/art/front/8/d/8d7c1f6c-af45-4449-8cf8-e13830b3df8a.webp",
+        "artist": "Chris Cold"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089142",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2024-09-27",
+    "fetchedAt": "2026-10-05T19:02:55.225Z"
+  },
+  {
+    "id": "27089140",
+    "name": "TEST - Death Toll",
+    "set": "Duskmourn: House of Horror Commander",
+    "colors": [
+      "B",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Winter, Cynical Opportunist",
+        "image": "https://card-images.archidekt.com/grid/front/9/4/94dc35e4-a492-4019-afcd-cbef6f59a512.webp",
+        "art": "https://card-images.archidekt.com/art/front/9/4/94dc35e4-a492-4019-afcd-cbef6f59a512.webp",
+        "artist": "Andrey Kuzinskiy"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089140",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2024-09-27",
+    "fetchedAt": "2026-10-05T19:02:55.436Z"
+  },
+  {
+    "id": "27089133",
+    "name": "TEST - Temur Roar",
+    "set": "Tarkir: Dragonstorm Commander",
+    "colors": [
+      "U",
+      "R",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Eshki, Temur's Roar",
+        "image": "https://card-images.archidekt.com/grid/front/f/f/ff9aa863-8773-452d-946c-ae334c632e11.webp",
+        "art": "https://card-images.archidekt.com/art/front/f/f/ff9aa863-8773-452d-946c-ae334c632e11.webp",
+        "artist": "Billy Christian"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089133",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-04-11",
+    "fetchedAt": "2026-10-05T19:02:55.660Z"
+  },
+  {
+    "id": "27089094",
+    "name": "TEST - Sultai Arisen",
+    "set": "Tarkir: Dragonstorm Commander",
+    "colors": [
+      "U",
+      "B",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Teval, the Balanced Scale",
+        "image": "https://card-images.archidekt.com/grid/front/b/5/b5d1955a-9ff0-4f8b-9af8-341371957299.webp",
+        "art": "https://card-images.archidekt.com/art/front/b/5/b5d1955a-9ff0-4f8b-9af8-341371957299.webp",
+        "artist": "Chris Rahn"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089094",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-04-11",
+    "fetchedAt": "2026-10-05T19:02:55.895Z"
+  },
+  {
+    "id": "27089091",
+    "name": "TEST - Mardu Surge",
+    "set": "Tarkir: Dragonstorm Commander",
+    "colors": [
+      "W",
+      "B",
+      "R"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Zurgo Stormrender",
+        "image": "https://card-images.archidekt.com/grid/front/d/c/dc8eb325-75c9-4331-830d-3f7d62d77290.webp",
+        "art": "https://card-images.archidekt.com/art/front/d/c/dc8eb325-75c9-4331-830d-3f7d62d77290.webp",
+        "artist": "Lie Setiawan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089091",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-04-11",
+    "fetchedAt": "2026-10-05T19:02:56.128Z"
+  },
+  {
+    "id": "27089082",
+    "name": "TEST - Jeskai Striker",
+    "set": "Tarkir: Dragonstorm Commander",
+    "colors": [
+      "W",
+      "U",
+      "R"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Shiko and Narset, Unified",
+        "image": "https://card-images.archidekt.com/grid/front/5/a/5a42fc7d-52ac-4e95-9e04-8f8fa7f687c8.webp",
+        "art": "https://card-images.archidekt.com/art/front/5/a/5a42fc7d-52ac-4e95-9e04-8f8fa7f687c8.webp",
+        "artist": "Chris Rallis"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089082",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-04-11",
+    "fetchedAt": "2026-10-05T19:02:56.358Z"
+  },
+  {
+    "id": "27089050",
+    "name": "TEST - Abzan Armor",
+    "set": "Tarkir: Dragonstorm Commander",
+    "colors": [
+      "W",
+      "B",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Felothar the Steadfast",
+        "image": "https://card-images.archidekt.com/grid/front/2/c/2c3549f6-25df-4ea7-84ad-922ccd4af6b2.webp",
+        "art": "https://card-images.archidekt.com/art/front/2/c/2c3549f6-25df-4ea7-84ad-922ccd4af6b2.webp",
+        "artist": "Zoltan Boros"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089050",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-04-11",
+    "fetchedAt": "2026-10-05T19:02:56.585Z"
+  },
+  {
+    "id": "27089038",
+    "name": "TEST - Scions & Spellcraft",
+    "set": "Final Fantasy Commander",
+    "colors": [
+      "W",
+      "U",
+      "B"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Y'shtola, Night's Blessed",
+        "image": "https://card-images.archidekt.com/grid/front/c/7/c7f2c2d5-e052-49e8-b5de-712858c2ea78.webp",
+        "art": "https://card-images.archidekt.com/art/front/c/7/c7f2c2d5-e052-49e8-b5de-712858c2ea78.webp",
+        "artist": "Magali Villeneuve"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089038",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-06-13",
+    "fetchedAt": "2026-10-05T19:02:56.809Z"
+  },
+  {
+    "id": "27089034",
+    "name": "TEST - Revival Trance",
+    "set": "Final Fantasy Commander",
+    "colors": [
+      "W",
+      "B",
+      "R"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Terra, Herald of Hope",
+        "image": "https://card-images.archidekt.com/grid/front/5/a/5aa1a2d7-6133-41a9-9662-9008d1309935.webp",
+        "art": "https://card-images.archidekt.com/art/front/5/a/5aa1a2d7-6133-41a9-9662-9008d1309935.webp",
+        "artist": "Marta Nael"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089034",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-06-13",
+    "fetchedAt": "2026-10-05T19:02:57.043Z"
+  },
+  {
+    "id": "27089031",
+    "name": "TEST - Limit Break",
+    "set": "Final Fantasy Commander",
+    "colors": [
+      "W",
+      "R",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Cloud, Ex-SOLDIER",
+        "image": "https://card-images.archidekt.com/grid/front/0/7/07b4e4f8-6a31-4533-be51-668ce3ddc84f.webp",
+        "art": "https://card-images.archidekt.com/art/front/0/7/07b4e4f8-6a31-4533-be51-668ce3ddc84f.webp",
+        "artist": "Justyna Dura"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27089031",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-06-13",
+    "fetchedAt": "2026-10-05T19:02:57.289Z"
+  },
+  {
+    "id": "27088970",
+    "name": "TEST - Counter Blitz",
+    "set": "Final Fantasy Commander",
+    "colors": [
+      "W",
+      "U",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Tidus, Yuna's Guardian",
+        "image": "https://card-images.archidekt.com/grid/front/2/c/2cfd4494-346c-4cbc-8072-e267254cefcc.webp",
+        "art": "https://card-images.archidekt.com/art/front/2/c/2cfd4494-346c-4cbc-8072-e267254cefcc.webp",
+        "artist": "Nijihayashi"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088970",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2025-06-13",
+    "fetchedAt": "2026-10-05T19:02:57.516Z"
+  },
+  {
+    "id": "27088966",
+    "name": "TEST - Witherbloom Pestilence",
+    "set": "Secrets of Strixhaven Commander",
+    "colors": [
+      "B",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Dina, Essence Brewer",
+        "image": "https://card-images.archidekt.com/grid/front/9/f/9fe237b8-c02c-41ea-9fc4-b771b91d2157.webp",
+        "art": "https://card-images.archidekt.com/art/front/9/f/9fe237b8-c02c-41ea-9fc4-b771b91d2157.webp",
+        "artist": "Pauline Voss"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088966",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-04-24",
+    "fetchedAt": "2026-10-05T19:02:57.775Z"
+  },
+  {
+    "id": "27088954",
+    "name": "TEST - Silverquill Influence",
+    "set": "Secrets of Strixhaven Commander",
+    "colors": [
+      "W",
+      "B"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Killian, Decisive Mentor",
+        "image": "https://card-images.archidekt.com/grid/front/7/6/76b6c35a-bb92-4ad3-8f85-88b9bafc6266.webp",
+        "art": "https://card-images.archidekt.com/art/front/7/6/76b6c35a-bb92-4ad3-8f85-88b9bafc6266.webp",
+        "artist": "Billy Christian"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088954",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-04-24",
+    "fetchedAt": "2026-10-05T19:02:58.006Z"
+  },
+  {
+    "id": "27088949",
+    "name": "TEST - Quandrix Unlimited",
+    "set": "Secrets of Strixhaven Commander",
+    "colors": [
+      "U",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Zimone, Infinite Analyst",
+        "image": "https://card-images.archidekt.com/grid/front/6/0/605afac4-d2e5-4e68-97d2-3ac2ead5f3a9.webp",
+        "art": "https://card-images.archidekt.com/art/front/6/0/605afac4-d2e5-4e68-97d2-3ac2ead5f3a9.webp",
+        "artist": "Carly Milligan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088949",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-04-24",
+    "fetchedAt": "2026-10-05T19:02:58.236Z"
+  },
+  {
+    "id": "27088946",
+    "name": "TEST - Prismari Artistry",
+    "set": "Secrets of Strixhaven Commander",
+    "colors": [
+      "U",
+      "R"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Rootha, Mastering the Moment",
+        "image": "https://card-images.archidekt.com/grid/front/a/5/a5b3dbb2-c090-4118-9e47-56c16202572c.webp",
+        "art": "https://card-images.archidekt.com/art/front/a/5/a5b3dbb2-c090-4118-9e47-56c16202572c.webp",
+        "artist": "Lie Setiawan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088946",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-04-24",
+    "fetchedAt": "2026-10-05T19:02:58.460Z"
+  },
+  {
+    "id": "27088945",
+    "name": "TEST - Lorehold Spirit",
+    "set": "Secrets of Strixhaven Commander",
+    "colors": [
+      "W",
+      "R"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Quintorius, History Chaser",
+        "image": "https://card-images.archidekt.com/grid/front/0/7/0742f19d-179c-43c4-ab95-4160c56b4384.webp",
+        "art": "https://card-images.archidekt.com/art/front/0/7/0742f19d-179c-43c4-ab95-4160c56b4384.webp",
+        "artist": "Darren Tan"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088945",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-04-24",
+    "fetchedAt": "2026-10-05T19:02:58.692Z"
+  },
+  {
+    "id": "27088918",
+    "name": "TEST - Multiverse Reforged",
+    "set": "Reality Fracture Commander",
+    "colors": [
+      "W",
+      "U",
+      "B",
+      "R"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Jace, Multiverse Architect",
+        "image": "https://card-images.archidekt.com/grid/front/5/5/55cd03d9-2535-4cf3-a8b2-1418e1190f4a.webp",
+        "art": "https://card-images.archidekt.com/art/front/5/5/55cd03d9-2535-4cf3-a8b2-1418e1190f4a.webp",
+        "artist": "Volkan Baǵa"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088918",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2026-10-02",
+    "fetchedAt": "2026-10-05T19:02:58.928Z"
+  },
+  {
+    "id": "27088634",
+    "name": "TEST - Draconic Domination",
+    "set": "Commander 2017",
+    "colors": [
+      "W",
+      "U",
+      "B",
+      "R",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "The Ur-Dragon",
+        "image": "https://card-images.archidekt.com/grid/front/7/e/7e78b70b-0c67-4f14-8ad7-c9f8e3f59743.webp",
+        "art": "https://card-images.archidekt.com/art/front/7/e/7e78b70b-0c67-4f14-8ad7-c9f8e3f59743.webp",
+        "artist": "Jaime Jones"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088634",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2017-08-25",
+    "fetchedAt": "2026-10-05T19:02:59.138Z"
+  },
+  {
+    "id": "27088615",
+    "name": "TEST - Squirreled Away",
+    "set": "Bloomburrow Commander",
+    "colors": [
+      "B",
+      "G"
+    ],
+    "theme": "",
+    "tags": [],
+    "description": "",
+    "commanders": [
+      {
+        "name": "Hazel of the Rootbloom",
+        "image": "https://card-images.archidekt.com/grid/front/1/2/1269ca79-907e-4932-9e77-a9a5d2929060.webp",
+        "art": "https://card-images.archidekt.com/art/front/1/2/1269ca79-907e-4932-9e77-a9a5d2929060.webp",
+        "artist": "Anna Pavleeva"
+      }
+    ],
+    "sourceUrl": "https://archidekt.com/decks/27088615",
+    "sourceName": "Archidekt",
+    "cardCount": 100,
+    "releasedAt": "2024-08-02",
+    "fetchedAt": "2026-10-05T19:02:59.354Z"
+  }
+]

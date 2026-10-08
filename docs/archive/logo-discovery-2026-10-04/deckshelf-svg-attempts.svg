@@ -1,0 +1,239 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1230" viewBox="0 0 1500 1230">
+<rect width="1500" height="1230" fill="#111214"/>
+<g fill="#f3f1ec" font-family="Segoe UI, sans-serif"><text x="35" y="52" font-size="32">DeckShelf — recovered SVG attempts</text><text x="35" y="88" font-size="18" fill="#b9b7b0">19 recovered drawings + the chosen dragon. Historical attempts, including rejected designs.</text></g>
+<rect x="25" y="130" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#f2ddb0" x="80" y="145" width="170" height="175"><rect x="10" y="15" width="10" height="32" rx="2" /><rect x="25" y="10" width="10" height="37" rx="2" /><path d="m40 17 9-2 7 30-9 2z" /><rect x="6" y="52" width="52" height="5" rx="2" /></svg>
+<text x="165" y="350" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">A The shelf</text>
+<rect x="320" y="130" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#f2ddb0" x="375" y="145" width="170" height="175"><path d="M12 22h40v29a5 5 0 0 1-5 5H17a5 5 0 0 1-5-5z" /><path d="m12 17 6-10h28l6 10z" /><path d="M26 22h12v8H26z" fill="#111214" /></svg>
+<text x="460" y="350" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">B The deckbox</text>
+<rect x="615" y="130" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#f2ddb0" x="670" y="145" width="170" height="175"><defs><mask id="cut"><rect width="64" height="64" fill="white" /><path d="M39 19H28a7 7 0 0 0 0 14h7a7 7 0 0 1 0 14H23" fill="none" stroke="black" stroke-width="6" /></mask></defs><path d="M10 7h19c18 0 28 9 28 25S47 57 29 57H10z" mask="url(#cut)" /></svg>
+<text x="755" y="350" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">C The DS stamp</text>
+<rect x="910" y="130" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#f2ddb0" x="965" y="145" width="170" height="175"><path d="M18 9h37v9H22v9h24v28H9v-9h28v-10H18z" /></svg>
+<text x="1050" y="350" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">D Stepped shelves</text>
+<rect x="1205" y="130" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#f2ddb0" x="1260" y="145" width="170" height="175"><path d="M15 6h26v6H21v34h-6z" /><path fill-rule="evenodd" d="M26 17h26v39H26z M32 23v27h14V23z" /><path d="M32 23h14v8l-7-4-7 4z" /></svg>
+<text x="1345" y="350" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">E The chosen sleeve</text>
+<rect x="25" y="395" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#f2ddb0" x="80" y="410" width="170" height="175"><path d="M7 57V29a25 25 0 0 1 50 0v28h-7V29a18 18 0 0 0-36 0v28z" /><rect x="22" y="24" width="20" height="28" rx="2" /><rect x="19" y="57" width="26" height="5" rx="1" /></svg>
+<text x="165" y="615" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">F The display alcove</text>
+<rect x="320" y="395" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#f2ddb0" x="375" y="410" width="170" height="175"><path fill-rule="evenodd" d="M10 9h15c18 0 28 9 28 23S43 55 25 55H10z M19 17v30h6c13 0 19-6 19-15S38 17 25 17z" /><rect x="10" y="55" width="48" height="5" /></svg>
+<text x="460" y="615" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">G Wordmark first</text>
+<rect x="615" y="395" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" x="670" y="410" width="170" height="175">
+  <title>DeckShelf — tall fitted deckbox</title>
+  <desc>A narrow card deckbox with a raised fitted cap. The card edges are contained inside the opening.</desc>
+  <defs>
+    <clipPath id="deck-a2-opening"><path d="m27 38 32-8 12 8-32 8Z" /></clipPath>
+  </defs>
+  
+  
+  <path d="m39 26 32-8-12 12-32 8Z" fill="#9B907C" />
+  <path d="m27 38 32-8 12 8-32 8Z" fill="#292927" />
+  <g clip-path="url(#deck-a2-opening)">
+    <path d="m29 40 32-8m-28 11 32-8" stroke="#838079" stroke-width="1.8" stroke-linecap="round" />
+  </g>
+  
+  <path d="m27 38 12 8v46L28.5 85Q27 84 27 82Z" fill="#C9BDA5" />
+  <path d="m39 46 32-8v43Q71 83 69 83.5L41 90.5Q39 91 39 89Z" fill="#EEE5D3" />
+  
+  <path d="m27 16 12 10-12 18-12-10Z" fill="#D7CAB1" />
+  <path d="m27 16 32-8 12 10-32 8Z" fill="#F1E9DA" />
+  
+  <g stroke="#292927" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m27 16 32-8 12 10-12 12 12 8v43q0 2-2 2.5l-28 7q-1.5.5-3-.5L28.5 85Q27 84 27 82V44L15 34Z" />
+    <path d="m27 16 12 10 32-8M39 26 27 44" />
+    <path d="m27 38 12 8 32-8M39 46v43.5" />
+  </g>
+</svg>
+<text x="755" y="615" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">Agent A: tall revision</text>
+<rect x="910" y="395" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" x="965" y="410" width="170" height="175">
+  <title>DeckShelf — open flip-top deckbox</title>
+  <desc>A tall card deckbox in three-quarter view, with a fitted cap folded back and a packed deck inside.</desc>
+  
+  <path d="M28 41 39 27 74 18 72 40 36 51Z" fill="#928773" stroke="#292927" stroke-width="1.5" stroke-linejoin="round" />
+  
+  <path d="M20 41 36 50 37 90 21.5 78.5Q20 77.5 20 75.5Z" fill="#CBBFA8" stroke="#292927" stroke-width="1.5" stroke-linejoin="round" />
+  
+  <path d="M28 41 30.5 36.5Q31 35.5 33 35L62 27.5Q64 27 65.5 28L77 36.5 77 47 36 55Z" fill="#292927" />
+  <path d="m31 40 33-8.5 7 4.5M34 44l33-8.5 7 4.5" stroke="#777870" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <path d="M36 50 79 38.5Q81 38 81 40.5V77Q81 79 79 79.5L39 90Q36 91 36 88Z" fill="#EEE5D3" stroke="#292927" stroke-width="1.5" stroke-linejoin="round" />
+  
+  <path d="M28.5 14.5 40 27.5 28 46Q27 47.5 25.5 46L18 39.5Q17 38.5 17.5 36.5Z" fill="#D8CCB5" stroke="#292927" stroke-width="1.5" stroke-linejoin="round" />
+  <path d="m28.5 14.5 36-8Q67 6 68.5 8L78 19.5 40 28Z" fill="#F1E9DA" stroke="#292927" stroke-width="1.5" stroke-linejoin="round" />
+</svg>
+<text x="1050" y="615" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">Agent A: flip-top</text>
+<rect x="1205" y="395" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" x="1260" y="410" width="170" height="175">
+  <title>Commander deckbox with folded magnetic lid</title>
+  <desc>A tall cream deckbox in three-quarter view, two visible sleeve edges, a thumb notch and a small diamond on its front.</desc>
+  
+  <path d="M17 40 33 26 78 38V75Q78 78 75 80L61 91 15 78V44Q15 41 17 40Z" fill="#BEB29A" />
+  <path d="m19 41 16-11 39 10-15 12Z" fill="#343431" />
+  
+  <path d="m27 37 6-4q1-1 3 0l32 8q2 1 1 3" stroke="#A7A496" stroke-width="2.5" stroke-linecap="round" />
+  <path d="m23 42 6-4q1-1 3 0l32 8q2 1 1 3" stroke="#D1CCBE" stroke-width="2.5" stroke-linecap="round" />
+  
+  <path d="M15 44q0-3 3-2l12 3q2 0 2 2c1 8 11 11 14 4q1-2 3-1l12 3v38L19 79q-4-1-4-5Z" fill="#EEE7D8" />
+  
+  <path d="m63 54 15-12v33q0 3-3 5L63 89Z" fill="#CFC3AB" />
+  
+  <path d="m20 22 10-12q2-2 5-1l38 10-13 15Z" fill="#F1EADD" />
+  <path d="m74 21 4 20q1 3-1 5l-3 3-12-14Z" fill="#D3C7B0" />
+  <path d="m21 25 38 11 3 4-37-10Z" fill="#817965" />
+  
+  <path d="m39 59 5 10-5 7-5-10Z" fill="#A99A78" />
+</svg>
+<text x="1345" y="615" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">Agent B: wrap lid</text>
+<rect x="25" y="660" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" x="80" y="675" width="170" height="175">
+  <title>Box with its lid slightly open</title>
+  
+  <path d="m9 31 14-9 32 9-14 10Z" fill="#111214" stroke="#F3E8D2" stroke-width="2.5" stroke-linejoin="round" />
+  
+  <path d="m9 31 32 10v20L9 51Z" fill="#F3E8D2" />
+  <path d="m41 41 14-10v20L41 61Z" fill="#F3E8D2" />
+  <path d="M41 41v20" stroke="#111214" stroke-width="2.5" />
+  
+  <path d="m9 22 14 0 32 9-14 1Z" fill="#F3E8D2" stroke="#F3E8D2" stroke-width="2.5" stroke-linejoin="round" />
+</svg>
+<text x="165" y="880" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">box ajar</text>
+<rect x="320" y="660" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" x="375" y="675" width="170" height="175">
+  <title>Open-top deck holder with a continuous back and side</title>
+  
+  <path d="M17 28h38v25L44 61H7V35Z" fill="#F3E8D2" />
+  <path d="M18 31h33L41 38H10Z" fill="#111214" />
+  <path d="M19 7h28a3 3 0 0 1 3 3v29H19Z" fill="#F3E8D2" stroke="#111214" stroke-width="2" />
+  <path d="M15 11h28a3 3 0 0 1 3 3v31H15Z" fill="#F3E8D2" stroke="#111214" stroke-width="2" />
+  <rect x="10" y="15" width="32" height="36" rx="3" fill="#F3E8D2" stroke="#111214" stroke-width="2" />
+  <path d="M26 20c1.8 6 3.2 7.4 9 9-5.8 1.6-7.2 3-9 9-1.8-6-3.2-7.4-9-9 5.8-1.6 7.2-3 9-9Z" fill="#111214" />
+  
+  <path d="m44 35 11-7v25L44 61Z" fill="#F3E8D2" />
+  <path d="M7 35h9c0 7 4 10 10 10s10-3 10-10h8v26H7Z" fill="#F3E8D2" stroke="#111214" stroke-width="2" stroke-linejoin="round" />
+</svg>
+<text x="460" y="880" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">Connected-back holder</text>
+<rect x="615" y="660" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" x="670" y="675" width="170" height="175">
+  <title>Compact open deckbox</title>
+  
+  <path d="M18 25 13 8Q12 5 15 5H45Q48 5 49 8L54 25Z" fill="#F3E8D2" />
+  <path d="m20 21-3-12h28l3 12Z" fill="#111214" />
+  
+  <path d="M18 23h36v30L44 61H7V34Z" fill="#F3E8D2" stroke="#111214" stroke-width="2" stroke-linejoin="round" />
+  
+  <rect x="14" y="24" width="33" height="29" rx="3" fill="#F3E8D2" stroke="#111214" stroke-width="2" />
+  <rect x="9" y="29" width="33" height="27" rx="3" fill="#F3E8D2" stroke="#111214" stroke-width="2" />
+  <path d="m44 38 10-8v23L44 61Z" fill="#F3E8D2" />
+  
+  <path d="M7 38h13c0 5 3 7 6 7s6-2 6-7h12v23H7Z" fill="#F3E8D2" stroke="#111214" stroke-width="2" stroke-linejoin="round" />
+</svg>
+<text x="755" y="880" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">compact open</text>
+<rect x="910" y="660" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" x="965" y="675" width="170" height="175">
+  <title>DeckShelf — deckbox with an open rear flap</title>
+  
+  <path d="m16 17 3-11a3 3 0 0 1 3-2h27a3 3 0 0 1 3 4l-3 9Z" fill="#B99A61" />
+  <path d="M19 21h28a3 3 0 0 1 3 3v21H19Z" fill="#B99A61" />
+  <path d="M15 25h28a3 3 0 0 1 3 3v20H15Z" fill="#111214" stroke="#E2C995" stroke-width="2" />
+  <rect x="10" y="29" width="32" height="27" rx="3" fill="#F2DDB0" />
+  <path d="M26 32c1.6 5.3 2.7 6.4 8 8-5.3 1.6-6.4 2.7-8 8-1.6-5.3-2.7-6.4-8-8 5.3-1.6 6.4-2.7 8-8Z" fill="#725B35" />
+  <path d="m44 43 11-7v17L44 61Z" fill="#B99A61" />
+  <path d="M7 41h9c0 7 4 10 10 10s10-3 10-10h8v20H7Z" fill="#F2DDB0" stroke="#111214" stroke-width="2" stroke-linejoin="round" />
+</svg>
+<text x="1050" y="880" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">flap</text>
+<rect x="1205" y="660" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" fill="none" x="1260" y="675" width="170" height="175">
+  <title>DeckShelf flip-top card deckbox</title>
+  
+  <path d="M12 27 7 11Q6 8 9 7L38 3Q41 3 42 6L47 22Z" fill="#F3E8D2" />
+  <path d="m13 23-3-12 28-4 4 12Z" fill="#292A2C" />
+  
+  <path d="m12 27 35-5 11 10-34 7Z" fill="#111214" stroke="#F3E8D2" stroke-width="2" stroke-linejoin="round" />
+  
+  <path d="m18 27 26-4M21 32l26-4" stroke="#C8BFAE" stroke-width="2.5" stroke-linecap="round" />
+  
+  <path d="m10 29 14 10v35L11 64q-1-1-1-3Z" fill="#C8BFAE" />
+  <path d="m24 39 34-7v33q0 3-3 4l-31 6Z" fill="#F3E8D2" />
+  <path d="M24 40v34" stroke="#111214" stroke-width="1.5" />
+</svg>
+<text x="1345" y="880" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">fliptop</text>
+<rect x="25" y="925" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" x="80" y="940" width="170" height="175">
+  <title>DeckShelf — deckbox with an open hinged lid</title>
+  
+  <path d="m10 18 5-13h30l-5 13Z" fill="#F2DDB0" />
+  <path d="m45 5 10 6-5 13-10-6Z" fill="#B99A61" />
+  <path d="M19 23h28a3 3 0 0 1 3 3v20H19Z" fill="#B99A61" />
+  <path d="M15 27h28a3 3 0 0 1 3 3v19H15Z" fill="#111214" stroke="#E2C995" stroke-width="2" />
+  <rect x="10" y="31" width="32" height="24" rx="3" fill="#F2DDB0" />
+  <path d="M26 34c1.6 4.8 2.7 5.9 7.5 7.5-4.8 1.6-5.9 2.7-7.5 7.5-1.6-4.8-2.7-5.9-7.5-7.5 4.8-1.6 5.9-2.7 7.5-7.5Z" fill="#725B35" />
+  <path d="m44 43 11-7v17L44 61Z" fill="#B99A61" />
+  <path d="M7 42h9c0 7 4 10 10 10s10-3 10-10h8v19H7Z" fill="#F2DDB0" stroke="#111214" stroke-width="2" stroke-linejoin="round" />
+</svg>
+<text x="165" y="1145" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">lid</text>
+<rect x="320" y="925" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" x="375" y="940" width="170" height="175">
+  <title>DeckShelf — rigid case with upright hinged lid</title>
+  <desc>A perspective deck case with a lid joined along its rear edge, two card sleeves, and a star on the front wall.</desc>
+  
+  <path d="M42 34 46 10Q46 7 49 8L82 17Q85 18 84 21L80 44Z" fill="#191A1D" stroke="#EEE9DE" stroke-width="3.5" stroke-linejoin="round" />
+  
+  <path d="M17 49 42 34 80 44V72L55 87 17 77Z" fill="#191A1D" stroke="#EEE9DE" stroke-width="3.5" stroke-linejoin="round" />
+  
+  <path d="M29 39V30Q29 27 32 28L62 36Q65 37 65 40V61L29 51Z" fill="#191A1D" stroke="#EEE9DE" stroke-width="3.5" stroke-linejoin="round" />
+  <path d="M23 53V35Q23 32 26 33L56 41Q59 42 59 45V65Z" fill="#EEE9DE" stroke="#191A1D" stroke-width="3" stroke-linejoin="round" />
+  
+  <path d="M17 49 55 59V87L17 77Z" fill="#EEE9DE" stroke="#EEE9DE" stroke-width="3.5" stroke-linejoin="round" />
+  <path d="M55 59 80 44V72L55 87Z" fill="#191A1D" stroke="#EEE9DE" stroke-width="3.5" stroke-linejoin="round" />
+  
+  <path d="M36 57C38 64 40 67 47 70 40 69 38 71 36 77 34 70 32 67 25 64 32 65 34 63 36 57Z" fill="#191A1D" />
+</svg>
+<text x="460" y="1145" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">Independent hinged case</text>
+<rect x="615" y="925" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" x="670" y="940" width="170" height="175">
+  <title>DeckShelf — shallow deck tray</title>
+  <desc>A deck lying flat inside a low four-sided tray. A four-point star marks the top card.</desc>
+  
+  <path d="M5 38 27 16 59 32v10L37 62 5 46Z" fill="#EAE6DD" />
+  
+  <path d="M10 38 28 20 54 33 37 51Z" fill="#202124" />
+  
+  <path d="m13 35 16-15 24 12v7L37 54 13 42Z" fill="#EAE6DD" stroke="#202124" stroke-width="2.5" stroke-linejoin="round" />
+  <path d="m13 35 24 12 16-15M37 47v7" stroke="#202124" stroke-width="2.5" stroke-linejoin="round" />
+  
+  <path d="m36 26-1 6 8 5-10-1-7 6 1-7-7-4 10 1Z" fill="#202124" />
+  
+  <path d="m5 38 32 16 22-22v10L37 62 5 46Z" fill="#EAE6DD" />
+  <path d="m5 38 32 16 22-22M37 54v8" stroke="#202124" stroke-width="2.5" stroke-linejoin="round" />
+</svg>
+<text x="755" y="1145" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">Independent flat tray</text>
+<rect x="910" y="925" width="280" height="248" rx="8" fill="#191a1d" stroke="#2b2c2f"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" x="965" y="940" width="170" height="175">
+  <title>DeckShelf — cards in a deckbox</title>
+  
+  <path d="M19 7h28a3 3 0 0 1 3 3v29H19Z" fill="#B99A61" />
+  <path d="M15 11h28a3 3 0 0 1 3 3v28H15Z" fill="#111214" />
+  <path d="M15 11h28a3 3 0 0 1 3 3v28H15Z" stroke="#E2C995" stroke-width="2" />
+  
+  <rect x="10" y="15" width="32" height="36" rx="3" fill="#F2DDB0" />
+  <path d="M26 20c1.8 6 3.2 7.4 9 9-5.8 1.6-7.2 3-9 9-1.8-6-3.2-7.4-9-9 5.8-1.6 7.2-3 9-9Z" fill="#725B35" />
+  
+  <path d="m44 39 11-7v21L44 61Z" fill="#B99A61" />
+  
+  <path d="M7 35h9c0 7 4 10 10 10s10-3 10-10h8v26H7Z" fill="#F2DDB0" stroke="#111214" stroke-width="2" stroke-linejoin="round" />
+</svg>
+<text x="1050" y="1145" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">Original deck holder</text>
+<rect x="1205" y="925" width="280" height="248" rx="8" fill="#191a1d" stroke="#f2ddb0"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="27 5 206 206" width="170" height="175" role="img" aria-labelledby="title" x="1260" y="940">
+<title id="title">DeckShelf — The familiar</title>
+<g id="card" fill="none" stroke="#f2ddb0" stroke-width="4" transform="rotate(22 100 77)"><rect x="100" y="77" width="66" height="83" rx="6" /></g>
+<g id="dragon" fill="#f3f1ec"><path d="M0 0 C0.21 0.29 0.21 0.29 1.29 1.75 C2.94 3.92 4.65 6 6.44 8.06 C7.01 8.73 7.59 9.41 8.18 10.1 C10.01 12.01 11.8 13.55 14 15 C14.66 15 15.32 15 16 15 C16 13.35 16 11.7 16 10 C18.62 12.55 21.02 15.02 23.31 17.88 C25.37 20.41 27.63 22.46 30.12 24.56 C34.57 28.39 36.63 31.72 38.31 37.31 C39.42 40.94 40.87 43.29 43.31 46.19 C44.9 48.14 44.9 48.14 46 50 C45.38 53.5 45.38 53.5 44 56 C40.59 56.78 37.49 57.37 34 57 C32.26 55.39 32.26 55.39 30.69 53.25 C23.82 44.94 14.05 43.46 4 41 C4 40.34 4 39.68 4 39 C4.66 38.67 5.32 38.34 6 38 C-1.65 35.45 -7.89 37.82 -15 41 C-22.51 44.76 -26.48 51.56 -29.14 59.34 C-32.51 73.74 -28.98 87.28 -22 100 C-21.34 100 -20.68 100 -20 100 C-19.59 101.22 -19.17 102.43 -18.75 103.69 C-10.69 121.61 9.48 133.19 27 140 C37.79 143.95 50.1 146.64 61.19 142.38 C64.03 140.87 65.08 139.9 67.06 137.25 C68.21 133.27 68.21 130.13 68 126 C70.78 128.43 72.73 130.24 74 133.75 C74 140.87 71.34 146.85 66.47 152.02 C52.03 163.61 32.79 167.39 14.71 165.69 C-3.2 163.45 -20.33 156.99 -34 145 C-34.72 144.43 -35.44 143.86 -36.19 143.28 C-50.36 131.69 -59.62 114.06 -62 96 C-62.8 85.58 -62.2 76 -59 66 C-58.6 64.58 -58.2 63.17 -57.81 61.75 C-57.54 60.84 -57.28 59.94 -57 59 C-58.65 59.99 -60.3 60.98 -62 62 C-59.19 52.31 -52.76 45.17 -45 39 C-44.67 38.34 -44.34 37.68 -44 37 C-44.99 37.16 -44.99 37.16 -50 38 C-46.46 34.22 -42.97 31.51 -38.5 28.81 C-37.4 28.14 -36.29 27.46 -35.16 26.77 C-31.33 24.63 -28.41 23 -24 23 C-24 22.34 -24 21.68 -24 21 C-25.32 20.67 -26.64 20.34 -28 20 C-21.71 17.11 -16.07 16.53 -9.17 16.21 C-6 16 -6 16 -3.81 15.42 C-0.69 14.7 2.03 16.03 5 17 C4.64 16.36 4.28 15.72 3.91 15.06 C1.05 9.74 -0.66 6.05 0 0 Z M23 31 C24.26 34.88 25.42 36.94 29 39 C29.99 39 30.98 39 32 39 C30.74 35.12 29.58 33.06 26 31 C25.01 31 24.02 31 23 31 Z " transform="translate(99,21)" /><path d="M0 0 C24.2 1.45 46.38 18.68 62 36 C64.56 39.21 66.81 42.53 69 46 C69.51 46.74 70.02 47.48 70.54 48.25 C73.92 53.4 76.19 58.72 78.25 64.5 C78.5 65.19 78.74 65.88 79 66.58 C86.91 89.77 84.22 114.47 73.85 136.35 C67.17 149.83 57.34 162.12 46 172 C45.34 172 44.68 172 44 172 C45.32 168.54 46.86 165.25 48.51 161.94 C55.73 147.28 58.53 131.78 54.05 115.8 C51.31 108.49 46.95 102.88 40.18 98.94 C37.65 97.85 35.5 97.59 32.75 97.38 C32.3 97.34 32.3 97.34 30.05 97.15 C29.71 97.12 29.71 97.12 28 97 C28.33 96.07 28.66 95.14 29 94.19 C30.4 89.16 30.75 84.17 30 79 C26.57 73.63 20.8 72.02 15 70 C15.16 69.77 15.16 69.77 15.99 68.6 C23.31 57.67 24.64 46.24 22.34 33.31 C18.96 20 11.89 11.24 2 2 C1.34 1.34 0.68 0.68 0 0 Z " transform="translate(140,16)" /></g>
+</svg>
+<text x="1345" y="1145" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="17" fill="#f3f1ec">Chosen: The familiar</text>
+<text x="35" y="1210" font-family="Segoe UI, sans-serif" font-size="16" fill="#b9b7b0">Recovered from recorded SVG creation steps; not every later shell-edited variant was recoverable. Geometry is retained.</text></svg>

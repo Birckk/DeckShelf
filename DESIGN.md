@@ -22,6 +22,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 
 ## Icons and visual identity
 
+- Use the selected familiar dragon embracing a card (concept 09) as the brand mark. The header uses a warm ivory dragon (#f3f1ec, matching the studio text) with a pale gold card (#f2ddb0, matching the studio accent). Use the simplified mark with a thicker card outline and no eye for the favicon, adapting its colors for light and dark browser themes. Keep the SVG silhouette and restrained flat colors.
 - Use the bundled Magic mana symbols for color identity.
 - Use dice for random deck selection; do not substitute generic AI-style sparkles.
 - Cards navigation uses a small fan of cards with its visible label.
@@ -36,7 +37,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Show a simple deck total by default. Show the full collection total when results differ, and a separate picker count only when exclusions make it different.
 - Keep shared navigation, search, and deck counts anchored across views. Avoid an isolated extra row of Collection controls with wasted space; reserve scrollbar space so switching views does not shift the page sideways.
 - Use one compact row below search: count left, view-specific controls right, wrapping on phones. Give the controls a little breathing room below search.
-- Open Collection on each visit or refresh; the Cards and picker views remain available from navigation.
+- Open Collection on each visit, refresh, or logo click; use the same home-view definition for these entry points so the displayed view and active navigation stay in sync; the Cards and picker views remain available from navigation.
 - Filters drop down beside their trigger; they do not open a modal.
 - Collection offers Details, Cards only, and List with adjustable size. Cards only at Medium size is the default; remember a user's explicit choice.
 - Details has compact information below the card, without reserved blank title space. Keep names, releases, mana symbols, and picker inclusion easy to locate.
@@ -46,6 +47,13 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 
 ## Collection management
 
+- Owner direction for the next prototype: give My collection its own workspace, entered from the existing My collection control. Preserve the main Collection, Cards, picker, shared search, Guide and About. Management uses its own source/folder search and a clear return to the gallery; do not repurpose the Collection gallery tab. Explore a folder navigator with adjustable card/list views, separate source switches, and individual deck imports. Combining sources preserves their identity and selections; a unique display union is not a single flattened saved collection. The isolated collection-corner prototype is exploratory, not a shipped navigation change.
+- Reuse the main collection's layout controls and mana components in the management workspace. Cards only shows full card faces; square artwork without captions is a separate Compact option. Keep the overview's compact source switches, with optional folder expansion inside a bounded scroll area so long source lists do not consume the page.
+
+
+- Guide and About dialog titles use readable normal-case text, not tiny letter-spaced labels. Keep the whole guide card fan visible. All three guide pages share a stable dialog height and navigation position at each viewport size. About uses short purpose/benefit bullets and direct actions rather than paragraphs.
+- All dialogs use the shared Modal title treatment. Deck details keep readable metadata, full commander cards, compact source/refresh actions, and one saved-snapshot date; avoid explanatory filler and empty tag spacing. Check shared dialog changes against deck details, About, Guide and My collection.
+- Do not show a precon attribution/start-collection strip above search. Keep precon information in My collection and the optional guide.
 - My collection controls the showcase. Deck editing and card inventory stay on the external platform.
 - Public accounts, folders, and individual deck links are read-only sources. Do not ask for platform passwords.
 - Discovering a source does not mean the user owns all its decks. New discoveries wait for selection; refresh preserves display and picker choices.
@@ -53,10 +61,14 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Disconnecting a source or losing access to it must not delete saved decks. Keep the last usable snapshot when refresh fails.
 - Preserve the version-1 collection backup format and existing local choices. Include source connections in exports.
 - Select all / Deselect all affect the current deck results, including search and status filters. New source entries are staged until Add selected decks; bulk actions preserve choices outside the results. Keep list controls compact, with no repeated introductory banner.
-- Open My collection on its showcase overview. Collection switches pause whole sources without changing individual deck selections or picker exclusions; “Only this” isolates one collection across all viewer modes.
+- My collection reopens the last visited page or folder during the session. Clicking My collection while already inside returns to Overview. First entry starts on Overview. Collection switches pause whole sources without changing individual deck selections or picker exclusions; “Only this” isolates one collection across all viewer modes.
 - Overlapping enabled collections form a unique union of decks. Direct deck links may belong to Individual decks even when the same deck appears in another collection.
-- Fresh profiles start with the optional Commander precons demo: a dated, complete Archidekt_Precons snapshot, clearly labeled as examples. Removing it preserves personal overlaps; restoring it keeps selections and exclusions. Start my collection removes the demo and opens the public-source form.
+- Fresh profiles start with Official Commander precons: a dated, complete snapshot curated by Archidekt. Use precons/catalog in user-facing copy, never demo. Removing it preserves personal overlaps; restoring it keeps selections and exclusions. Opening source setup never removes or pauses existing collections.
+- My collection uses the same readable normal-case dialog title as Guide and About. Add decks is the single setup entry; accept a username, profile, folder or deck link without an Account/Folder/Deck mode switch.
+- Username and folder discovery previews public folders before saving. Use compact artwork previews, direct-deck counts and expandable individual choices. Nested folders have separate rows and visible paths; selecting a row does not silently include descendants. The explicit Show only these folders option pauses other collections on successful import, preserving their saved choices. Selection is fixed; do not imply automatic following.
 - “Included precons” remains the original 29 requested decks with bundled artwork for legacy profiles. Never silently expand existing profiles. Browse precons previews Archidekt’s catalog without selecting it; adding the demo is a separate explicit action.
+
+- The Collection guide is an optional three-page dialog opened from a small Guide button beside My collection, or Help. Never open it automatically. Use large visual examples and one short caption per page; no tutorial banner above the collection and no paragraphs of instructions. Its final action adds the official precons only when absent, otherwise opens their selection without changing saved choices. Shared collection entry behavior is tracked separately in #24.
 
 ## Motion and atmosphere
 
@@ -80,3 +92,52 @@ Ask whether it helps identify a deck, understand an action, or enjoy the collect
 - [Nielsen Norman Group: Icon Usability](https://www.nngroup.com/articles/icon-usability/) — choose understandable symbols and provide labels when meaning is not obvious.
 
 The concrete rules above reflect this project's owner feedback; the references support the general design principles, not claims that a particular font or icon proves AI authorship.
+
+### Collection workspace refinement — October 5
+
+- Overview contains collection switches and optional folder summaries, without a duplicate deck grid. All saved decks is the combined deck view; individual sources/folders retain their own views.
+- Built-in collections (official/included precons and individual decks) have sidebar switches just like imported sources.
+- Precon removal must visibly explain that it is reversible. Keep removed precons as a compact clickable Disabled row; open it to enable again, preserving selections.
+- Keep the workspace header compact. Avoid repeated counts, instructions and snapshot dates above deck results; retain useful folder scope and direct-deck context.
+
+### Box overview and flat controls — October 8
+
+- Use a compact artwork-led collection box grid on Overview. Preview images come from saved commander artwork in that source, never generated replacements. Empty sources have an honest empty state. Opening a box enters its source; source switches remain independent.
+- Keep the original pill switches for collection enable controls, including the sidebar and overview boxes. Underlined layout choices and compact rectangular action buttons remain. Preserve accessible switch semantics, keyboard operation and focus indicators.
+- Align sidebar icons, labels, counts and switches in consistent columns. Keep folder rows compact, with modest indentation and short direct-deck labels.
+- Picker interaction alternatives remain exploratory; this visual pass does not change the picker flow.
+
+### Folder pause and subfolder controls — October 8
+
+- Parent pills pause and resume the previous enabled folder subset. Keep explicit Enable all folders / Disable all folders actions in the folder scope, separate from pause/resume.
+- Show original pill controls on subfolders and Direct decks by default. Show folder switches lets users hide them. Remember the preference locally and preserve compact aligned columns.
+- Partially enabled parents use a centered pill thumb, an accessible description, and Some in the overview. Sidebar and overview counts report active decks in that scope, falling to zero when paused; source On display filters respect source enable state and overlapping membership. Saved deck selections remain intact.
+- Ctrl-click (Cmd-click on Mac) on a parent pill enables every child when any child is off, and disables every child when all are on. This overrides remembered subsets. Normal click keeps pause/resume semantics; explicit Enable all folders / Disable all folders remain available for touch and keyboard users.
+
+### Temporary picker shortlist — October 8
+
+- DeckShelf is a shelf for browsing and choosing what to play. Remove persistent picker inclusion/exclusion controls from gallery and saved-deck cards.
+- Every active deck matching the current filters is eligible by default. Legacy exclusions remain in v1 backups without affecting current eligibility.
+- Select decks in the main Collection creates a temporary shortlist. Click/tap or Shift-click a range, Select visible, Clear selection, and Pick from these. All shelf cards stay visible; selected cards are marked. Pick from these opens the existing picker with that pool.
+- Shortlists are session-only and intersect the current active/filtered shelf. An empty intersection must not silently pick outside the shortlist. Clearing or reloading restores default eligibility. Saved folder choices stay independent.
+- Quick choice uses a visible dice-labeled Choose a few entry button. During selection, one primary Pick from N action carries the useful count; secondary edit/done, select-visible and cancel actions use icons with accessible names and tooltips. Use check marks on selected cards instead of repeated Selected labels. Show out-of-view selection counts only when relevant.
+- Replace ambiguous checkmark/pointer mode icons with Done / Choose decks labels and an All action. Keep the quick-choice actions together in a restrained charcoal toolbar; use small numbered shortlist markers and a fine warm border on selected cards instead of check badges.
+- Reserve a stable quick-choice toolbar footprint so entering selection does not move the controls or layout selector. All toggles visible decks on; None deselects visible decks while keeping selection mode open and preserving selections outside the view. X clears and exits.
+- Number shortlisted cards by the current displayed order, updating after sorting/filtering or deselection. The quick-choice bar fits its contents, has no appearing outer border, and keeps a stable left edge; do not reserve a visibly oversized bar.
+- Quick-choice entry, empty selection and Pick from N share identical button dimensions, typography and icon sizing.
+- Imported collection boxes and aggregate folder scopes offer Remove… with a clear Remove collection action. Disconnect the affected sources while keeping saved copies in Individual decks; explain that the source can be added again. Do not delete local deck snapshots.
+- Remember collapsed folder branches and Overview folder-summary expansion locally across navigation and reload. Search may reveal matching branches temporarily without replacing saved folds; invalid/unavailable browser storage must fall back safely.
+- My collection actions use compact rectangular buttons with familiar icons and visible labels. Keep folder navigation lightweight, and preserve keyboard focus indicators.
+- Keep shortlist clearing visually consistent across browsing views. In the picker, a selected-count button returns to Collection to edit the same shortlist.
+- Instant pick controls only the selection animation, independently of automatic drift. Paused drift still permits manual drag momentum to coast and decay. System reduced-motion preferences start with drift paused and instant picking, and suppress passive release motion while paused.
+
+### Shared quick-choice controls
+
+- Use one shared component across Collection, Cards and Pick a deck. The centered N selected button always reports total shortlist size and edits that shortlist; Picker with a right arrow is a separate navigation action, clearly distinct from actually picking a deck. Clear keeps the same appearance and behavior everywhere.
+- The count button's pressed state indicates card selection mode; click it again to finish selection. All / None is available while editing. Out-of-view selections are explained separately, and only currently active, filtered selections can be picked.
+- Verify selected-count wording, dimensions, font metrics and desktop position across all views together to avoid per-view styling drift.
+
+- Reversible Remove precons remains available. Removed precons appear as a compact clickable Disabled row; open it to enable again. Do not bring back the large restore banner.
+- Temporary collection on/off choices and persistent collection Disable are separate. Disabled collections stay excluded from Enable all, survive reload and backup, and retain their previous choices. Show explicit Enable controls inside disabled collections . Removing source connections stays separate and keeps saved snapshots.
+
+- Individual decks have one show/hide selection control only; no separate Disable state or button. Keep the Archidekt link beside the selection control, without an extra footer row. Card-only/Compact layouts use one small overlay control group. Avoid growing per-card button clusters.
