@@ -1,5 +1,5 @@
-appId: dk.bircck.commanderarchive
-productName: Commander Archive
+appId: dk.bircck.deckshelf
+productName: DeckShelf
 asar: true
 # Reuse the exact runtime installed by npm ci; avoid a second download/extraction.
 electronDist: node_modules/electron/dist
@@ -30,18 +30,18 @@ win:
       arch: [x64]
     - target: zip
       arch: [x64]
-  artifactName: Commander-Archive-${version}-windows-${arch}.${ext}
+  artifactName: DeckShelf-${version}-windows-${arch}.${ext}
   signAndEditExecutable: false
 nsis:
-  artifactName: Commander-Archive-Setup-${version}-x64.exe
+  artifactName: DeckShelf-Setup-${version}-x64.exe
   oneClick: false
   perMachine: false
   allowElevation: false
   allowToChangeInstallationDirectory: false
   createDesktopShortcut: false
   createStartMenuShortcut: true
-  shortcutName: Commander Archive
-  uninstallDisplayName: Commander Archive
+  shortcutName: DeckShelf
+  uninstallDisplayName: DeckShelf
   deleteAppDataOnUninstall: false
   runAfterFinish: true
   include: desktop/installer.nsh

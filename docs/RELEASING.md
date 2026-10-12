@@ -1,4 +1,4 @@
-# Building and distributing Commander Archive
+# Building and distributing DeckShelf
 
 ## Architecture
 
@@ -9,8 +9,12 @@ Archidekt API handlers in the main process. No HTTP server, free port or install
 Node runtime is needed. External HTTPS links open in the system browser. Other
 external protocols and renderer permission requests are denied.
 
-Keep `dk.bircck.commanderarchive`, the `Commander Archive` profile directory, and
-`archive://app` stable across releases. Do not put a version or extraction path in
+Keep `dk.bircck.deckshelf`, the `DeckShelf` profile directory, and `archive://app`
+stable across releases. 1.0 renamed the app from Commander Archive
+(`dk.bircck.commanderarchive`): `desktop/installer.nsh` removes that installation,
+`desktop/profile.mjs` copies its profile on first start, and the unchanged origin
+keeps the copied collection readable. CI installs the last Commander Archive build
+first to test this upgrade. Do not put a version or extraction path in
 the storage identity. Never test with the owner's live browser origin/profile.
 
 A hosted version still does most work in the user's browser, with no server-side
@@ -89,7 +93,7 @@ the separate user profile. The ZIP is an optional portable alternative. No certi
 auto-updater or machine-wide install is configured.
 `signAndEditExecutable: false` avoids signing-tool requirements; consequently the
 runtime executable's embedded branding/metadata may retain Electron defaults.
-The window title and executable filename are Commander Archive. Authenticode
+The window title and executable filename are DeckShelf. Authenticode
 signing, a branded executable icon, ARM64, macOS and Linux distributables remain
 future release work. Checksums detect corruption but do not establish authenticity.
 

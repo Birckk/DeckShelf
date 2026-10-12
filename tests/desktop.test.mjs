@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, readdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { desktopResponse, isAppUrl, isExternalUrl } from '../desktop/request.mjs';
+import { migrateLegacyProfile, profilePaths } from '../desktop/profile.mjs';
 
 test('desktop serves only packaged assets and rejects foreign origins and file escape', async () => {
   const root = await mkdtemp(join(tmpdir(), 'archive-protocol-'));
@@ -37,4 +38,30 @@ test('desktop navigation keeps OS commands and foreign pages out of the app', ()
   for (const url of ['archive://app.evil/', 'archive://user@app/', 'file:///secret', 'javascript:alert(1)']) assert.equal(isAppUrl(url), false);
   assert.ok(isExternalUrl('https://archidekt.com/decks/123'));
   for (const url of ['file:///secret', 'http://localhost/', 'ms-settings:', 'https://user:password@example.com']) assert.equal(isExternalUrl(url), false);
+});
+
+test('desktop copies a Commander Archive profile into a new DeckShelf profile once', async () => {
+  const appData = await mkdtemp(join(tmpdir(), 'deckshelf-profile-'));
+  try {
+    const { legacy, profile } = profilePaths(appData);
+    assert.equal(profile, join(appData, 'DeckShelf'));
+    assert.equal(legacy, join(appData, 'Commander Archive'));
+    assert.equal(migrateLegacyProfile(legacy, profile), 'no legacy profile');
+    await mkdir(join(legacy, 'Local Storage', 'leveldb'), { recursive: true });
+    await writeFile(join(legacy, 'Local Storage', 'leveldb', '000003.log'), 'collection');
+    await writeFile(join(legacy, 'Local Storage', 'leveldb', 'LOCK'), '');
+    await mkdir(join(legacy, 'Cache'));
+    await writeFile(join(legacy, 'startup.log'), 'old');
+    // Electron may create crash data in the default profile before the main script runs.
+    await mkdir(join(profile, 'Crashpad'), { recursive: true });
+    assert.equal(migrateLegacyProfile(legacy, profile), 'copied Commander Archive profile');
+    assert.equal(await readFile(join(profile, 'Local Storage', 'leveldb', '000003.log'), 'utf8'), 'collection');
+    assert.deepEqual((await readdir(profile)).sort(), ['Crashpad', 'Local Storage']);
+    assert.deepEqual(await readdir(join(profile, 'Local Storage', 'leveldb')), ['000003.log']);
+    assert.equal(await readFile(join(legacy, 'startup.log'), 'utf8'), 'old');
+    assert.deepEqual((await readdir(appData)).sort(), ['Commander Archive', 'DeckShelf']);
+    await writeFile(join(profile, 'Local Storage', 'leveldb', '000003.log'), 'newer');
+    assert.equal(migrateLegacyProfile(legacy, profile), 'kept existing profile');
+    assert.equal(await readFile(join(profile, 'Local Storage', 'leveldb', '000003.log'), 'utf8'), 'newer');
+  } finally { await rm(appData, { recursive: true, force: true }); }
 });

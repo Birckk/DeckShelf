@@ -21,7 +21,7 @@ jobs:
           $version = (Get-Content package.json | ConvertFrom-Json).version
           if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Use a stable semantic package version.' }
           if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") { throw 'Tag must match package.json version.' }
-          if (-not (Select-String -Path docs/RELEASE_NOTES.md -SimpleMatch "Commander Archive $version" -Quiet)) { throw 'Update release notes for this version.' }
+          if (-not (Select-String -Path docs/RELEASE_NOTES.md -SimpleMatch "DeckShelf $version" -Quiet)) { throw 'Update release notes for this version.' }
       - run: npm ci
       - run: npm test
       - run: npm run package:windows
@@ -81,4 +81,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
-        run: gh release create "$RELEASE_TAG" assets/* --verify-tag --draft --title "Commander Archive $RELEASE_TAG" --notes-file assets/RELEASE_NOTES.md
+        run: gh release create "$RELEASE_TAG" assets/* --verify-tag --draft --title "DeckShelf $RELEASE_TAG" --notes-file assets/RELEASE_NOTES.md

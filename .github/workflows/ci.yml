@@ -95,10 +95,11 @@ jobs:
             qa/guide/
           retention-days: 7
 
-  # Windows installer and ZIP: package, run the app, install/reinstall/uninstall.
+  # Windows installer and ZIP: package, run the app, upgrade from Commander Archive,
+  # install/reinstall/uninstall.
   desktop:
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -108,8 +109,18 @@ jobs:
       - run: npm ci
       - run: npm run package:windows
       - run: npm run test:desktop
+      # The last build named Commander Archive, installed first to test a real upgrade.
+      - uses: actions/checkout@v7
+        with:
+          ref: f39259699cf34d5a16bd26b5218a99497e3937d4
+          path: qa/legacy-source
+      - name: Package Commander Archive
+        working-directory: qa/legacy-source
+        run: |
+          npm ci
+          npm run package:windows
       - shell: pwsh
-        run: ./scripts/smoke-installer.ps1
+        run: ./scripts/smoke-installer.ps1 -LegacySetup (Resolve-Path qa/legacy-source/release/Commander-Archive-Setup-*-x64.exe).Path
       - uses: actions/upload-artifact@v7
         with:
           name: windows-candidate

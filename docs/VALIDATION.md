@@ -9,7 +9,7 @@ What is checked before a DeckShelf build is released, and what is not.
 | Unit tests and production build | Ubuntu, Windows, macOS on Node 22; Ubuntu on Node 24 |
 | Browser regressions: dialogs, collection workspace, saved choices, backups, keyboard, reduced motion at 1440/390/320px | Chromium, Firefox, WebKit |
 | Production container: health and routing, desktop/phone smoke tests, guide, precon demo | Hardened Docker container (read-only, no capabilities, 256 MB) |
-| Windows package: ZIP smoke test (startup, artwork, sandbox, API routing, backup restore/export, relaunch, offline reload) and installer install/reinstall/uninstall | Disposable Windows runner |
+| Windows package: ZIP smoke test (startup, artwork, sandbox, API routing, backup restore/export, relaunch, offline reload) and installer upgrade from Commander Archive (collection kept), install/reinstall/uninstall | Disposable Windows runner |
 | Production dependency audit | npm advisory database |
 
 Release tags rerun the Windows checks, publish a versioned container image and

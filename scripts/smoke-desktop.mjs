@@ -16,7 +16,7 @@ const installedDirectory = appDirectoryArg === -1 ? null : resolve(process.argv[
 const extracted = installedDirectory || join(temp, 'extracted app');
 const moved = installedDirectory || join(temp, 'upgraded app');
 const profile = join(temp, 'isolated-profile');
-const zip = join(root, 'release', `Commander-Archive-${pkg.version}-windows-x64.zip`);
+const zip = join(root, 'release', `DeckShelf-${pkg.version}-windows-x64.zip`);
 function extract(destination) {
   execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Expand-Archive -LiteralPath $env:CA_SMOKE_ZIP -DestinationPath $env:CA_SMOKE_EXTRACT'], {
     env: { ...process.env, CA_SMOKE_ZIP: zip, CA_SMOKE_EXTRACT: destination }, stdio: 'inherit',
@@ -42,7 +42,7 @@ await writeFile(backup, JSON.stringify(fixture));
 let running;
 const errors = [];
 async function launch(directory) {
-  running = await electron.launch({ executablePath: join(directory, 'Commander Archive.exe'), args: ['--smoke-test'], env, timeout: 45000 });
+  running = await electron.launch({ executablePath: join(directory, 'DeckShelf.exe'), args: ['--smoke-test'], env, timeout: 45000 });
   const page = await running.firstWindow();
   // A hidden Electron window may not produce compositor frames on the hosted
   // Windows runner. Show it only on that disposable machine for screenshots.
@@ -59,7 +59,7 @@ try {
   // Test a normal production window without Playwright's inspector/startup hooks.
   const nativeProfile = join(temp, 'native-profile');
   await mkdir(nativeProfile, { recursive: true });
-  const native = spawn(join(extracted, 'Commander Archive.exe'), ['--smoke-test', '--production-window'], {
+  const native = spawn(join(extracted, 'DeckShelf.exe'), ['--smoke-test', '--production-window'], {
     env: { ...env, CA_TEST_PROFILE: nativeProfile }, windowsHide: true, stdio: 'ignore',
   });
   try {
