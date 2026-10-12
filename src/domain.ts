@@ -72,6 +72,20 @@ export function matchesDeck(deck: Deck, f: Filters): boolean {
     (!f.count || deck.colors.length === Number(f.count))
   );
 }
+export type DescriptionPart = { text: string; card?: true };
+// Archidekt descriptions reference cards as [[Card Name]]; split them out so
+// the name renders as plain (emphasised) text instead of raw markup.
+export function descriptionParts(description: string): DescriptionPart[] {
+  const parts: DescriptionPart[] = [];
+  let last = 0;
+  for (const m of description.matchAll(/\[\[([^[\]]+)\]\]/g)) {
+    if (m.index > last) parts.push({ text: description.slice(last, m.index) });
+    parts.push({ text: m[1], card: true });
+    last = m.index + m[0].length;
+  }
+  if (last < description.length) parts.push({ text: description.slice(last) });
+  return parts;
+}
 export function randomIndex(
   length: number,
   fill: (a: Uint32Array<ArrayBuffer>) => Uint32Array<ArrayBuffer> = (a) =>

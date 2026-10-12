@@ -1559,6 +1559,7 @@ html { scrollbar-gutter: stable; }
 .detail-copy .detail-facts { font-size: 13px; flex-wrap: wrap; gap: 8px 22px; margin: 20px 0; }
 .detail-copy .tag-list > span { font-size: 12px; }
 .detail-copy .source-description { font-size: 14px; max-height: none; overflow: visible; }
+.source-description strong { font-weight: 600; color: #d8d6de; }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .detail-actions .button { min-height: 44px; font-size: 13px; white-space: normal; text-align: center; }
 .detail-actions .refresh-source { margin: 0; }

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { matchesDeck, randomIndex, parseCollection, validateDeck, EMPTY_FILTERS } from '../src/domain.ts';
+import { descriptionParts, matchesDeck, randomIndex, parseCollection, validateDeck, EMPTY_FILTERS } from '../src/domain.ts';
 import { normalizeDeck, descriptionText } from '../server/api.mjs';
 
 const decks = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)));
@@ -103,4 +103,15 @@ test('source normalization includes uncategorized cards in older precons', () =>
   const deck = normalizeDeck({ id: 42, name: 'Old precon', deckFormat: 3, cards: [commander, { categories: null, quantity: 98 }, { quantity: 1 }, { categories: ['Sideboard'], quantity: 5 }] });
   assert.equal(deck.cardCount, 100);
   assert.ok(validateDeck(deck));
+});
+test('[[Card Name]] references in descriptions become plain, marked card names', () => {
+  assert.deepEqual(descriptionParts('Meet [[Yennett, Cryptic Sovereign]]. Cast [[Sol Ring]] and [[Arcane Signet]]'), [
+    {text:'Meet '},{text:'Yennett, Cryptic Sovereign',card:true},{text:'. Cast '},{text:'Sol Ring',card:true},{text:' and '},{text:'Arcane Signet',card:true},
+  ]);
+  assert.deepEqual(descriptionParts('No markup here'),[{text:'No markup here'}]);
+  assert.deepEqual(descriptionParts('[[Sol Ring]]'),[{text:'Sol Ring',card:true}]);
+  assert.deepEqual(descriptionParts('Broken [[Sol Ring] and [[]] stay as typed'),[{text:'Broken [[Sol Ring] and [[]] stay as typed'}]);
+  assert.deepEqual(descriptionParts(''),[]);
+  const bundled = JSON.parse(readFileSync(new URL('../src/data/precons.json', import.meta.url)));
+  for (const d of [...decks, ...bundled.decks]) for (const p of descriptionParts(d.description || '')) assert.ok(!p.text.includes('[['), d.name);
 });

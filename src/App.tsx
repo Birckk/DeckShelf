@@ -27,6 +27,7 @@ import seed from "./data/decks.json";
 import precons from "./data/precons.json";
 import {
   COLORS,
+  descriptionParts,
   EMPTY_COLLECTION,
   EMPTY_FILTERS,
   matchesDeck,
@@ -754,7 +755,11 @@ function App() {
                 ))}
               </div>}
               {detail.description && (
-                <p className="source-description">{detail.description}</p>
+                <p className="source-description">
+                  {descriptionParts(detail.description).map((part, i) =>
+                    part.card ? <strong key={i}>{part.text}</strong> : part.text,
+                  )}
+                </p>
               )}
               <div className="detail-facts">
                 <span>
