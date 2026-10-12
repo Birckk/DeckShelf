@@ -36,4 +36,6 @@ Electron ships Chromium and Node.js. Its runtime distribution includes `LICENSE`
 (`LICENSE.electron.txt` in the package) and `LICENSES.chromium.html` next to the application executable. Keep those files
 and `resources/notices/` with the application when sharing it.
 
-The project's own licensing status is recorded separately in `LICENSE.md`.
+DeckShelf's original source code is MIT licensed (`LICENSE.md`). That license
+does not cover the third-party software, fonts, artwork, symbols, names or data
+described above, which keep their own terms.

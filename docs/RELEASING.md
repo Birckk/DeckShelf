@@ -73,8 +73,9 @@ For a release:
 Do not reuse or overwrite a published version/tag; draft creation fails on an
 existing release rather than replacing its assets.
 
-Before the first public publication, the owner must settle the software license,
-bundled asset redistribution basis and download visibility (issue #9). The
+The source code is MIT licensed. Before the first public publication, the owner
+must still settle the bundled asset redistribution basis and download visibility
+(issue #9). The
 repository is `Bircck/DeckShelf` and currently private: release links and Actions
 artifacts are restricted to collaborators. No workflow changes repository visibility.
 
@@ -93,5 +94,5 @@ signing, a branded executable icon, ARM64, macOS and Linux distributables remain
 future release work. Checksums detect corruption but do not establish authenticity.
 
 Keep Electron's LICENSE/Chromium notices and generated dependency licenses in the
-package. `LICENSE.md` records the pending project license choice; do not mistake
-third-party notices for a grant of project or artwork redistribution rights.
+package. `LICENSE.md` (MIT) covers only the original source code; do not mistake
+it or the third-party notices for a grant of artwork redistribution rights.

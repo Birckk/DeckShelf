@@ -62,5 +62,5 @@ Unofficial fan project, not affiliated with Wizards of the Coast. Magic: The
 Gathering, card names and artwork belong to their owners. Deck data from
 [Archidekt](https://archidekt.com/commander-precons); mana symbols from
 [Scryfall](https://scryfall.com/docs/api/card-symbols). See
-[third-party notices](docs/THIRD_PARTY_NOTICES.md) and the
-[licensing status](LICENSE.md).
+[third-party notices](docs/THIRD_PARTY_NOTICES.md). The source code is
+[MIT licensed](LICENSE.md); card art and other third-party material keep their own terms.

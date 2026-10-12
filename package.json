@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "A personal Commander collection viewer and deck picker",
   "author": "Bircck",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "main": "desktop/main.mjs",
   "type": "module",
   "scripts": {

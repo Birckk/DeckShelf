@@ -15,5 +15,5 @@ See docs/VALIDATION.md in the repository for checks actually performed and remai
 limitations. The workflow must not be treated as proof of installer, signing or
 every supported Windows configuration working.
 
-Public publishing remains subject to an owner decision on distribution visibility,
-the project's software license, and bundled third-party asset redistribution.
+Public publishing remains subject to an owner decision on distribution visibility
+and bundled third-party asset redistribution. The source code is MIT licensed.
