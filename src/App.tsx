@@ -878,8 +878,10 @@ function App() {
                 Deck information: Archidekt <ExternalLink size={12} />
               </a>
               <span>
-                Magic: The Gathering and card imagery © their respective
-                owners. This is an unofficial fan project.
+                DeckShelf is unofficial Fan Content permitted under the Fan
+                Content Policy. Not approved/endorsed by Wizards. Portions of
+                the materials used are property of Wizards of the Coast.
+                ©Wizards of the Coast LLC.
               </span>
             </div>
           </div>

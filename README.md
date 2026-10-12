@@ -58,8 +58,10 @@ Then open http://127.0.0.1:4317. On Windows you can double-click
 
 ## Credits
 
-Unofficial fan project, not affiliated with Wizards of the Coast. Magic: The
-Gathering, card names and artwork belong to their owners. Deck data from
+DeckShelf is unofficial Fan Content permitted under the
+[Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy). Not
+approved/endorsed by Wizards. Portions of the materials used are property of
+Wizards of the Coast. ©Wizards of the Coast LLC. Deck data from
 [Archidekt](https://archidekt.com/commander-precons); mana symbols from
 [Scryfall](https://scryfall.com/docs/api/card-symbols). See
 [third-party notices](docs/THIRD_PARTY_NOTICES.md). The source code is

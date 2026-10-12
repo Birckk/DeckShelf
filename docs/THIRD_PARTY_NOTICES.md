@@ -1,9 +1,13 @@
 # Third-party notices
 
-Commander Archive is an unofficial fan project. It is not approved, sponsored, or
-endorsed by Wizards of the Coast, Archidekt, Scryfall, or Moxfield. Magic: The
-Gathering names, card images, artwork, and mana symbols belong to their respective
-owners, including Wizards of the Coast and the credited artists.
+DeckShelf is unofficial Fan Content permitted under the
+[Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy). Not
+approved/endorsed by Wizards. Portions of the materials used are property of
+Wizards of the Coast. ©Wizards of the Coast LLC.
+
+DeckShelf is also not approved, sponsored, or endorsed by Archidekt, Scryfall, or
+Moxfield. Magic: The Gathering names, card images, artwork, and mana symbols belong
+to their respective owners, including Wizards of the Coast and the credited artists.
 
 ## Artwork, symbols and data
 
@@ -16,10 +20,10 @@ owners, including Wizards of the Coast and the credited artists.
 - Added accounts, folders and decks are read-only public Archidekt sources. Images
   for imported decks are requested from their remote source and are not guaranteed
   to be available offline.
-- The [Wizards Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy)
-  is relevant to proposed public distribution. This notice does not establish that
-  every bundled asset is cleared for redistribution. Review the artwork/symbol
-  distribution basis before publishing; remove or replace anything not covered.
+- Card art and mana symbols are included in the app and its downloads under the
+  [Wizards Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy)
+  (owner decision, 2026-10-12). DeckShelf stays free, has no paywall, uses no
+  Wizards logos and does not imply endorsement.
 - The [double-helix gallery](https://github.com/githyperplexed/double-helix-gallery)
   inspired the spatial presentation; this application's animation and layout code
   were independently implemented.

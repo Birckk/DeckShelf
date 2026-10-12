@@ -64,7 +64,7 @@ if (!app.requestSingleInstanceLock()) {
       { label: 'Help', submenu: [
         { label: 'Desktop guide', click: () => { void shell.openPath(join(process.resourcesPath, 'DESKTOP.md')); } },
         { label: 'Third-party notices', click: () => { void shell.openPath(join(process.resourcesPath, 'THIRD_PARTY_NOTICES.md')); } },
-        { label: 'About Commander Archive', click: () => { void dialog.showMessageBox(window, { title: 'Commander Archive', message: `Commander Archive ${app.getVersion()}`, detail: 'A personal Commander collection viewer and picker.\n\nUnofficial fan project. Not approved or endorsed by Wizards of the Coast. Magic artwork and symbols belong to their respective owners.\n\nYour collection is saved on this device. Use My collection to export a backup.' }); } },
+        { label: 'About Commander Archive', click: () => { void dialog.showMessageBox(window, { title: 'Commander Archive', message: `Commander Archive ${app.getVersion()}`, detail: 'A personal Commander collection viewer and picker.\n\nDeckShelf is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.\n\nYour collection is saved on this device. Use My collection to export a backup.' }); } },
       ] },
     ]));
     createWindow();
