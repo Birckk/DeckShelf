@@ -92,6 +92,7 @@ for (const width of [1440, 390, 320]) {
       await page.keyboard.press('Escape');
     }
     for (const name of ['Help and about DeckShelf', 'Guide']) {
+      if (width <= 700) await page.locator('.phone-help summary').click();
       await page.getByRole('button', { name, exact: name !== 'My collection' }).click();
       await expect.poll(() => page.getByRole('dialog').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
       await expect.poll(() => page.getByRole('dialog').evaluate(el => el.contains(document.activeElement))).toBe(true);

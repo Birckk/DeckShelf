@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { createPortal } from "react-dom";
 import {
   ArrowRight,
   ExternalLink,
@@ -45,14 +44,12 @@ export default function HelixPicker({
   setSpinning,
   openDeck,
   onWinner,
-  controlsTarget,
 }: {
   decks: Deck[];
   spinning: boolean;
   setSpinning: (v: boolean) => void;
   openDeck: (d: Deck) => void;
   onWinner: (deck: Deck | null) => void;
-  controlsTarget: HTMLDivElement | null;
 }) {
   const [winner, setWinner] = useState<Deck | null>(null);
   const [systemReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -262,7 +259,7 @@ export default function HelixPicker({
       setDragging(true);
     }
     const dt = Math.max(0.016, (performance.now() - previous.last) / 1000),
-      travel = dragTravel(dx, dy, e.currentTarget.clientHeight);
+      travel = dragTravel(dx, dy, e.currentTarget.clientHeight, e.currentTarget.clientWidth);
     motion.current.travel += travel;
     motion.current.dragging = true;
     motion.current.velocity = Math.max(-0.8, Math.min(0.8, travel / dt));
@@ -288,6 +285,28 @@ export default function HelixPicker({
     motion.current.dragging = false;
     setDragging(false);
   }
+  const motionControls = <div className="helix-motion-controls" role="group" aria-label="Picker motion">
+    <button
+      className="text-button"
+      disabled={spinning || !!winner || !count}
+      onClick={() => setPaused((p) => !p)}
+      aria-label={paused ? "Resume drift" : "Pause drift"}
+      title="Stop or resume automatic drift. Dragging still coasts after release."
+    >
+      {paused ? <Play size={12} /> : <Pause size={12} />}
+      <span>{paused ? "Resume drift" : "Pause drift"}</span>
+    </button>
+    <label title="Show the chosen deck immediately without a spin. Drift is controlled separately.">
+      <input
+        type="checkbox"
+        checked={instantPick}
+        disabled={spinning}
+        onChange={(e) => setInstantPick(e.target.checked)}
+      />
+      Instant pick
+    </label>
+  </div>;
+
   return (
     <section
       className={`helix-picker ${spinning ? "is-spinning" : ""} ${winner ? "has-winner" : ""} ${systemReduced ? "reduced-motion" : ""}`}
@@ -302,27 +321,6 @@ export default function HelixPicker({
                 ? "Motion paused"
                 : "Deck picker"}
         </span>
-        {controlsTarget && createPortal(<div className="helix-motion-controls" role="group" aria-label="Picker motion">
-          <button
-            className="text-button"
-            disabled={spinning || !!winner || !count}
-            onClick={() => setPaused((p) => !p)}
-            aria-label={paused ? "Resume drift" : "Pause drift"}
-            title="Stop or resume automatic drift. Dragging still coasts after release."
-          >
-            {paused ? <Play size={12} /> : <Pause size={12} />}
-            <span>{paused ? "Resume drift" : "Pause drift"}</span>
-          </button>
-          <label title="Show the chosen deck immediately without a spin. Drift is controlled separately.">
-            <input
-              type="checkbox"
-              checked={instantPick}
-              disabled={spinning}
-              onChange={(e) => setInstantPick(e.target.checked)}
-            />
-            Instant pick
-          </label>
-        </div>, controlsTarget)}
       <div className="helix-intro">
         <h2>What are we playing?</h2>
         <p>
@@ -491,6 +489,7 @@ export default function HelixPicker({
             </button>
           )}
         </div>
+        {motionControls}
       </div>
     </section>
   );

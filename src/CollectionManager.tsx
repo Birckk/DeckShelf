@@ -7,6 +7,7 @@ import {
   PowerOff,
   Focus,
   ListChecks,
+  SlidersHorizontal,
   Square,
   FolderTree,
   Trash2,
@@ -131,6 +132,7 @@ export default function CollectionManager({
   const [size, setSize] = useState(175);
   const [scope, setScope] = useState<{ name: string; keys: string[] } | null>(initialScope);
   const [mobileNav, setMobileNav] = useState(false);
+  const [showActions, setShowActions] = useState(false);
   useEffect(() => { heading.current?.focus(); }, []);
   const [section, setSection] = useState(initialSection);
   useEffect(() => { onLocationChange(section, scope); }, [section, scope]);
@@ -145,6 +147,12 @@ export default function CollectionManager({
   const [failures, setFailures] = useState<string[]>([]);
   const [restorePreview, setRestorePreview] = useState<Collection | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  const restoreRegion = useRef<HTMLDivElement>(null);
+  // The confirmation opens below the footer; on phones that is off-screen.
+  useEffect(() => {
+    restoreRegion.current?.scrollIntoView({ block: "nearest" });
+    restoreRegion.current?.focus({ preventScroll: true });
+  }, [restorePreview]);
   const controller = useRef<AbortController | null>(null);
   const importedFolderKeys = useRef(new Set<string>());
   useEffect(() => () => controller.current?.abort(), []);
@@ -220,6 +228,7 @@ export default function CollectionManager({
     setDiscovery(null);
     setScope(null);
     setMobileNav(false);
+    setShowActions(false);
     setSection(next);
     setSearch("");
     setStatus("all");
@@ -556,7 +565,8 @@ export default function CollectionManager({
                     </a>
                   )}
                 </div>
-                <div className="manager-toolbar">
+                <div className={`manager-toolbar ${showActions ? "is-expanded" : ""}`}>
+                  <button className="text-button mobile-collection-actions" aria-expanded={showActions} onClick={() => setShowActions(v => !v)}><SlidersHorizontal size={14} />Actions</button>
                   {scope && <div className="manager-group-control">
                     <label className="overview-switch"><input type="checkbox" role="switch" aria-label={`Enable ${scope.name} folders`} disabled={!!busy || scopedKeys.every(key => collection.archivedGroups?.includes(key))}
                       checked={scopedKeys.some(key => groupActive(collection, key))}
@@ -566,7 +576,7 @@ export default function CollectionManager({
                     <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => ({ ...c, pausedGroups: [], disabledGroups: groups.filter(g => !scopedKeys.includes(g.key)).map(g => g.key) }))}><Focus size={14} />Only these folders</button>
                     <details className="precon-removal"><summary><Trash2 size={13} />Remove…</summary><p>Remove these folder connections from DeckShelf. Saved decks stay in Individual decks. You can add the source again anytime.</p><button className="text-button" disabled={!!busy} onClick={() => removeSources(scopedKeys)}><Trash2 size={14} />Remove collection</button></details>
                   </div>}
-                  {(activeGroup || scope || (section === "demo" && collection.demo?.removed)) && <div className="collection-disable-control">
+                  {(activeGroup || scope || (section === "demo" && collection.demo?.removed)) && <div className={`collection-disable-control ${(scope ? scopedKeys : [section]).every(key => collection.archivedGroups?.includes(key)) || (section === "demo" && collection.demo?.removed) ? "is-disabled" : ""}`}>
                     <button className="text-button" disabled={!!busy} title="Disabled collections stay out of Enable all" onClick={() => setCollection(c => { const keys = scope ? scopedKeys : [section]; const disabled = keys.every(key => c.archivedGroups?.includes(key)) || (section === "demo" && c.demo?.removed); return archiveGroups(section === "demo" && c.demo?.removed ? addDemo(c, precons as { snapshotAt: string; decks: Deck[] }) : c, keys, !disabled); })}>{(scope ? scopedKeys : [section]).every(key => collection.archivedGroups?.includes(key)) || (section === "demo" && collection.demo?.removed) ? <><Power size={14} />Enable collection</> : <><PowerOff size={14} />Disable collection</>}</button>
                     {((scope ? scopedKeys : [section]).some(key => collection.archivedGroups?.includes(key)) || (section === "demo" && collection.demo?.removed)) && <small>Disabled · excluded from Enable all</small>}
                   </div>}
@@ -661,6 +671,7 @@ export default function CollectionManager({
                     {scopedSources.length > 0 && <option value="new">Not added</option>}
                   </select>
                 </div>
+                <div className="workspace-display-controls">
                 <div className="workspace-view-controls">
                   <CollectionLayoutSwitch compact value={layout} onChange={setLayout} />
                   <label>Size <input aria-label="Deck size" type="range" min="130" max="250" step="10" value={size} onChange={e => setSize(Number(e.target.value))} /></label>
@@ -672,19 +683,20 @@ export default function CollectionManager({
                   <button
                     className="text-button"
                     disabled={!!busy || !shown.length}
-                    title="Select every deck in the current results. New decks wait for Add selected decks."
+                    aria-label="Select all" title="Select every deck in the current results. New decks wait for Add selected decks."
                     onClick={() => selectAll(true)}
                   >
-                    <ListChecks size={14} /> Select all
+                    <ListChecks size={14} /><span className="bulk-long">Select all</span><span className="bulk-short">All</span>
                   </button>
                   <button
                     className="text-button"
                     disabled={!!busy || !shown.length}
-                    title="Deselect every deck in the current results"
+                    aria-label="Deselect all" title="Deselect every deck in the current results"
                     onClick={() => selectAll(false)}
                   >
-                    <Square size={14} /> Deselect all
+                    <Square size={14} /><span className="bulk-long">Deselect all</span><span className="bulk-short">None</span>
                   </button>
+                </div>
                 </div>
                 <div className={`manager-list workspace-decks layout-${layout}`} style={{ "--manager-card-size": `${size}px` } as CSSProperties}>
 
@@ -777,6 +789,8 @@ export default function CollectionManager({
         </footer>
         {restorePreview && (
           <div
+            ref={restoreRegion}
+            tabIndex={-1}
             className="manager-restore"
             role="region"
             aria-label="Restore collection backup"

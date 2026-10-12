@@ -18,6 +18,10 @@ try {
       await expect(collection).toHaveAttribute('aria-pressed', 'true');
       await expect(nav.locator('[aria-pressed="true"]')).toHaveCount(1);
     }
+    // Phones fold Guide and About into the Help menu; focus returns to Help.
+    const phone = width < 700, help = page.locator('.phone-help summary');
+    const openHelp = async () => { if (phone) await help.click(); };
+    await openHelp();
     const trigger = page.getByRole('button', { name: 'Guide', exact: true });
     await trigger.focus();
     await page.keyboard.press('Enter');
@@ -34,7 +38,8 @@ try {
     expect(bounds[0]).toEqual(bounds[1]);
     expect(bounds[0]).toEqual(bounds[2]);
     await page.keyboard.press('Escape');
-    await expect(trigger).toBeFocused();
+    await expect(phone ? help : trigger).toBeFocused();
+    await openHelp();
     await page.getByRole('button', { name: 'Help and about DeckShelf' }).click();
     await page.getByRole('button', { name: 'Quick guide', exact: true }).click();
     await page.getByRole('button', { name: 'Next', exact: true }).click();

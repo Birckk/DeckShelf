@@ -235,6 +235,7 @@ for (const width of [1440, 390]) test(`folder pills preserve subsets and scoped 
   await expect(page.getByRole('checkbox', { name: `Show ${decks[0].name}`, exact: true })).toBeChecked();
   if (width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
   await nav.getByRole('button', { name: 'Birckk', exact: true }).click();
+  if (width < 700) await page.getByRole('button', { name: 'Actions', exact: true }).click();
   await page.getByRole('button', { name: 'Enable all folders', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText('5 on display');
   await page.getByRole('button', { name: 'Disable all folders', exact: true }).click();
@@ -307,13 +308,24 @@ for (const width of [1440, 390]) test(`quick choice stays anchored and All toggl
   const layoutBefore = await page.getByRole('button', { name: 'Cards only', exact: true }).boundingBox();
   await page.getByRole('button', { name: 'Choose a few', exact: true }).click();
   const activeTrigger = page.getByRole('button', { name: 'Select cards', exact: true });
-  expect(await activeTrigger.boundingBox()).toEqual(triggerSize);
   expect(await activeTrigger.evaluate(el => [getComputedStyle(el).fontSize, getComputedStyle(el).fontWeight, getComputedStyle(el).lineHeight])).toEqual(typography);
   const after = await toolbar.boundingBox();
-  expect(after?.x).toBe(before?.x);
   expect(after?.y).toBe(before?.y);
-  expect(after?.height).toBe(before?.height);
   expect(await page.getByRole('button', { name: 'Cards only', exact: true }).boundingBox()).toEqual(layoutBefore);
+  {
+    // Close takes its space from the entry, so the two cover the idle entry's width. Desktop keeps
+    // the group's left edge (actions extend right); phones keep its right edge (actions extend left).
+    const close = (await page.getByRole('button', { name: 'Clear selection', exact: true }).boundingBox())!, active = (await activeTrigger.boundingBox())!;
+    expect(after!.height).toBe(before!.height);
+    expect(active.height).toBe(triggerSize!.height);
+    expect(active.x + active.width - close.x).toBeCloseTo(triggerSize!.width, 0);
+    if (width > 700) {
+      expect(after!.x).toBe(before!.x);
+      expect(close.x).toBeCloseTo(triggerSize!.x, 0);
+    } else {
+      expect(after!.x + after!.width).toBeCloseTo(before!.x + before!.width, 0);
+    }
+  }
   await page.getByRole('button', { name: 'Select visible', exact: true }).click();
   await expect(page.locator('.is-shortlisted')).toHaveCount(5);
   await page.getByRole('button', { name: 'Deselect visible', exact: true }).click();
@@ -382,7 +394,7 @@ test('folder folds and overview expansion survive navigation and reload without 
 });
 
 
-for (const width of [1440, 390, 320]) test(`clearing a shortlist keeps picker geometry at ${width}px`, async ({ page }) => {
+for (const width of [1440, 390, 320]) test(`clearing a shortlist keeps the scene size and reclaims phone space at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
@@ -394,8 +406,19 @@ for (const width of [1440, 390, 320]) test(`clearing a shortlist keeps picker ge
   const motion = await page.getByRole('group', { name: 'Picker motion' }).boundingBox();
   await page.screenshot({ path: `qa/collection/picker-clear-${width}.png`, fullPage: true });
   await page.getByRole('button', { name: 'Clear selection', exact: true }).click();
-  expect(await stage.boundingBox()).toEqual(before);
-  expect(await page.getByRole('group', { name: 'Picker motion' }).boundingBox()).toEqual(motion);
+  const after = (await stage.boundingBox())!;
+  if (width > 700) {
+    expect(after).toEqual(before);
+    expect(await page.getByRole('group', { name: 'Picker motion' }).boundingBox()).toEqual(motion);
+  } else {
+    expect(after.x).toBe(before!.x);
+    expect(after.width).toBe(before!.width);
+    expect(after.height).toBe(before!.height);
+    // The shortlist shares the motion row, so clearing it never moves the scene.
+    expect(after.y).toBe(before!.y);
+    expect(after.y).toBeLessThan(180);
+    await expect(page.getByRole('group', { name: 'Quick deck choice' })).toBeHidden();
+  }
   await expect(page.getByText('All matching decks', { exact: true })).toBeAttached();
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: `qa/collection/picker-stable-${width}.png`, fullPage: true });
@@ -441,15 +464,28 @@ test('instant picking leaves drift independent and paused dragging coasts after 
 });
 
 
-test('selected-count control keeps its wording and metrics across every view', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
+for (const width of [1440, 390, 320]) test(`selected-count control, logo and search keep their metrics across every view at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 1000 });
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
   await page.getByRole('button', { name: 'Choose a few', exact: true }).click();
   await page.getByRole('button', { name: `Select ${decks[0].name}`, exact: true }).click();
-  const measure = () => page.getByRole('button', { name: '1 selected', exact: true }).evaluate(el => {
-    const box = el.getBoundingClientRect(), style = getComputedStyle(el);
-    return [box.x, box.y, box.width, box.height, style.fontSize, style.fontWeight, style.justifyContent];
-  });
+  const measure = async () => {
+    await page.evaluate(() => scrollTo(0, 0));
+    return page.getByRole('button', { name: '1 selected', exact: true }).evaluate((el, phone) => {
+      const box = el.getBoundingClientRect(), style = getComputedStyle(el);
+      const logo = document.querySelector('.studio-header .brand img')!.getBoundingClientRect();
+      // The count stays fixed, and so does the group's aligned edge: left on desktop, right on phones.
+      const group = el.closest('.shortlist-controls')!.getBoundingClientRect(), count = document.querySelector('.result-count')!.getBoundingClientRect();
+      // Measured from the toolbar's edge: WebKit ignores scrollbar-gutter, so page width can differ by view.
+      const row = el.closest('.results-toolbar')!.getBoundingClientRect();
+      const edge = phone ? [row.right - group.right] : [group.x, box.x];
+      return [...edge, group.y, group.height, box.y, box.width, box.height, count.x, count.y, style.fontSize, style.fontWeight, style.justifyContent, logo.width, logo.height];
+    }, width <= 700);
+  };
+  // Search icon, text field and Filters share the bar's vertical centre.
+  const middles = await page.evaluate(() => ['.studio-toolbar > .studio-search', '.studio-search > svg', '.studio-search input', '.filters-trigger']
+    .map(s => { const b = document.querySelector(s)!.getBoundingClientRect(); return Math.round(b.y + b.height / 2); }));
+  expect(new Set(middles).size).toBe(1);
   const original = await measure();
   for (const name of ['Cards', 'Pick a deck', 'Collection']) {
     await page.getByRole('group', { name: 'Collection view' }).getByRole('button', { name, exact: true }).click();
@@ -474,6 +510,7 @@ for (const width of [1440, 390]) test('My collection remembers pages and folder 
   await nav.getByRole('button', { name: 'Test collection', exact: true }).click();
   await reopen();
   await expect(page.getByRole('heading', { name: 'Test collection', exact: true })).toBeVisible();
+  if (width < 700) await page.getByRole('button', { name: 'Actions', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Enable all folders', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'My collection', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Collections', exact: true })).toBeVisible();

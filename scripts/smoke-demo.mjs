@@ -28,9 +28,15 @@ try {
   await page.getByRole('button', { name: 'Collection', exact: true }).click();
   await expect(page.locator('.collection-tile')).toHaveCount(snapshot.decks.length);
   await page.getByRole('button', { name: 'Details', exact: true }).click();
-  await page.getByRole('button', { name: 'Filter Blue', exact: true }).click();
+  // Phones keep the colour filters inside the Filters panel.
+  const toggleBlue = async () => {
+    if (viewport.width < 700) await page.getByRole('button', { name: 'Filters', exact: true }).click();
+    await page.getByRole('button', { name: 'Filter Blue', exact: true }).click();
+    if (viewport.width < 700) await page.keyboard.press('Escape');
+  };
+  await toggleBlue();
   await expect(page.locator('.collection-tile')).toHaveCount(snapshot.decks.filter(d => d.colors.includes('U')).length);
-  await page.getByRole('button', { name: 'Filter Blue', exact: true }).click();
+  await toggleBlue();
   const target = snapshot.decks[0];
   await page.getByRole('textbox', { name: 'Search decks', exact: true }).fill(target.commanders[0].name);
   const pool = snapshot.decks.filter(d => JSON.stringify(d).toLowerCase().includes(target.commanders[0].name.toLowerCase()));

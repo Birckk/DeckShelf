@@ -6,10 +6,15 @@ const loopLength = (slots: number) =>
   Math.max(1, Math.ceil(slots / 2) / ROWS_PER_WINDOW);
 export const modulo = (n: number, size = 1) => ((n % size) + size) % size;
 
+// Keep the desktop screw unchanged; narrower stages need more room between rows
+// and less perspective magnification, independent of how many decks are eligible.
+const narrowness = (width: number) => Math.max(0, Math.min(1, (600 - width) / 300));
+const travelSpan = (width: number, height: number) => height + 370 + 100 * narrowness(width);
+
 // One degree of freedom: both drag directions advance the same fixed screw.
 // A full travel cycle contains two turns and one stage's worth of vertical travel.
-export function dragTravel(dx: number, dy: number, height: number) {
-  return (dx * 0.009) / (TAU * 2) + dy / (height + 370);
+export function dragTravel(dx: number, dy: number, height: number, width = Infinity) {
+  return (dx * 0.009) / (TAU * 2) + dy / travelSpan(width, height);
 }
 
 export function helixPose(
@@ -31,9 +36,9 @@ export function helixPose(
   const depth = (Math.cos(angle) + 1) / 2;
   const edge = Math.max(0, Math.min(1, progress * 10, (1 - progress) * 10));
   return {
-    x: Math.sin(angle) * Math.min(310, width * 0.32),
-    y: (progress - 0.5) * (height + 370),
-    z: (depth - 0.5) * 290,
+    x: Math.sin(angle) * Math.min(310, width * (0.32 + 0.10 * narrowness(width))),
+    y: (progress - 0.5) * travelSpan(width, height),
+    z: (depth - 0.5) * (290 - 110 * narrowness(width)),
     yaw: -Math.sin(angle) * 42,
     roll: Math.sin(angle * 0.5) * 7,
     opacity: edge * (0.25 + depth * 0.75),

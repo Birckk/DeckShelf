@@ -16,8 +16,10 @@ export default function CollectionDeckTile({ row, deck, layout, checked, member,
     </div>
     <div className="workspace-tile-title">
       <h4>{deck?.name || row.name}</h4>
+      <span className="workspace-tile-controls">
       <a className="workspace-deck-link" href={deck?.sourceUrl || `https://archidekt.com/decks/${row.id}`} target="_blank" rel="noreferrer" aria-label={`Open ${row.name} on Archidekt`} title="Open on Archidekt"><ExternalLink size={13} /></a>
       <label className="workspace-select"><input type="checkbox" aria-label={`${member ? 'Show' : 'Select'} ${row.name}`} checked={checked} disabled={busy} onChange={e => toggle(e.target.checked)} /></label>
+      </span>
     </div>
     <p className="workspace-tile-note">{note}</p>
   </article>;

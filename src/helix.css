@@ -656,3 +656,11 @@
 .reduced-motion .helix-intro {
   transition: none;
 }
+
+/* Phone cards fit the wider-spaced screw without swallowing neighboring faces. */
+@media (max-width:700px) {
+  .helix-card { width:clamp(124px,36vw,142px); height:clamp(90px,26.1vw,103px); left:calc(clamp(124px,36vw,142px) / -2); top:calc(clamp(90px,26.1vw,103px) / -2); }
+  .helix-card-caption { left:8px; right:7px; bottom:8px; }
+  .helix-card-caption > strong { font-size:13px; }
+  .helix-card-caption > .mana-row { bottom:33px; }
+}

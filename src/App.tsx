@@ -94,7 +94,6 @@ function App() {
   const [storageLocked, setStorageLocked] = useState(!!loaded.error);
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
   const [view, setView] = useState<View>(HOME_VIEW);
-  const [pickerControlsTarget, setPickerControlsTarget] = useState<HTMLDivElement | null>(null);
   const [display, setDisplay] = useState(readDisplay);
   useEffect(() => {
     try {
@@ -118,6 +117,7 @@ function App() {
   const [collectionVisit, setCollectionVisit] = useState(0);
   const [showAbout, setShowAbout] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showDisplayOptions, setShowDisplayOptions] = useState(false);
   const filterDropdownRef = useRef<HTMLDivElement>(null);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -264,6 +264,50 @@ function App() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     setNotice("Collection backup downloaded.");
   }
+  const colorControls = (<div
+            className="studio-color-controls"
+            role="group"
+            aria-label="Color identity"
+          >
+            <div className="inline-colors">
+              {COLORS.map((c) => (
+                <button
+                  key={c.id}
+                  title={c.name}
+                  className={`color-button ${filters.colors.includes(c.id) ? "selected" : ""}`}
+                  aria-label={`Filter ${c.name}`}
+                  aria-pressed={filters.colors.includes(c.id)}
+                  onClick={() =>
+                    setFilters((f) => ({
+                      ...f,
+                      colorless: false,
+                      colors: f.colors.includes(c.id)
+                        ? f.colors.filter((v) => v !== c.id)
+                        : [...f.colors, c.id],
+                    }))
+                  }
+                >
+                  <ManaSymbol color={c.id} />
+                </button>
+              ))}
+            </div>
+            <label
+              className="switch-label"
+              title={
+                filters.exact
+                  ? "Exactly the selected colors, with no extras."
+                  : "Must include every selected color; additional colors are allowed."
+              }
+            >
+              <input
+                type="checkbox"
+                checked={filters.exact}
+                onChange={(e) => updateFilter("exact", e.target.checked)}
+              />
+              <span className="switch" />
+              Exact colors
+            </label>
+          </div>);
   return (
     <div
       className={`app-shell studio-theme ${revealed ? "winner-atmosphere" : ""}`}
@@ -308,6 +352,7 @@ function App() {
           ))}
         </div>
         <div className="header-actions">
+          <details className="phone-help" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false; }} onKeyDown={(e) => { if (e.key === "Escape") { e.currentTarget.open = false; e.currentTarget.querySelector("summary")?.focus(); } }}><summary><Info size={15} /><span>Help</span></summary><div><button onClick={(e) => { const menu = e.currentTarget.closest("details"); menu?.removeAttribute("open"); menu?.querySelector("summary")?.focus(); setShowGuide(true); }}><BookOpen size={15} />Guide</button><button aria-label="Help and about DeckShelf" onClick={(e) => { const menu = e.currentTarget.closest("details"); menu?.removeAttribute("open"); menu?.querySelector("summary")?.focus(); setShowAbout(true); }}><Info size={15} />About</button></div></details>
           <button
             className="icon-button about-button"
             aria-label="Help and about DeckShelf"
@@ -361,50 +406,7 @@ function App() {
               </button>
             )}
           </label>
-          <div
-            className="studio-color-controls"
-            role="group"
-            aria-label="Color identity"
-          >
-            <div className="inline-colors">
-              {COLORS.map((c) => (
-                <button
-                  key={c.id}
-                  title={c.name}
-                  className={`color-button ${filters.colors.includes(c.id) ? "selected" : ""}`}
-                  aria-label={`Filter ${c.name}`}
-                  aria-pressed={filters.colors.includes(c.id)}
-                  onClick={() =>
-                    setFilters((f) => ({
-                      ...f,
-                      colorless: false,
-                      colors: f.colors.includes(c.id)
-                        ? f.colors.filter((v) => v !== c.id)
-                        : [...f.colors, c.id],
-                    }))
-                  }
-                >
-                  <ManaSymbol color={c.id} />
-                </button>
-              ))}
-            </div>
-            <label
-              className="switch-label"
-              title={
-                filters.exact
-                  ? "Exactly the selected colors, with no extras."
-                  : "Must include every selected color; additional colors are allowed."
-              }
-            >
-              <input
-                type="checkbox"
-                checked={filters.exact}
-                onChange={(e) => updateFilter("exact", e.target.checked)}
-              />
-              <span className="switch" />
-              Exact colors
-            </label>
-          </div>
+          <div className="desktop-color-controls">{colorControls}</div>
           <div className="filter-dropdown" ref={filterDropdownRef}>
             <button
               className="button filters-trigger"
@@ -417,7 +419,7 @@ function App() {
               {(filters.set ||
                 filters.tag ||
                 filters.count ||
-                filters.colorless) && <span className="filter-dot" />}
+                filters.colorless || filters.colors.length > 0 || filters.exact) && <span className="filter-dot" />}
               <ChevronDown size={14} />
             </button>
             {showFilters && (
@@ -440,6 +442,7 @@ function App() {
                     <X size={16} />
                   </button>
                 </div>
+                <div className="phone-color-controls">{colorControls}</div>
                 <p>
                   Combine with search and colors. Results update as you choose.
                 </p>
@@ -553,7 +556,7 @@ function App() {
                 <span className="result-count" role="status">
                   {visible.length === owned.length
                     ? `${visible.length} ${visible.length === 1 ? "deck" : "decks"}`
-                    : `${visible.length} of ${owned.length} decks`}
+                    : <>{visible.length} of {owned.length}<span className="count-unit"> decks</span></>}
                 </span>
               </div>
               <QuickChoiceControls view={view} selecting={selecting} total={shortlist.length} eligible={eligible.length} busy={spinning}
@@ -562,12 +565,13 @@ function App() {
                 pick={() => { setSelecting(false); selectView('picker'); }}
                 clear={() => { setShortlist([]); setSelecting(false); selectionAnchor.current = null; }}
                 toggleAll={() => setShortlist(current => visible.every(d => current.includes(d.id)) ? current.filter(id => !visible.some(d => d.id === id)) : [...new Set([...current, ...visible.map(d => d.id)])])} />
-              <div className="picker-controls-slot" ref={setPickerControlsTarget} />
               {view === "grid" && (
-                <div className="collection-view-controls collection-display-toolbar">
+                <div className={`collection-view-controls collection-display-toolbar ${showDisplayOptions ? "options-open" : ""}`}>
                   <CollectionLayoutSwitch value={display.layout} onChange={(layout) => {
                     if (layout !== "compact") setDisplay((d) => ({ ...d, layout }));
                   }} />
+                  <button className="display-options-toggle" aria-label="Size and sort" title="Size and sort" aria-expanded={showDisplayOptions} aria-controls="display-tools" onClick={() => setShowDisplayOptions(v => !v)}><SlidersHorizontal size={15} /></button>
+                  <div className="display-tools" id="display-tools">
                   <label className="collection-size-control">
                     <span>Size</span>
                     <input
@@ -606,6 +610,7 @@ function App() {
                     </select>
                     <ChevronDown size={12} />
                   </label>
+                  </div>
                 </div>
               )}
             </div>
@@ -653,7 +658,6 @@ function App() {
             )}
             {view === "picker" ? (
               <Picker
-                controlsTarget={pickerControlsTarget}
                 decks={eligible}
                 spinning={spinning}
                 setSpinning={setSpinning}

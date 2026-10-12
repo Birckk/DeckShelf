@@ -968,7 +968,7 @@ option {
     padding: 0;
   }
   .helix-stage {
-    height: clamp(430px, calc(100svh - 310px), 640px);
+    height: clamp(430px, calc(100svh - 194px), 720px);
   }
   .helix-picker {
     margin-top: 5px;
@@ -1049,7 +1049,7 @@ option {
   background: #ffffff0a;
 }
 .helix-gesture {
-  bottom: 74px;
+  bottom: 110px;
 }
 .has-winner .helix-reveal {
   bottom: 116px;
@@ -1084,7 +1084,7 @@ option {
     padding: 8px 11px;
   }
   .helix-gesture {
-    bottom: 68px;
+    bottom: 106px;
   }
   .has-winner .revealed-card {
     width: 208px;
@@ -1495,7 +1495,8 @@ option {
 /* Compact browsing chrome: keep the artwork prominent and labels readable. */
 html { scrollbar-gutter: stable; }
 .collection-display-toolbar { justify-content: flex-end; padding: 0; }
-.collection-display-toolbar .collection-layout-switch { border: 0; background: none; padding: 0; }
+.collection-display-toolbar .collection-layout-switch { border: 1px solid #37363a; border-radius: 5px; padding: 2px; gap: 2px; background: #171719; }
+.collection-display-toolbar .collection-layout-switch button { min-height: 28px; padding: 3px 8px; font-size: 11px; border-radius: 3px; white-space: nowrap; }
 .studio-header {
   height: 56px;
   gap: 16px;
@@ -1508,18 +1509,11 @@ html { scrollbar-gutter: stable; }
 .studio-search { gap: 10px; padding-inline: 14px; }
 .studio-search > svg { width: 18px; height: 18px; }
 .studio-search input { padding-block: 12px; }
-.studio-search:focus-within { box-shadow: inset 0 -2px var(--gold); }
 .studio-search button { min-width: 28px; min-height: 28px; align-items: center; justify-content: center; }
 .studio-color-controls { gap: 14px; padding-inline: 16px; }
 .filters-trigger { padding-inline: 16px; }
 .studio-workspace .results-toolbar { padding: 10px 2px 8px; min-height: 46px; align-items: flex-start; }
 .studio-workspace .results-toolbar > div:first-child { padding-top: 6px; }
-.picker-controls-slot:empty { display: none; }
-.picker-controls-slot .helix-motion-controls { gap: 12px; }
-.picker-controls-slot .helix-motion-controls > label,
-.picker-controls-slot .helix-motion-controls .text-button { min-height: 28px; font-size: 11px; color: #aaa9a3; }
-.picker-controls-slot .helix-motion-controls .text-button > span { display: inline; }
-.picker-controls-slot .helix-motion-controls input { width: 13px; height: 13px; }
 .studio-theme .helix-intro { top: 18px; }
 .studio-workspace .result-count { font-size: 11px; line-height: 16px; }
 .studio-workspace .result-count > span { display: inline; }
@@ -1573,62 +1567,167 @@ html { scrollbar-gutter: stable; }
   .detail-cards.partners > div { flex: 1; }
 }
 
-.shortlist-controls { display:flex; align-items:center; flex-wrap:wrap; gap:3px; font-size:12px; width:fit-content; max-width:100%; min-height:42px; padding:0; border:0; border-radius:3px; box-sizing:border-box; flex-shrink:0; }
-.shortlist-controls.is-active { background:transparent; }
-.shortlist-entry, .shortlist-icon, .shortlist-mode { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:34px; border:0; border-radius:3px; color:#b9b7b1; background:transparent; cursor:pointer; }
-.shortlist-entry { padding:7px 12px; color:#e1cda4; border:0; background:#1d1c1a; font-size:13px; font-weight:500; }
-.shortlist-icon { width:34px; }
-.shortlist-mode { padding:6px 10px; font-size:12px; }
-.shortlist-mode[aria-pressed=true] { color:#ead9b8; background:#2c2923; }
-.shortlist-icon:hover, .shortlist-mode:hover { background:#2c2c2f; color:#f3f1ec; }
-.shortlist-controls button:focus-visible { outline:2px solid #d3bd91; outline-offset:2px; }
-.shortlist-controls .shortlist-pick { min-height:34px; padding:7px 12px; gap:7px; border:0; border-radius:3px; background:#d0bb93; box-shadow:none; color:#24211c; }
-.shortlist-controls .shortlist-pick:disabled { background:#1d1c1a; color:#e1cda4; opacity:1; }
-.shortlist-hidden, .shortlist-pool { padding:0 6px; font-size:12px; color:#aaa9b1; }
 .collection-tile.is-shortlisted .collection-card { outline:1px solid #d3bd91; outline-offset:3px; }
 .shortlist-mark { position:absolute; z-index:2; top:9px; right:9px; display:grid; place-items:center; min-width:28px; height:28px; padding:0 4px; border:1px solid #b8a582; border-radius:4px; background:#201e1a; color:#ead9b8; font-family:Outfit,sans-serif; font-size:13px; font-variant-numeric:tabular-nums; box-shadow:0 2px 6px #0008; }
-@media(max-width:600px) { .shortlist-controls { min-height:48px; } .shortlist-icon { min-height:40px; width:40px; } .shortlist-entry, .shortlist-mode, .shortlist-controls .shortlist-pick { min-height:40px; } }
 
-/* Keep the quick-choice trigger identical in every text state. */
-.shortlist-controls .shortlist-entry, .shortlist-controls .shortlist-pick { width:136px; height:36px; min-height:36px; flex-shrink:0; box-sizing:border-box; padding:7px 10px; font-family:inherit; font-size:13px; font-weight:500; line-height:20px; letter-spacing:normal; gap:8px; white-space:nowrap; display:inline-flex; align-items:center; justify-content:flex-start; text-align:left; }
-.shortlist-controls .shortlist-entry svg, .shortlist-controls .shortlist-pick svg { width:17px; height:17px; flex-shrink:0; }
-@media(max-width:600px) { .shortlist-controls .shortlist-entry, .shortlist-controls .shortlist-pick { height:40px; min-height:40px; } }
-.shortlist-controls .shortlist-pick:not(:disabled) { justify-content:center; text-align:center; }
 
-body:has(.helix-picker) { min-width:320px; }
-@media(max-width:360px) {
-  body:has(.helix-picker) .studio-nav { gap:2px; }
-  body:has(.helix-picker) .studio-nav button { padding-inline:7px; gap:5px; }
-  body:has(.helix-picker) .studio-header .brand { font-size:18px; gap:6px; }
-  body:has(.helix-picker) .studio-header .brand img { width:23px; }
-}
 
 /* A shared compact baseline across Collection, Cards and the picker. */
 .studio-workspace .results-toolbar { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; column-gap:18px; row-gap:6px; padding:8px 2px 6px; min-height:50px; }
 .studio-workspace .results-toolbar > div:first-child { padding-top:0; }
-.results-toolbar .shortlist-controls { min-height:36px; justify-self:start; }
-.results-toolbar .collection-display-toolbar, .results-toolbar .picker-controls-slot { grid-column:3; justify-self:end; }
+.results-toolbar .collection-display-toolbar { grid-column:-2; justify-self:end; }
 @media(max-width:1100px) {
   .studio-workspace .results-toolbar.view-grid { grid-template-columns:auto minmax(0,1fr); }
   .results-toolbar.view-grid .collection-display-toolbar { grid-column:1 / -1; justify-self:stretch; justify-content:flex-start; }
 }
 @media(max-width:700px) {
   .studio-workspace .results-toolbar { grid-template-columns:minmax(0,1fr) auto; column-gap:10px; }
-  .results-toolbar .shortlist-controls { min-height:40px; }
-  .results-toolbar.view-grid .shortlist-controls { grid-column:1 / -1; }
-  .results-toolbar .picker-controls-slot { grid-column:1 / -1; justify-self:end; }
   .results-toolbar.view-picker > div:first-child { min-height:32px; display:flex; align-items:center; }
 }
 
-.shortlist-clear { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:34px; padding:6px 9px; border:1px solid #49433a; border-radius:4px; background:#25221e; color:#e1cda4; font:inherit; font-size:12px; white-space:nowrap; cursor:pointer; }
-.shortlist-clear:hover:not(:disabled) { background:#302b23; border-color:#887657; }
-.shortlist-clear svg { width:14px; height:14px; }
-@media(max-width:600px) { .shortlist-clear { min-height:40px; padding-inline:6px; font-size:11px; } }
 
 
-/* The same count/edit control across every browsing view. */
-.shortlist-controls .shortlist-entry { justify-content:center; text-align:center; }
-.shortlist-entry[aria-pressed=true] { background:#2b2720; color:#ead9b8; }
-.shortlist-action { display:inline-flex; gap:6px; align-items:center; justify-content:center; height:34px; padding:6px 10px; border:0; border-radius:4px; background:#d0bb93; color:#24211c; font:inherit; cursor:pointer; }
-.shortlist-action:disabled { background:#29272a; color:#99958e; cursor:default; }
-@media(max-width:600px) { .shortlist-action { height:40px; padding-inline:6px; gap:4px; } .shortlist-mode { padding-inline:6px; } }
+
+/* Phone browsing: one summary row, then a coherent display-control group. */
+@media(max-width:700px) {
+  .studio-workspace .results-toolbar.view-grid { grid-template-columns:minmax(0,1fr) auto; gap:8px 10px; padding:8px 0; }
+  .results-toolbar.view-grid > div:first-child { grid-column:1; grid-row:1; }
+  .results-toolbar.view-grid .collection-display-toolbar { grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; width:100%; padding:4px 0 0; border-top:1px solid #ffffff12; }
+  .collection-display-toolbar .collection-layout-switch { grid-column:1 / -1; width:100%; justify-content:flex-start; gap:4px; }
+  .collection-display-toolbar .collection-layout-switch button { flex:1; justify-content:center; min-height:36px; }
+  .collection-display-toolbar .collection-size-control { grid-column:1; justify-self:start; min-height:32px; margin:0; }
+  .collection-display-toolbar .sort-label { grid-column:2; justify-self:end; min-height:32px; width:auto; margin:0; }
+  .collection-display-toolbar .sort-label select { max-width:150px; }
+}
+
+@media(max-width:700px) {
+ .results-toolbar.view-grid > div:first-child { z-index:1; align-self:start; min-height:40px; display:flex; align-items:center; width:fit-content; }
+}
+
+body:has(.studio-workspace) { min-width:320px; }
+@media(max-width:360px) {
+ .studio-header .studio-nav { gap:2px; }
+ .studio-header .studio-nav button { padding-inline:7px; gap:5px; }
+ .studio-header .brand { font-size:18px; gap:6px; }
+ .studio-header .brand img { width:23px; }
+}
+
+@media(max-width:360px) { .studio-color-controls { padding-inline:6px; gap:6px; } .inline-colors { gap:1px; } .inline-colors .color-button { width:29px; } .studio-color-controls .switch-label { padding-left:8px; gap:6px; } }
+/* Phone controls unfold only when needed; the decks lead the page. */
+.desktop-color-controls, .display-tools { display: contents; }
+.phone-color-controls, .phone-help, .display-options-toggle { display: none; }
+@media (max-width: 700px) {
+  .studio-header { padding-top: 2px; gap: 0; }
+  .studio-header .brand { font-size: 18px; }
+  .studio-header .brand img { width: 24px; height: 24px; }
+  .studio-header .header-actions { gap: 6px; }
+  .studio-header .header-actions > .about-button,
+  .studio-header .header-actions > .guide-trigger { display: none; }
+  .studio-header .header-actions > .button { min-height: 32px; padding: 4px 7px; font-size: 11px; }
+  .studio-header .studio-nav { height: 34px; }
+  .studio-header .studio-nav button { min-height: 34px; padding: 5px 8px; font-size: 12px; }
+  .phone-help { display: block; position: relative; font-size: 11px; }
+  .phone-help summary { display: flex; align-items: center; gap: 4px; padding: 7px 4px; cursor: pointer; list-style: none; }
+  .phone-help summary::-webkit-details-marker { display: none; }
+  .phone-help > div { position: absolute; right: 0; top: 100%; z-index: 100; padding: 4px; min-width: 120px; background: #202023; border: 1px solid #414044; border-radius: 6px; box-shadow: 0 8px 24px #0008; }
+  .phone-help button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px; border: 0; background: transparent; color: inherit; text-align: left; }
+  .desktop-color-controls { display: none; }
+  .phone-color-controls { display: block; }
+  .phone-color-controls .studio-color-controls { display: flex; border: 0; padding: 8px 0; justify-content: space-between; }
+  .studio-toolbar .studio-search input { padding-top: 8px; padding-bottom: 8px; }
+  .studio-toolbar .filters-trigger { height: 36px; min-height: 36px; }
+  .studio-workspace .results-toolbar.view-grid { gap: 4px 8px; padding: 6px 0; }
+  .studio-workspace .results-toolbar.view-grid > div:first-child { min-height: 32px; }
+  .studio-workspace .results-toolbar.view-grid .collection-display-toolbar { display: grid; grid-template-columns: minmax(0,1fr) 32px; gap: 5px; padding-top: 5px; }
+  .studio-workspace .collection-display-toolbar .collection-layout-switch { grid-column: 1; }
+  .studio-workspace .collection-display-toolbar .collection-layout-switch button { flex: 1 1 auto; padding-inline: 5px; }
+  .display-options-toggle { display: flex; align-items: center; justify-content: center; height: 34px; padding: 0; color: #c3bdaF; background: #202023; border: 1px solid #37363a; border-radius: 5px; }
+  .display-options-toggle[aria-expanded=true] { color: #e8d3a5; border-color: #8e7e59; }
+  .collection-display-toolbar .display-tools { display: none; }
+  .collection-display-toolbar.options-open .display-tools { display: flex; grid-column: 1 / -1; justify-content: space-between; align-items: center; padding: 3px 5px; background: #171719; border-radius: 4px; }
+  .studio-workspace .results-toolbar.view-picker { min-height: 36px; padding: 2px 0; gap: 4px; }
+}
+
+/* Search focus outlines the whole bar; a partial underline stopped at Filters. */
+.studio-toolbar { transition: border-color 0.15s; }
+.studio-toolbar:has(.studio-search:focus-within) { border-color: #9a8862; }
+
+/* Quick choice: one segmented group, sized like the layout switch, in the same order
+   at every width. The entry block keeps one position and width in every view: when
+   active, close takes its space from the entry, and All/Picker extend away from it.
+   It is only as wide as its segments: left-aligned beside the count on desktop,
+   right-aligned on phones. */
+.shortlist-controls { display: flex; align-items: center; gap: 2px; width: fit-content; max-width: 100%; padding: 2px; border: 1px solid #37363a; border-radius: 5px; background: #171719; box-sizing: border-box; }
+.shortlist-controls:not(:has(button)) { padding: 0; border: 0; background: none; }
+.shortlist-controls button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 28px; padding: 0 7px; border: 0; border-radius: 3px; background: transparent; color: #c3bdaf; font: inherit; font-size: 12px; line-height: 1; white-space: nowrap; cursor: pointer; }
+.shortlist-controls button:hover:not(:disabled) { background: #2a2a2d; color: #f2e5c9; }
+.shortlist-controls button:focus-visible { outline: 2px solid #d3bd91; outline-offset: 1px; }
+.shortlist-controls button:disabled { color: #6c6a66; cursor: default; }
+.shortlist-controls button { flex-shrink: 0; }
+.shortlist-controls button svg { width: 14px; height: 14px; flex-shrink: 0; }
+.shortlist-controls .shortlist-entry { width: 140px; color: #e1cda4; font-weight: 500; }
+.shortlist-controls .shortlist-entry svg { width: 16px; height: 16px; }
+.shortlist-controls .shortlist-entry[aria-pressed=true] { background: #343339; color: #f2e5c9; }
+.shortlist-controls.is-active .shortlist-entry { width: 108px; }
+.shortlist-controls .shortlist-action:not(:disabled) { background: #d0bb93; color: #24211c; font-weight: 500; }
+.shortlist-controls .shortlist-action:hover:not(:disabled) { background: #dcc8a2; color: #24211c; }
+.shortlist-controls .shortlist-mode { min-width: 34px; }
+.shortlist-controls .shortlist-clear { width: 30px; padding: 0; }
+.result-count { white-space: nowrap; }
+.studio-workspace .results-toolbar[class*=view-] { grid-template-columns: max-content max-content minmax(0, 1fr) auto; column-gap: 14px; row-gap: 6px; padding: 8px 0 6px; min-height: 0; }
+.studio-workspace .results-toolbar[class*=view-] > div:first-child { grid-column: 1; grid-row: 1; min-width: 0; min-height: 34px; display: flex; align-items: center; align-self: center; overflow: hidden; }
+.studio-workspace .results-toolbar .result-count { overflow: hidden; text-overflow: ellipsis; }
+.studio-workspace .results-toolbar .shortlist-controls { grid-column: 2; grid-row: 1; justify-self: start; }
+/* Where the display row spans the toolbar, it must not feed back into the summary-row columns. */
+@media (max-width: 1100px) { .studio-workspace .results-toolbar .collection-display-toolbar { contain: inline-size; } }
+
+/* Drift and instant pick sit under the pick button at every width. */
+.helix-dock .helix-motion-controls { justify-content: center; gap: 18px; margin-top: 8px; }
+.helix-dock .helix-motion-controls .text-button,
+.helix-dock .helix-motion-controls > label { min-height: 28px; font-size: 11px; color: #aaa9a3; }
+.helix-dock .helix-motion-controls .text-button > span { display: inline; }
+.helix-dock .helix-motion-controls input { width: 13px; height: 13px; }
+/* Drift is idle while a result shows; keep the result panel compact. */
+.helix-dock.with-result .helix-motion-controls { display: none; }
+
+@media (max-width: 700px) {
+  .studio-workspace .results-toolbar[class*=view-] { grid-template-columns: max-content minmax(0, 1fr); column-gap: 10px; }
+  .studio-workspace .results-toolbar .shortlist-controls { justify-self: end; }
+  .shortlist-controls .shortlist-entry { width: 124px; }
+  /* Close (30px) plus the 2px gap and this width equal the idle entry. */
+  .shortlist-controls.is-active .shortlist-entry { width: 92px; padding-inline: 8px; }
+  .shortlist-controls .shortlist-mode { min-width: 44px; }
+  .shortlist-controls .shortlist-action { padding-inline: 10px; }
+  .shortlist-controls.is-active .shortlist-entry svg { display: none; }
+  .studio-workspace .results-toolbar.view-picker .shortlist-controls:not(.is-active) { display: none; }
+  /* The result panel is up to ~150px tall on phones; the card sits fully above it. */
+  .has-winner .helix-reveal { bottom: 160px; }
+  .has-winner .revealed-card { width: min(208px, calc((100svh - 400px) * 0.718)); min-width: 150px; }
+}
+@media (max-width: 370px) {
+  /* The narrowest phones keep the compact sizes; close plus entry still equal the idle entry. */
+  .studio-workspace .result-count > .count-unit { display: none; }
+  .shortlist-controls button { padding: 0 6px; }
+  .shortlist-controls .shortlist-entry { width: 112px; }
+  .shortlist-controls .shortlist-mode { min-width: 32px; }
+  .shortlist-controls .shortlist-action { padding-inline: 6px; }
+  .shortlist-controls .shortlist-clear { width: 28px; }
+  .shortlist-controls.is-active .shortlist-entry { width: 82px; padding-inline: 6px; }
+  .helix-dock .spin-button, .helix-browse { min-width: 0; padding-inline: 12px; white-space: nowrap; }
+}
+
+/* The search bar is a fieldset, whose min-height never reaches its flex
+   content box; the children set the height so everything centres. */
+.studio-toolbar { min-height: 0; }
+.studio-toolbar > .studio-search { min-height: 42px; }
+.studio-toolbar .filters-trigger { height: 42px; min-height: 42px; }
+@media (max-width: 850px) {
+  .studio-toolbar > .studio-search { flex: 1 1 0; }
+  .desktop-color-controls > .studio-color-controls { order: 3; flex-basis: 100%; }
+}
+@media (max-width: 700px) {
+  .studio-toolbar > .studio-search { min-height: 38px; }
+  .studio-toolbar .filters-trigger { height: 38px; min-height: 38px; }
+  /* One results-row geometry in every view, so quick choice never shifts. */
+  .studio-workspace .results-toolbar[class*=view-] { padding: 6px 0; row-gap: 6px; min-height: 0; }
+}

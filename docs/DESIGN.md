@@ -141,3 +141,29 @@ The concrete rules above reflect this project's owner feedback; the references s
 - Temporary collection on/off choices and persistent collection Disable are separate. Disabled collections stay excluded from Enable all, survive reload and backup, and retain their previous choices. Show explicit Enable controls inside disabled collections . Removing source connections stays separate and keeps saved snapshots.
 
 - Individual decks have one show/hide selection control only; no separate Disable state or button. Keep the Archidekt link beside the selection control, without an extra footer row. Card-only/Compact layouts use one small overlay control group. Avoid growing per-card button clusters.
+
+### Phone control grouping revision
+
+- On phones, align deck count and quick-choice entry on one summary row; group view modes above a shared size/sort row. Keep the entry and count anchored when selection reveals its action row, without reserving an empty band. Desktop toolbar remains unchanged.
+- My collection groups layout, size, count and All/None in two rows. Keep the collection switch visible; infrequent source/disable/remove controls open through Actions. Disabled collections still show their Enable action directly.
+- Narrow picker stages use proportionally smaller cards, reduced perspective enlargement and greater separation. Preserve desktop geometry, equal picking odds, screw-path dragging and reduced-motion support. Intentional helix layering remains.
+
+### Compact phone browsing controls (October 8)
+
+- Phone utilities fold Guide/About into Help; My collection stays directly available.
+- Phone color identity/exact controls live in Filters. Active filters retain their indicator and removable chips.
+- Keep Details / Cards only / List in a slim, visibly bounded button group. Size and sort expand together from its adjacent control; do not leave a floating sort row by default.
+- Quick choice is compact until selection actions are needed. An inactive phone picker shortlist occupies no row; clearing it reclaims space while preserving scene dimensions. Desktop toolbar stability remains unchanged.
+
+### Segmented quick choice (October 12)
+
+- Phone and desktop look and work the same. The only phone-specific browsing difference is folding size and sort behind the small button beside the view switch.
+- Quick choice is one segmented group styled like the view switch, in the order close (✕), entry (Choose a few / Select cards / N selected), All while editing, then the gold Picker at the far edge. Every segment shares one height; close is icon-only everywhere.
+- The deck count always holds the left edge. Quick choice is only as wide as its segments: left-aligned directly beside the count on desktop, right-aligned on phones. Do not float it in an empty slot or stretch it to fill the row. When active, close takes its space from the entry, so close plus entry cover the idle Choose a few width; actions extend away from the aligned edge (right on desktop, left on phones). Owner decision after comparing six in-app variants.
+- Segments keep comfortable padding on typical phones (360px and up); only the narrowest phones (370px and below) use compact sizes and shorten a filtered count to "49 of 184". Segments never shrink below their content.
+- Pause drift and Instant pick sit under the Pick a deck button inside the stage at every width, hidden while a result shows.
+- The view switch is the same bordered segmented group at every width.
+- Search focus outlines the whole search bar in muted gold. The icon, hint text and Filters share the bar's exact vertical centre.
+- Header logo, results row and quick-choice position are identical across views; no per-view header or toolbar overrides.
+- The phone picker stage fills the remaining viewport without page scroll; the revealed card sits fully above the result panel.
+- After a backup is chosen, the restore confirmation scrolls into view and takes focus.
