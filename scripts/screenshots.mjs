@@ -43,14 +43,6 @@ try {
   await shot(picker, 'picker');
   await reveal.close();
 
-  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
-  const mobile = await phone.newPage();
-  await mobile.goto(base);
-  await mobile.getByRole('button', { name: 'Collection', exact: true }).click();
-  await mobile.getByRole('button', { name: 'List', exact: true }).click();
-  await artworkLoaded(mobile);
-  await shot(mobile, 'phone');
-  await phone.close();
   console.log(`Screenshots written to ${out}/`);
 } finally {
   await browser.close();

@@ -1,21 +1,35 @@
-# DeckShelf
-
-A showcase for your Commander decks: browse them as full commander cards, filter
-by colour and theme, and let an animated double helix pick tonight's deck.
-
-![Collection view](docs/images/collection.jpg)
-
-<p>
-  <img src="docs/images/helix.jpg" alt="Deck picker helix" width="49%">
-  <img src="docs/images/picker.jpg" alt="Picked deck" width="49%">
+<p align="center">
+  <img src="docs/images/logo.svg" width="88" alt="">
 </p>
 
-- **Your decks, from Archidekt.** Link a public account, folder or deck. Imports are read-only and need no password.
-- **Starts with every official precon.** A removable demo collection of all Commander precons.
-- **Private by default.** Your collection lives in your browser. Back it up to a file and restore it anywhere.
-- **Fair picks.** Every eligible deck has an equal chance; filters decide the pool.
+<h1 align="center">DeckShelf</h1>
 
-<img src="docs/images/phone.jpg" alt="DeckShelf on a phone" width="260" align="right">
+<p align="center">
+  DeckShelf shows your Magic: The Gathering decks as a wall of commander cards.<br>
+  Filter them, then pick one at random when the table can't decide what to play.
+</p>
+
+![The collection view with commander cards from the precon demo](docs/images/collection.jpg)
+
+<p>
+  <img src="docs/images/helix.jpg" alt="The picker's helix of decks" width="49%">
+  <img src="docs/images/picker.jpg" alt="A deck chosen by the picker" width="49%">
+</p>
+
+## What it does
+
+DeckShelf reads public decklists from Archidekt and shows each deck as its
+commander card. Search by name, filter by colour identity, set or theme, and send
+the matching decks to the picker. Every deck in the pool has the same chance.
+
+![1. Link your decks from Archidekt. 2. Filter the shelf. 3. Pick one at random.](docs/images/how-it-works.webp)
+
+- Imports public Archidekt accounts, folders and single decks. It only reads them and never asks for a login.
+- Ships with the 184 Commander precons from Archidekt's catalog as an optional starter collection, so it works before you link anything.
+- Saves your collection in your browser. A backup file moves it to another browser or the Windows app.
+- Runs in the browser, in Docker or as a Windows app.
+
+Commander is the only MTG format so far.
 
 ## Get started
 
@@ -41,8 +55,6 @@ Then open http://127.0.0.1:4317. On Windows you can double-click
 - [Development](docs/DEVELOPMENT.md): repository layout, tests and CI
 - [Hosting](docs/HOSTING.md) · [Desktop app](docs/DESKTOP.md) · [Releasing](docs/RELEASING.md)
 - [Design direction](docs/DESIGN.md) for interface changes
-
-<br clear="right">
 
 ## Credits
 

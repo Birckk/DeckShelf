@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How DeckShelf works</title>
+<style>
+@font-face { font-family: Outfit; font-weight: 600; src: url(../../node_modules/@fontsource/outfit/files/outfit-latin-600-normal.woff2); }
+@font-face { font-family: Outfit; font-weight: 700; src: url(../../node_modules/@fontsource/outfit/files/outfit-latin-700-normal.woff2); }
+@font-face { font-family: 'DM Sans'; font-weight: 400; src: url(../../node_modules/@fontsource/dm-sans/files/dm-sans-latin-400-normal.woff2); }
+@font-face { font-family: 'DM Sans'; font-weight: 500; src: url(../../node_modules/@fontsource/dm-sans/files/dm-sans-latin-500-normal.woff2); }
+:root { --gold: #e3cca1; --gold-hi: #f2ddb0; --ink: #f3f1ec; --muted: #9d9ca4; --line: #ffffff14; }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: transparent; }
+.frame {
+  width: 1600px; height: 580px; border-radius: 28px; overflow: hidden; position: relative;
+  background: radial-gradient(120% 90% at 50% 0%, #1d1c21 0%, #0d0d0f 70%);
+  border: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  font-family: 'DM Sans', sans-serif; color: var(--ink);
+}
+.step { position: relative; padding: 44px 44px 0; }
+.step + .step { border-left: 1px solid var(--line); }
+.num { font: 700 64px/1 Outfit; color: var(--gold); opacity: .9; letter-spacing: -2px; }
+h2 { font: 600 30px/1.1 Outfit; margin-top: 14px; letter-spacing: -.3px; }
+p { font-size: 18px; color: var(--muted); margin-top: 10px; line-height: 1.4; max-width: 400px; }
+.stage { position: absolute; left: 0; right: 0; bottom: 0; height: 330px; }
+.card { position: absolute; width: 150px; aspect-ratio: 488 / 680; border-radius: 9px; overflow: hidden;
+  box-shadow: 0 18px 40px #000a, 0 0 0 1px #ffffff1a; background: #000; }
+.card img { width: 100%; height: 100%; display: block; }
+
+/* 1: link */
+.url { position: absolute; left: 44px; right: 44px; top: 18px; height: 54px; border-radius: 14px;
+  background: #1b1b20; border: 1px solid #ffffff22; display: flex; align-items: center; gap: 12px; padding: 0 18px;
+  font-size: 18px; color: #d6d4cf; }
+.url b { color: var(--gold-hi); font-weight: 500; }
+.url .go { margin-left: auto; width: 30px; height: 30px; border-radius: 8px; background: var(--gold); display: grid; place-items: center; color: #1c1810; font-weight: 700; }
+.s1 .card { bottom: -70px; }
+
+/* 2: filter */
+.pips { position: absolute; left: 44px; top: 14px; display: flex; gap: 12px; align-items: center; }
+.pips img { width: 40px; height: 40px; border-radius: 50%; opacity: .35; }
+.pips img.on { opacity: 1; box-shadow: 0 0 0 3px #0d0d0f, 0 0 0 5px var(--gold); }
+.grid { position: absolute; left: 44px; top: 82px; display: grid; grid-template-columns: repeat(4, 96px); gap: 12px; }
+.grid .card { position: relative; width: 96px; border-radius: 6px; box-shadow: 0 8px 18px #0008, 0 0 0 1px #ffffff14; }
+.grid .card.off { opacity: .16; filter: grayscale(1); }
+
+/* 3: pick */
+.s3 .stage { perspective: 900px; }
+.arc { position: absolute; inset: 0; transform-style: preserve-3d; }
+.arc .card { width: 120px; left: 50%; top: 70px; margin-left: -60px; transform-origin: 50% 50%; }
+.arc .card.far { filter: blur(1.5px) brightness(.45); }
+.arc .card.win { width: 170px; margin-left: -85px; top: 40px; z-index: 5;
+  box-shadow: 0 0 0 2px var(--gold-hi), 0 0 60px 8px #e3cca155, 0 24px 50px #000c; }
+.halo { position: absolute; left: 50%; top: 155px; width: 340px; height: 340px; margin: -170px 0 0 -170px; border-radius: 50%;
+  background: radial-gradient(circle, #e3cca130 0%, #e3cca10a 45%, transparent 70%); }
+.odds { position: absolute; left: 50%; transform: translateX(-50%); bottom: 22px; z-index: 6;
+  font: 600 16px Outfit; color: #1c1810; background: var(--gold); padding: 7px 14px; border-radius: 999px; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <section class="step s1">
+    <div class="num">1</div>
+    <h2>Link your decks</h2>
+    <p>Import the decks you already keep online.</p>
+    <div class="stage">
+      <div class="url">archidekt.com/u/<b>your-name</b><span class="go">&rarr;</span></div>
+      <div class="card" style="left:70px; transform: rotate(-14deg); bottom:-90px"><img src="../../public/images/5650587a-27a5-4d68-97e2-5745627bd094-grid.webp"></div>
+      <div class="card" style="left:150px; transform: rotate(-4deg); bottom:-40px; z-index:2"><img src="../../public/images/8a17ec4e-b508-41af-803b-32acd863e598-grid.webp"></div>
+      <div class="card" style="left:235px; transform: rotate(8deg); bottom:-75px; z-index:1"><img src="../../public/images/4ebc7622-08a1-4f43-92dd-8675d395e8f6-grid.webp"></div>
+      <div class="card" style="left:315px; transform: rotate(18deg); bottom:-125px"><img src="../../public/images/5d9951d1-3228-4d69-8e63-6e6f0a893a86-grid.webp"></div>
+    </div>
+  </section>
+
+  <section class="step s2">
+    <div class="num">2</div>
+    <h2>Filter the shelf</h2>
+    <p>Narrow your collection down to the decks you feel like playing.</p>
+    <div class="stage">
+      <div class="pips">
+        <img src="../../public/mana/W.svg"><img class="on" src="../../public/mana/U.svg"><img src="../../public/mana/B.svg"><img class="on" src="../../public/mana/R.svg"><img src="../../public/mana/G.svg">
+      </div>
+      <div class="grid">
+        <div class="card"><img src="../../public/images/a5b3dbb2-c090-4118-9e47-56c16202572c-grid.webp"></div>
+        <div class="card off"><img src="../../public/images/909e62fa-4585-495e-812b-5df56af24610-grid.webp"></div>
+        <div class="card"><img src="../../public/images/910a6dfc-04a2-4c6d-b2ba-507bc75ec821-grid.webp"></div>
+        <div class="card off"><img src="../../public/images/9fe237b8-c02c-41ea-9fc4-b771b91d2157-grid.webp"></div>
+        <div class="card off"><img src="../../public/images/2c3549f6-25df-4ea7-84ad-922ccd4af6b2-grid.webp"></div>
+        <div class="card"><img src="../../public/images/ac011c2d-d4d9-4f17-a1fb-7e30d25ca249-grid.webp"></div>
+        <div class="card off"><img src="../../public/images/d5a3537f-ac0a-4517-8a89-92abe8c0b8d0-grid.webp"></div>
+        <div class="card"><img src="../../public/images/ccc2a4e6-f505-4040-9d8a-c7b8e1a2b55e-grid.webp"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step s3">
+    <div class="num">3</div>
+    <h2>Pick one at random</h2>
+    <p>Spin the shelf and play whatever lands. One reroll, if the table allows it.</p>
+    <div class="stage">
+      <div class="halo"></div>
+      <div class="arc">
+        <div class="card far" style="transform: translateX(-210px) translateZ(-260px) rotateY(48deg)"><img src="../../public/images/ccc2a4e6-f505-4040-9d8a-c7b8e1a2b55e-grid.webp"></div>
+        <div class="card far" style="transform: translateX(210px) translateZ(-260px) rotateY(-48deg)"><img src="../../public/images/a5b3dbb2-c090-4118-9e47-56c16202572c-grid.webp"></div>
+        <div class="card" style="transform: translateX(-140px) translateZ(-110px) rotateY(32deg); filter: brightness(.7)"><img src="../../public/images/a5b3dbb2-c090-4118-9e47-56c16202572c-grid.webp"></div>
+        <div class="card" style="transform: translateX(140px) translateZ(-110px) rotateY(-32deg); filter: brightness(.7)"><img src="../../public/images/910a6dfc-04a2-4c6d-b2ba-507bc75ec821-grid.webp"></div>
+        <div class="card win"><img src="../../public/images/ac011c2d-d4d9-4f17-a1fb-7e30d25ca249-grid.webp"></div>
+      </div>
+      <div class="odds">Doom Prevails</div>
+    </div>
+  </section>
+</div>
+</body>
+</html>
