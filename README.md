@@ -39,11 +39,11 @@ Collection display controls offer Details, Cards only, and List layouts, with sm
 
 ## Run from source in a browser
 
-For interface changes, follow the project's [design direction](DESIGN.md). [AGENTS.md](AGENTS.md) points coding agents to the same guidance.
+For interface changes, follow the project's [design direction](docs/DESIGN.md). [AGENTS.md](AGENTS.md) points coding agents to the same guidance.
 
 Requires **Node.js 22.12+** (or a newer supported LTS).
 
-On Windows, double-click **Start Commander Archive.cmd**, then open **http://127.0.0.1:4317**. The first run installs dependencies. The launcher checks the Node version and rebuilds each time so source updates are included. Leave the terminal open while using it.
+On Windows, double-click **scripts/start-windows.cmd**, then open **http://127.0.0.1:4317**. The first run installs dependencies. The launcher checks the Node version and rebuilds each time so source updates are included. Leave the terminal open while using it.
 
 Or use a terminal in this directory:
 ```sh
@@ -58,6 +58,20 @@ npm run build
 
 npm start
 ```
+
+### Repository layout
+
+| Folder | Contents |
+| --- | --- |
+| `src/`, `public/`, `index.html` | The React web app and its static assets |
+| `server/` | Production server and the read-only Archidekt adapter |
+| `desktop/` | Optional Electron app, `electron-builder.yml` and installer script |
+| `deploy/` | Dockerfile and Compose files for hosting |
+| `scripts/` | Packaging, smoke tests, catalog updates and the Windows launcher |
+| `tests/` | Unit tests, Playwright regressions and recorded fixtures |
+| `docs/` | Project backlog, [design direction](docs/DESIGN.md), hosting, releasing, notices and archived explorations |
+
+Generated output (`dist/`, `build/`, `release/`, `qa/`) is ignored by Git.
 
 ## Using the collection
 
@@ -149,6 +163,6 @@ The [double-helix gallery](https://github.com/githyperplexed/double-helix-galler
 
 Mana symbols are bundled SVGs from [Scryfall’s symbology API](https://scryfall.com/docs/api/card-symbols). Fonts (Outfit and DM Sans) are bundled through Fontsource for local use.
 
-See [third-party notices](THIRD_PARTY_NOTICES.md) for asset provenance and packaged
+See [third-party notices](docs/THIRD_PARTY_NOTICES.md) for asset provenance and packaged
 license texts, and [project licensing status](LICENSE.md) for the pending original
 software license decision. Third-party artwork is not relicensed by this project.

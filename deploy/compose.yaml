@@ -1,7 +1,9 @@
 name: deckshelf
 services:
   deckshelf:
-    build: .
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
     image: deckshelf:local
     restart: unless-stopped
     init: true

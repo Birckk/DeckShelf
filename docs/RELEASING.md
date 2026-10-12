@@ -74,7 +74,7 @@ repository visibility.
 ## Signing and platform scope
 
 The main target is an unsigned Windows x64 NSIS setup executable. The assisted
-wizard is forced to current-user installation by `build/installer.nsh`; it does not
+wizard is forced to current-user installation by `desktop/installer.nsh`; it does not
 request elevation. It adds a Start menu shortcut and Windows uninstall registration,
 but no desktop shortcut. The stable appId identifies upgrades. Uninstall retains
 the separate user profile. The ZIP is an optional portable alternative. No certificate,

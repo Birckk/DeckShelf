@@ -15,7 +15,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:dialogs
-      - run: docker build -t deckshelf:test .
+      - run: docker build -f deploy/Dockerfile -t deckshelf:test .
       - run: docker run -d --name deckshelf-test --read-only --cap-drop ALL --security-opt no-new-privileges --memory 256m -p 127.0.0.1:4319:4317 deckshelf:test
       - run: node scripts/smoke-web.mjs
       - run: node scripts/smoke-guide.mjs
@@ -54,6 +54,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
+          file: deploy/Dockerfile
           push: true
           tags: ghcr.io/bircck/deckshelf:sha-${{ github.sha }}
           labels: org.opencontainers.image.source=https://github.com/Bircck/DeckShelf

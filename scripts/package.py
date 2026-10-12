@@ -4,11 +4,10 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 root = Path(__file__).resolve().parents[1]
 destination = root.parent / 'commander-archive.zip'
-directories = {'src', 'public', 'server', 'desktop', 'scripts', 'tests', 'docs', '.github', 'dist'}
+directories = {'src', 'public', 'server', 'desktop', 'deploy', 'scripts', 'tests', 'docs', '.github', 'dist'}
 files = {'package.json', 'package-lock.json', 'index.html', 'vite.config.ts',
-         'tsconfig.json', 'electron-builder.yml', 'README.md', 'AGENTS.md',
-         'DESIGN.md', 'LICENSE.md', 'THIRD_PARTY_NOTICES.md', '.gitignore',
-         'Start Commander Archive.cmd'}
+         'tsconfig.json', 'playwright.config.ts', 'README.md', 'AGENTS.md',
+         'LICENSE.md', '.gitignore', '.gitattributes'}
 excluded = {'node_modules', '.git', 'qa', '__pycache__', 'release'}
 if not (root / 'dist/index.html').is_file():
     raise SystemExit('Run npm run build before creating a source archive.')
@@ -17,7 +16,7 @@ with ZipFile(destination, 'w', ZIP_DEFLATED) as archive:
         if not path.is_file():
             continue
         relative = path.relative_to(root)
-        if relative.parts[0] not in directories and str(relative) not in files and relative.as_posix() != 'build/installer.nsh':
+        if relative.parts[0] not in directories and str(relative) not in files:
             continue
         if any(part in excluded for part in relative.parts) or '.tmp.' in path.name or path.suffix == '.tsbuildinfo':
             continue
@@ -27,5 +26,5 @@ with ZipFile(destination, 'w', ZIP_DEFLATED) as archive:
 with ZipFile(destination) as archive:
     assert archive.testzip() is None
     assert 'commander-archive/dist/index.html' in archive.namelist()
-    assert 'commander-archive/Start Commander Archive.cmd' in archive.namelist()
+    assert 'commander-archive/scripts/start-windows.cmd' in archive.namelist()
     print(f'{destination} ({destination.stat().st_size:,} bytes, {len(archive.namelist())} files)')

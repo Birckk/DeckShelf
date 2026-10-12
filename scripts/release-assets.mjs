@@ -20,7 +20,7 @@ for (const entry of entries) assert.ok(/^\/(desktop|dist|server)(\/|$)|^\/packag
 for (const file of ['LICENSE.electron.txt', 'LICENSES.chromium.html', 'resources/LICENSE.md', 'resources/THIRD_PARTY_NOTICES.md', 'resources/notices/dependencies.json', 'resources/notices/artwork.json']) await readFile(join(packed, file));
 for (const file of [zip, installer]) await copyFile(join(staging, file), join(output, file));
 await copyFile(join(root, 'docs/DESKTOP.md'), join(output, 'DESKTOP.md'));
-await copyFile(join(root, 'THIRD_PARTY_NOTICES.md'), join(output, 'THIRD_PARTY_NOTICES.md'));
+await copyFile(join(root, 'docs/THIRD_PARTY_NOTICES.md'), join(output, 'THIRD_PARTY_NOTICES.md'));
 await copyFile(join(root, 'docs/RELEASE_NOTES.md'), join(output, 'RELEASE_NOTES.md'));
 await copyFile(join(root, 'docs/VALIDATION.md'), join(output, 'VALIDATION.md'));
 const metadata = { version: pkg.version, platform: 'win32', arch: 'x64', electron: pkg.devDependencies.electron, revision: process.env.GITHUB_SHA || 'local-build', signed: false };

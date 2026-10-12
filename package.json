@@ -17,7 +17,7 @@
     "desktop": "npm run runtime && npm run build && electron .",
     "runtime": "node node_modules/electron/install.js",
     "notices": "node scripts/notices.mjs",
-    "package:windows": "npm run runtime && npm run build && npm run notices && electron-builder --win --x64 --publish never && node scripts/release-assets.mjs",
+    "package:windows": "npm run runtime && npm run build && npm run notices && electron-builder --config desktop/electron-builder.yml --win --x64 --publish never && node scripts/release-assets.mjs",
     "test:desktop": "node scripts/smoke-desktop.mjs",
     "catalog:update": "node --experimental-strip-types scripts/precon-catalog.mjs"
   },

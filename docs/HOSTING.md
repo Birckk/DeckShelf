@@ -8,7 +8,7 @@ or domains. PWA installation/offline caching is a separate, upcoming step.
 ## Local Docker check
 
 ```sh
-docker compose up -d --build
+docker compose -f deploy/compose.yaml up -d --build
 curl --fail http://127.0.0.1:4317/healthz
 ```
 
@@ -17,15 +17,15 @@ uses port 4317, stop it first or use a different host port for your test contain
 
 ## Server
 
-Use `compose.proxy.yaml` on the existing external Docker network `proxy`.
+Use `deploy/compose.proxy.yaml` on the existing external Docker network `proxy`.
 It publishes no host ports. Set `DECKSHELF_IMAGE` in a local `.env` file to the
 verified image digest, for example `ghcr.io/bircck/deckshelf@sha256:...`.
 If the package is private, the server needs a GitHub credential with read:packages.
 Keep it in the Docker credential store; never put a token in this repository.
 
 ```sh
-docker compose -f compose.proxy.yaml pull
-docker compose -f compose.proxy.yaml up -d --wait
+docker compose -f deploy/compose.proxy.yaml pull
+docker compose -f deploy/compose.proxy.yaml up -d --wait
 ```
 
 Add this public site to the existing Caddy configuration:
