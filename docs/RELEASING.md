@@ -48,28 +48,35 @@ is not a USB-portable profile: data belongs to the Windows user, not the ZIP fol
 
 ## CI and release workflow
 
-`check.yml` runs tests/build on Linux and Windows. Windows also packages, tests the
-ZIP, checks the install/reinstall/uninstall lifecycle on the disposable runner,
-and uploads the candidate. The installer lifecycle script refuses to run locally
-or over an existing profile/installation. `release.yml` can be dispatched manually to produce
-reviewable artifacts without creating a release. A pushed `vX.Y.Z` tag must match
-`package.json` and the release-notes version. After the Windows checks pass, a
-separate job with contents-write permission creates a **draft** GitHub release.
-It never publishes the draft automatically. No release upload token is baked into
-the executable and electron-builder publishing is disabled.
+`ci.yml` verifies every pull request and `main` push (see
+[DEVELOPMENT.md](DEVELOPMENT.md#cicd)); its Windows job packages the app, tests the
+ZIP and runs the install/reinstall/uninstall lifecycle on a disposable runner. The
+installer lifecycle script refuses to run locally or over an existing
+profile/installation.
 
-For a release, update package.json/package-lock.json and docs/RELEASE_NOTES.md,
-record actual checks in docs/VALIDATION.md, and review the generated artifacts.
-Do not reuse or overwrite an already-published version/tag. Draft creation fails
-on an existing release rather than replacing its assets silently.
+`release.yml` can be dispatched manually to produce reviewable artifacts without a
+release. A pushed `vX.Y.Z` tag must match `package.json` and the release-notes
+version. After the Windows checks pass it publishes `ghcr.io/bircck/deckshelf:vX.Y.Z`
+and `:latest`, then a separate job with contents-write permission creates a
+**draft** GitHub release. It never publishes the draft. No upload token is baked
+into the executable and electron-builder publishing is disabled.
 
-Before the first public publication, the owner must settle the original software
-license, bundled asset redistribution basis, and intended download visibility.
-The existing repository is `Bircck/commander-archive`; do not create a duplicate.
-It is currently private. Private release links and Actions artifacts are restricted
-to authorized repository users; they are not public download links. Public download
-access needs an explicit distribution/visibility decision. No workflow changes
-repository visibility.
+For a release:
+
+1. Update the version in `package.json`/`package-lock.json` and add
+   `docs/RELEASE_NOTES.md` notes.
+2. Merge to `main` with green CI, then tag `vX.Y.Z` and push the tag.
+3. Run the manual checks in [VALIDATION.md](VALIDATION.md) on the draft's artifacts
+   and record them in the release issue.
+4. Publish the draft. Deploy the hosted site by pinning the release image digest.
+
+Do not reuse or overwrite a published version/tag; draft creation fails on an
+existing release rather than replacing its assets.
+
+Before the first public publication, the owner must settle the software license,
+bundled asset redistribution basis and download visibility (issue #9). The
+repository is `Bircck/DeckShelf` and currently private: release links and Actions
+artifacts are restricted to collaborators. No workflow changes repository visibility.
 
 ## Signing and platform scope
 

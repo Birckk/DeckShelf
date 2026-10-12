@@ -1,140 +1,37 @@
-# Deployment and desktop validation
+# Validation
 
-## Optional precon demo — October 4, 2026
+What is checked before a DeckShelf build is released, and what is not.
 
-[PR #18](https://github.com/Bircck/DeckShelf/pull/18) shipped the complete
-Archidekt_Precons metadata snapshot: 184 unique Commander decks across four
-pages, checked again after normalization, with no unavailable entries. Snapshot
-time is 2026-10-04T12:54:56Z. The repeatable updater and migration rules are in
-[PRECON_CATALOG.md](PRECON_CATALOG.md).
+## Automated on every change (CI)
 
-The initial fetch was rate limited and correctly produced no replacement snapshot.
-Sequential requests with bounded backoff completed the catalog. Older precons
-exposed null card categories in the existing adapter; the fix has a regression test.
+| Check | Platforms |
+| --- | --- |
+| Unit tests and production build | Ubuntu, Windows, macOS on Node 22; Ubuntu on Node 24 |
+| Browser regressions: dialogs, collection workspace, saved choices, backups, keyboard, reduced motion at 1440/390/320px | Chromium, Firefox, WebKit |
+| Production container: health and routing, desktop/phone smoke tests, guide, precon demo | Hardened Docker container (read-only, no capabilities, 256 MB) |
+| Windows package: ZIP smoke test (startup, artwork, sandbox, API routing, backup restore/export, relaunch, offline reload) and installer install/reinstall/uninstall | Disposable Windows runner |
+| Production dependency audit | npm advisory database |
 
-Validation passed before deployment:
+Release tags rerun the Windows checks, publish a versioned container image and
+create a **draft** GitHub release for review. Nothing is published automatically.
 
-- 55 unit tests and the TypeScript/Vite production build.
-- [PR checks](https://github.com/Bircck/DeckShelf/actions/runs/37204024979):
-  Linux and Windows tests/builds, production-container browser tests, Windows
-  packaging, desktop smoke and NSIS install/reinstall/uninstall lifecycle.
-- Disposable Chromium contexts at 1440px and 390px: full demo, color/search filters,
-  picker exclusions, pause/remove/restore, personal start, legacy and new v1 backup
-  restoration, corrupt-profile protection and recovery. Browsing issued no deck
-  or catalog API requests. The workflow retains desktop/phone visual evidence.
-- Keyboard Home/End carousel navigation, full-pool animated selection, and a real
-  public deck-link import overlapping the demo. Removing the demo retained the
-  personal copy, including after reload. Existing profiles and port 4317 were untouched.
+## Per release (manual)
 
-The server built feature commit `a269247` and deployed the exact tested image
-`sha256:<digest>`.
-Merge commit `162942b` has the identical tree. A disposable network-isolated,
-read-only candidate container passed health/HTML checks before the service update.
-The previous image remains available and configuration backups were kept on the server. Only the DeckShelf service was recreated.
+Record the results in the release's GitHub issue or pull request:
 
-After deployment, the same desktop/phone smoke tests passed over public HTTPS,
-including old/new backups and corrupt profiles, followed by successful live
-public imports and animated picks. The container and public health endpoint
-remained healthy. The public first view was ready in about 250ms in this test
-environment, before remote artwork finished loading. Full-pool animation frame
-intervals were median/p95 33.3/33.4ms at 1440px and 16.7/33.3ms at 390px.
-These are desktop Chromium viewport measurements, not physical-phone benchmarks.
+- Install the Windows build on a clean account or VM and open it once.
+- Open the hosted site at desktop and phone sizes; import one public Archidekt
+  source; pick a deck.
+- Restore a backup from the previous release.
 
-Artwork remains online; metadata browsing uses the shipped snapshot. Existing demo
-profiles retain their pinned snapshot so a later catalog release cannot silently
-expand their collection. Windows packaging keeps the existing Commander Archive
-identity. PWA/offline installation and sync remain separate work.
+## Known limits
 
-## Hosted application and GitHub checks
+- Windows builds are unsigned x64 release candidates; SmartScreen will warn.
+  No auto-updater. Windows 11, ARM64, macOS and Linux desktop builds are untested
+  or not produced.
+- Artwork for imported decks loads from Archidekt; offline use covers the bundled
+  demo and cached images only.
+- Source imports depend on Archidekt's public endpoints, which may change.
+- Physical phones are covered by viewport emulation, not device testing.
 
-On September 29, 2026, DeckShelf was deployed on the server in a
-non-root, read-only Docker container behind the existing Caddy proxy. Caddy
-obtained a valid public certificate for `deckshelf.birckk.com`; HTTP redirects
-to HTTPS. The live health endpoint and a public Archidekt import succeeded.
-Chromium checks at 1440px and 390px verified the public HTTPS site, loaded artwork,
-collection navigation, no horizontal overflow and no page errors. Public DNS was
-resolved explicitly for the browser checks because this development computer
-still cached the earlier NXDOMAIN; normal DNS access also passed on the server.
-
-[GitHub run 36620315392](https://github.com/Bircck/DeckShelf/actions/runs/36620315392)
-passed Linux and Windows unit/build checks, the container's web smoke checks,
-packaged desktop smoke checks, and the actual NSIS install/reinstall/uninstall
-lifecycle on a disposable Windows runner. The installer check verified the Start
-menu shortcut, per-user registration and preservation of the profile sentinel.
-
-The first hosted runs found two test-harness issues: hidden windows did not
-produce screenshot frames on the Windows runner, and a fresh user had no uninstall
-registry key. Tests now show the window only on that disposable runner and handle
-an absent registry key. Local test windows stay hidden.
-
-The website is online; PWA installation and offline caching are not implemented.
-
-## Earlier local desktop validation
-
-Local validation on September 29, 2026, on Windows 10 x64 (build 19045), with
-Node 22.23.2 for building and Electron 44.4.5 in the distributable:
-
-- 45 unit tests pass, including the existing 42 tests and desktop protocol/path,
-  API-response and navigation-policy checks.
-- TypeScript/Vite production build and Windows x64 ZIP packaging pass.
-- The actual release ZIP was extracted to isolated test directories. The packaged
-  executable launched its own window with only Windows System32 on its PATH;
-  no external Node/npm runtime was available through that PATH.
-- Packaged artwork rendered; the application screenshot was visually inspected.
-- The renderer had no `window.require`. Custom-protocol API routing worked for
-  unknown requests and a controlled account-discovery response. A separate live
-  read-only fetch of public Archidekt deck 26549829 succeeded.
-- A version-1 JSON backup was restored through the UI, including source selection,
-  a disabled collection and hidden/excluded IDs. Exported JSON matched the fixture.
-  The export check selected a destination programmatically; the OS save dialog was
-  not manually exercised.
-- The app was closed, the same ZIP extracted into a different folder, and the app
-  relaunched with the same isolated profile. Collection data persisted. This checks
-  extraction-path independence, not a future schema migration between versions.
-- With renderer networking disabled, reload and bundled artwork still worked.
-  This does not prove imported artwork is permanently cached or test every offline
-  network failure; importer failure behavior is covered separately by unit tests.
-- The owner's live browser collection and port 4317 were not used or altered.
-
-Startup follow-up: automated failures originally displayed native error dialogs on
-the desktop. Test mode now suppresses windows/dialogs and exits with an error code.
-A separate native launch check uses production window settings without Playwright's
-inspector/startup hooks. Startup outcomes are recorded in the profile's `startup.log`
-(replaced at each launch); the stable profile and collection format are unchanged.
-
-The archive checker enforces the application file allowlist and presence of runtime
-and dependency notices. SHA256SUMS.txt covers the ZIP and companion documents.
-
-## Limits and observed environment issues
-
-This was an isolated profile and fresh extraction on the existing development
-machine, not a pristine Windows VM. System Node was not uninstalled. Windows 11,
-ARM64, non-Windows platforms, Windows Explorer double-click, SmartScreen behavior,
-manual save dialogs and installation on another person's computer remain untested.
-The NSIS installer now builds locally. Its embedded application payload was
-extracted with 7-Zip and passed the native startup and full desktop smoke checks,
-including backup/restore, persistent relaunch and offline artwork. This verifies
-the bundled application, not execution of the installation wizard. Authenticode
-reports NotSigned. Installation, Start menu registration,
-same-version reinstall and uninstall/profile preservation have a dedicated check
-in `scripts/smoke-installer.ps1`, gated to disposable GitHub Windows runners. That
-lifecycle check subsequently passed on GitHub (see above). The setup wizard
-has not been manually exercised. No signing certificate or automatic updater exists.
-The Check workflow has run remotely. No desktop GitHub release has been published;
-the separate tag-triggered draft-release workflow has not been exercised.
-
-The first test extraction under the system TEMP folder hit a Chromium GPU startup
-failure with exit code -2147483645. That directory has additional inherited sandbox
-ACL entries. Workspace-local test directories worked with normal sandboxing and
-hardware acceleration; no system permissions or sandbox settings were changed.
-This is consistent with the [reported Electron Windows ACL issue](https://github.com/electron/electron/issues/51761),
-but the precise machine-level cause was not independently proved. The test now
-uses isolated directories under ignored `qa/`. Keep test artifacts there for diagnosis.
-
-Electron-builder's separate download/extraction path also hit a directory-rename
-EPERM on this host. The build now installs the pinned npm Electron runtime explicitly
-and copies that distribution, avoiding the duplicate extraction step.
-
-Before wider distribution, verify the download on a separate clean Windows account
-or VM and settle project licensing, third-party asset redistribution and download
-visibility. Do not label this unsigned candidate as a signed installer or a public release.
+Earlier dated validation logs are kept in the repository history.

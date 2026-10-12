@@ -1,34 +1,45 @@
 # Hosting DeckShelf
 
-The production container serves the React build and the read-only Archidekt
-adapter together. There is no server database or user account. Each visitor's
-collection remains in their browser; export a backup before changing browsers
-or domains. PWA installation/offline caching is a separate, upcoming step.
+The production server serves the built app and the read-only Archidekt adapter.
+There is no database or user account: each visitor's collection stays in their
+browser. Visitors should export a backup before changing browsers or domains.
 
-## Local Docker check
+## Node
+
+```sh
+npm ci
+npm run build
+HOST=0.0.0.0 PORT=4317 npm start
+```
+
+`HOST` defaults to `127.0.0.1`. Put the server behind HTTPS. The `dist/` folder
+also works as a static site for browsing, the picker and backups, but adding or
+refreshing Archidekt sources needs the Node adapter (`npm run preview` has the
+same limit).
+
+## Docker
+
+Images are published to `ghcr.io/bircck/deckshelf`: `sha-<commit>` and `main` for
+every green main commit, `vX.Y.Z` and `latest` for releases. Pin deployments by
+digest.
+
+Local check, built from source and bound to loopback:
 
 ```sh
 docker compose -f deploy/compose.yaml up -d --build
 curl --fail http://127.0.0.1:4317/healthz
 ```
 
-The local Compose file binds only loopback. If the existing development server
-uses port 4317, stop it first or use a different host port for your test container.
-
-## Server
-
-Use `deploy/compose.proxy.yaml` on the existing external Docker network `proxy`.
-It publishes no host ports. Set `DECKSHELF_IMAGE` in a local `.env` file to the
-verified image digest, for example `ghcr.io/bircck/deckshelf@sha256:...`.
-If the package is private, the server needs a GitHub credential with read:packages.
-Keep it in the Docker credential store; never put a token in this repository.
+Behind an existing reverse proxy on a shared Docker network named `proxy`, with
+no host ports published:
 
 ```sh
+echo "DECKSHELF_IMAGE=ghcr.io/bircck/deckshelf@sha256:..." > .env
 docker compose -f deploy/compose.proxy.yaml pull
 docker compose -f deploy/compose.proxy.yaml up -d --wait
 ```
 
-Add this public site to the existing Caddy configuration:
+Example Caddy site (replace the hostname):
 
 ```caddyfile
 deckshelf.example.com {
@@ -37,35 +48,23 @@ deckshelf.example.com {
 }
 ```
 
-Replace the example hostname with your own. Caddy can validate HTTPS certificates
-over ports 80/443 without a DNS API token. Point the hostname at your server using
-an A/AAAA record or a CNAME to an existing hostname. If the server address changes,
-configure dynamic DNS for the appropriate zone and keep its credential outside
-the repository. Start DNS-only while validating HTTPS.
-After HTTPS works, Cloudflare proxying is optional; use Full (strict) SSL mode
-and do not cache `/api/*` or `/healthz` responses.
+If a CDN proxies the site, do not cache `/api/*` or `/healthz`. Keep registry
+credentials in Docker's credential store, never in this repository.
 
-Validate the Caddy configuration before applying it. If your server mounts a
-single Caddyfile, preserve its inode when updating it, then validate and reload.
-Keep a backup outside the checkout. Avoid restarting unrelated containers.
+## Updates and rollback
 
-## Checks and updates
+Change the pinned digest and run `up -d --wait` again; keep the previous digest to
+roll back the same way. Check `/healthz`, the collection and one source import.
+Publishing an image never restarts a server: deployments are pulled, not pushed.
 
-GitHub Check runs unit/build checks on Linux and Windows, tests the Windows
-package/installer, and smoke-tests the production container in Chromium at
-desktop and phone sizes. Only successful main builds publish an image tagged
-`sha-COMMIT` to `ghcr.io/bircck/deckshelf`. Pin deployments by digest.
-
-Update the server's image pin and run Compose with `up -d --wait`. Check
-`https://deckshelf.example.com/healthz` at your chosen hostname, the collection and
-a public source import.
-Keep the previous digest to roll back using the same command. Image publication
-does not automatically restart the server.
+## Security notes
 
 The container runs as a non-root user with a read-only filesystem, dropped
-capabilities and bounded memory. Upstream imports have a concurrency limit;
-the server doesn't trust client-provided forwarding headers. A public service
-with substantially more traffic should add edge rate limits.
+capabilities and bounded memory. Upstream imports are concurrency-limited and the
+server ignores client-supplied forwarding headers. A busy public instance should
+add rate limits at the edge. The health check does not depend on Archidekt, so
+the app stays up when the source is unavailable.
 
-Health checks confirm the app server is running; they deliberately do not depend
-on Archidekt being online. Collection browsing still works when a source fails.
+When hosting from home, keep the origin address private: proxy every DNS record
+that points at it through your CDN (not only the app's subdomain) and only accept
+web traffic from the proxy.

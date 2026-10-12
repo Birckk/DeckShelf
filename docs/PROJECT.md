@@ -123,79 +123,20 @@ duplicate. Source tags and descriptions were not carried into the inspected
 copies. Rapid copying caused rate limiting and folder-tree load failures; pause
 and verify existing results before retrying to avoid duplicates.
 
-This handoff is saved locally because GitHub CLI authentication returned HTTP 401
-and the browser was signed out of GitHub. It has not been posted to the GitHub
-project or issue tracker. No build was needed for this documentation-only update.
-
 ## Already delivered
 
 The hosted web app, public Archidekt source imports, source switches, filtering,
-deck picker, collection backup/restore, Docker/Caddy deployment and GitHub checks
+deck picker, collection backup/restore, container deployment and GitHub checks
 are working. The optional Windows installer has lifecycle tests. These are the
 baseline, not new backlog items; issues above describe the improvements still due.
 
-## Deck detail polish — release tracking (2026-10-04)
+## Testing notes
 
-[Issue #28](https://github.com/Bircck/DeckShelf/issues/28) and
-[PR #29](https://github.com/Bircck/DeckShelf/pull/29) now track this work on
-project 4. GitHub authentication works outside the restricted sandbox; the
-previous HTTP 401 was sandbox-specific. The isolated release checkout is
-`<release checkout>`; unrelated shared-checkout edits
-were excluded. PR #29 merged as be6cea38bcc06f7fab982e14e60b64ed323d2f09 and is deployed at https://deckshelf.birckk.com. Issue #28 is closed and project 4 is Done. Release tests: 55 unit tests, seven browser regressions at
-1440/390/320px, and build passed. PR CI (including Windows installer) passed; the public-site dialog and Guide checks passed. The issue records image and rollback evidence.
+Run `npm run test:dialogs` (Playwright) for shared-dialog, deck-detail and
+collection-workspace changes; CI runs it in Chromium, Firefox and WebKit. Locally,
+use Playwright Chromium or set `PLAYWRIGHT_CHANNEL=msedge`. The suite uses isolated
+fixture collections and mocked source responses. `npm run screenshots`
+regenerates the README images from a fresh demo profile.
 
-Run `npm run test:dialogs` for shared-dialog and deck-detail changes. Use
-Playwright Chromium, or set `PLAYWRIGHT_CHANNEL=msedge` for installed Edge.
-The regression suite uses an isolated fixture collection, mocks source refresh
-responses and preserves saved-choice behavior. Screenshots: `qa/dialogs/`.
-
-
-## Collection management handoff (2026-10-04)
-
-The owner accepted the collection-corner prototype as a good starting direction and paused for a fresh session. Continue from [the saved review and handoff](archive/design/collection-corner/REVIEW.md), with DESIGN.md as the accepted design constraints. The next step is connecting that interface to the existing collection model and restoring feature parity, not starting another redesign. The prototype remains local, session-only and undeployed; latest checks were 61 tests passing, successful build and desktop/mobile browser verification. Current GitHub issue updates are blocked by HTTP 401, so this handoff is recorded locally. Preserve unrelated concurrent working-tree changes.
-## Collection workspace integration — 2026-10-05
-
-Implemented locally in the shared checkout; not committed or deployed. The accepted collection-corner layout now replaces the My collection modal with a separate workspace using the existing saved collection model. Main browsing views, search, filters and gallery preferences remain in App; Back to collection returns focus to its trigger.
-
-- Compact source overview, bounded expandable folder summaries, searchable folding sidebar, aggregate source/folder browsing, and direct-deck folder access.
-- Details, full Cards only, Compact and List with size controls. Artwork/caption selection, native keyboard checkboxes, independent picker exclusions, source switches and Only this actions.
-- Source-specific deselection preserves overlapping selections. Optional source membership history prevents deselected snapshots from accidentally reappearing as Individual decks. Folder paths and connection identity survive refresh and v1 export/restore; legacy sources remain valid.
-- Existing username/folder/deck imports, staged additions, refresh/error/cancel/retry, disconnect with saved snapshots, precon add/remove/restore/catalog and backup preview are retained.
-
-Verified: 64 unit tests; production build; 16 Playwright browser regressions (1440/390/320px, reduced motion and keyboard). Tests cover overlapping sources, search-scoped bulk actions, source switches, persistence, staged additions with retry, refresh failure, disconnect, gallery search return, and importing 30 captured real deck responses with backup restore. Screenshots inspected under qa/collection/.
-
-Live read-only integration verification: public folder 1916319 returned 1 direct deck plus 5 Mono-color and 24 Multicolor decks (30 unique IDs). All 30 upstream deck responses normalized and validated; saved as reproducible test fixtures. Browser import uses those recorded responses, not a claimed live end-to-end browser import. No upstream writes.
-
-Deployment and release isolation remain pending. The checkout also contains earlier branding, dialog and infrastructure edits; no broad staging or commit was made. Automatic following, sharing, other formats and cross-device sync remain separate work.
-
-### Collection workspace feedback — 2026-10-05
-
-Overview now contains source switches and expandable folder summaries only. Deck results and their search/layout controls belong to All saved decks or a selected source/folder. Official Commander precons, Included precons and Individual decks have independent sidebar switches. Removing official precons explains recovery before the action; Restore precons remains available in both the sidebar and Overview, with selections preserved across reload. Workspace header and scope descriptions were reduced, including a compact phone return control.
-
-Verified locally: build, 64 unit tests, the 16 existing browser regressions plus a new overview/sidebar/removal/restore regression. Desktop and mobile screenshots inspected. Not deployed.
-
-### Overview box grid — 2026-10-08
-
-Implemented the requested compact collection box grid using up to three distinct commander artwork previews per collection. Artwork/title open the source; counts, enable controls, Only this, folder expansion and reversible precon removal are preserved. Empty collections show an empty state. Management enable controls now use square check marks, layout choices use underlined tabs and actions use small rectangular buttons. Segmented On/Off controls were considered but are wider for the sidebar. Picker alternatives remain exploratory.
-
-Verified: production build and all 17 browser regressions passed; desktop 1440px and phone 390px rendered screenshots inspected (suite also checks 320px). Local only, not deployed.
-
-### Sidebar alignment and picker TODO — 2026-10-08
-
-Restored original pill switches in management. Sidebar rows now share fixed icon/count/switch columns, with 30px folder rows, reduced nesting gaps, aligned restore-precon controls and a short Direct decks label (full source name remains accessible). Build and all 17 browser regressions passed; desktop/mobile rendered views inspected. Not deployed.
-
-TODO: [Clarify picker controls in saved-deck views #31](https://github.com/Bircck/DeckShelf/issues/31), added to project 4. Review picker inclusion placement across Details/Cards only/Compact/List and distinguish it from display selection. Direction pending; no picker-flow change in this pass.
-
-### Folder pause behavior — 2026-10-08
-
-[Issue #32](https://github.com/Bircck/DeckShelf/issues/32) tracks parent pause/resume, explicit folder bulk actions, optional persisted subfolder pills, partial parent indicators and source-local On display filtering. Implemented locally, not committed or deployed. Previous enabled subsets survive reload and version-1 backup restore; deck selections and picker exclusions remain unchanged by folder pauses. Individual edits supersede remembered enclosing pauses.
-
-Verified 66 unit tests, 19 browser regressions and production build. Rendered folder pills and scope controls inspected at 1440px and 390px; existing layout regressions also cover 320px. Screenshots: qa/collection/folder-pills-* and folder-scope-*. Picker follow-up remains #31.
-
-### October 8 collection baseline
-
-Owner feedback resolved before the main checkpoint: remove redundant per-deck Disable, consolidate deck controls into one compact row, and place the Archidekt link beside selection rather than in a separate footer. The short-lived disabled-deck field migrates into ordinary hidden choices. Collection-level persistent disabling remains independent of temporary pills and removal.
-
-The baseline also includes the collection workspace, remembered navigation/folds, source removal and restoration, shared quick-choice controls, and independent picker motion controls. Browser checks cover 38 cases at desktop and phone sizes. Work is local until explicitly published/deployed; older entries above are historical snapshots.
-
-Next independent review branches: phone workflow polish (#3) and backup recovery (#5). Keep each unmerged until owner review, with test evidence and a local preview. Automatic source following (#23), sharing (#24), PWA/offline (#4), and cross-device sync (#6) remain separate backlog items.
+Session handoff logs up to 2026-10-08 are in the repository history; current
+status lives in the GitHub issues.
