@@ -45,6 +45,18 @@ input,
 select {
   outline-offset: 5px;
 }
+/* iOS zooms the page when focusing a field under 16px. */
+@supports (-webkit-touch-callout: none) {
+  input:not([type="checkbox"], [type="radio"], [type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    font-size: 12px;
+  }
+}
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
