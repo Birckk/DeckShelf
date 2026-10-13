@@ -3,21 +3,21 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       minor-and-patch:
         update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       actions:
         patterns: ['*']
   - package-ecosystem: docker
     directory: /deploy
     schedule:
-      interval: weekly
+      interval: monthly
     ignore:
       # Move between Node LTS lines deliberately, not on every new major.
       - dependency-name: node

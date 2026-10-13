@@ -54,19 +54,35 @@ With the dev server running, `npm run screenshots` regenerates
 
 ## CI/CD
 
-`.github/workflows/ci.yml` runs on pull requests and pushes to `main`
-(documentation-only changes are skipped):
+GitHub checks are manual for now to stay within the free Actions minutes. Before
+merging, run the checks locally:
 
-- **unit**: tests and build on Ubuntu, Windows and macOS (Node 22) plus Node 24.
-- **browsers**: Playwright regressions in Chromium, Firefox and WebKit.
+```sh
+npm test
+npm run build
+npx playwright test --browser=chromium
+```
+
+Run `.github/workflows/ci.yml` from the Actions tab when a change needs more. By
+default it runs on Linux; tick **full** for the bracketed platforms (Windows runners
+bill 2x, macOS 10x):
+
+- **unit**: tests and build on Ubuntu, Node 22 [plus Windows, macOS and Node 24].
+- **browsers**: Playwright regressions in Chromium [plus Firefox and WebKit].
 - **container**: builds `deploy/Dockerfile`, runs it hardened and smoke-tests it.
-- **desktop**: packages the Windows app, smoke-tests it and runs the installer lifecycle.
-- **publish-image**: on `main` only, after everything passes, pushes
-  `ghcr.io/bircck/deckshelf:sha-<commit>` and `:main` with provenance and SBOM.
+- **publish-image**: pushes `ghcr.io/bircck/deckshelf:sha-<commit>` and `:main` with
+  provenance and SBOM after a green `main` push. Dormant while push triggers are off.
+
+`desktop.yml` packages the Windows app, smoke-tests it and runs the installer
+lifecycle, including the upgrade from Commander Archive. Run it manually; its
+`windows-candidate` artifact (about 256 MB) is kept for 3 days.
+
+To check every change on GitHub again, restore the commented `push` and
+`pull_request` triggers in `ci.yml` (and `desktop.yml` for desktop packaging).
 
 `release.yml` handles `vX.Y.Z` tags (see [RELEASING.md](RELEASING.md)).
 `codeql.yml` runs code scanning once the repository is public. Dependabot
-proposes weekly npm, Actions and Docker base-image updates.
+proposes monthly npm, Actions and Docker base-image updates.
 
 Deployment is pull-based: servers pin an image digest and update themselves.
 CI holds no server credentials and never connects to a host.

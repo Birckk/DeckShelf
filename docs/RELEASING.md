@@ -13,8 +13,8 @@ Keep `dk.bircck.deckshelf`, the `DeckShelf` profile directory, and `archive://ap
 stable across releases. 1.0 renamed the app from Commander Archive
 (`dk.bircck.commanderarchive`): `desktop/installer.nsh` removes that installation,
 `desktop/profile.mjs` copies its profile on first start, and the unchanged origin
-keeps the copied collection readable. CI installs the last Commander Archive build
-first to test this upgrade. Do not put a version or extraction path in
+keeps the copied collection readable. `desktop.yml` installs the last Commander Archive
+build first to test this upgrade. Do not put a version or extraction path in
 the storage identity. Never test with the owner's live browser origin/profile.
 
 A hosted version still does most work in the user's browser, with no server-side
@@ -52,9 +52,10 @@ is not a USB-portable profile: data belongs to the Windows user, not the ZIP fol
 
 ## CI and release workflow
 
-`ci.yml` verifies every pull request and `main` push (see
-[DEVELOPMENT.md](DEVELOPMENT.md#cicd)); its Windows job packages the app, tests the
-ZIP and runs the install/reinstall/uninstall lifecycle on a disposable runner. The
+`ci.yml` and `desktop.yml` run manually for now (see
+[DEVELOPMENT.md](DEVELOPMENT.md#cicd)). `desktop.yml` packages the app, tests the
+ZIP and runs the install/reinstall/uninstall lifecycle on a disposable Windows
+runner. The
 installer lifecycle script refuses to run locally or over an existing
 profile/installation.
 
@@ -69,7 +70,8 @@ For a release:
 
 1. Update the version in `package.json`/`package-lock.json` and add
    `docs/RELEASE_NOTES.md` notes.
-2. Merge to `main` with green CI, then tag `vX.Y.Z` and push the tag.
+2. Merge to `main` after the local checks. Run `ci.yml` (full) and `desktop.yml`
+   (Commander Archive upgrade) manually on `main`, then tag `vX.Y.Z` and push the tag.
 3. Run the manual checks in [VALIDATION.md](VALIDATION.md) on the draft's artifacts
    and record them in the release issue.
 4. Publish the draft. Deploy the hosted site by pinning the release image digest.

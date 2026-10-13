@@ -38,6 +38,8 @@ jobs:
             release/*.md
             release/build-info.json
           if-no-files-found: error
+          # The draft release keeps the files; this copy only needs to reach that job.
+          retention-days: 7
   image:
     if: github.ref_type == 'tag'
     needs: windows

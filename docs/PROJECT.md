@@ -133,8 +133,8 @@ baseline, not new backlog items; issues above describe the improvements still du
 ## Testing notes
 
 Run `npm run test:dialogs` (Playwright) for shared-dialog, deck-detail and
-collection-workspace changes; CI runs it in Chromium, Firefox and WebKit. Locally,
-use Playwright Chromium or set `PLAYWRIGHT_CHANNEL=msedge`. The suite uses isolated
+collection-workspace changes; a full `ci.yml` run covers Chromium, Firefox and
+WebKit. Locally, use Playwright Chromium or set `PLAYWRIGHT_CHANNEL=msedge`. The suite uses isolated
 fixture collections and mocked source responses. `npm run screenshots`
 regenerates the README images from a fresh demo profile.
 
