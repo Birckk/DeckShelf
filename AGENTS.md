@@ -1,4 +1,4 @@
-# Working on Commander Archive
+# Working on DeckShelf
 
 Read [docs/DESIGN.md](docs/DESIGN.md) before changing user-facing layout, styling, motion, icons, or copy. It records the owner's accepted direction and specific patterns they asked us to remove. Follow it unless the user's current request changes that direction.
 

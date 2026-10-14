@@ -107,7 +107,7 @@ test('the 30-deck folder fixture imports with hierarchy and a version-1 backup r
   expect(saved.sources.find((s: { key: string }) => s.key === 'folder:1916320').folderPath).toContain('DeckShelf Test Collection / 01 - Mono-color');
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export backup', exact: true }).click();
-  expect((await download).suggestedFilename()).toBe('commander-archive-collection.json');
+  expect((await download).suggestedFilename()).toBe('deckshelf-collection.json');
   await page.locator('input[type=file]').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(saved)) });
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText('30 on display');

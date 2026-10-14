@@ -14,7 +14,7 @@ if errorlevel 1 (
   exit /b 1
 )
 if not exist node_modules (
-  echo Setting up Commander Archive for the first time...
+  echo Setting up DeckShelf for the first time...
   call npm.cmd ci
   if errorlevel 1 goto failed
 )

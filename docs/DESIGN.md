@@ -2,7 +2,7 @@
 
 Public name: **DeckShelf**. Subtitle: **Commander collection**. Keep it short.
 
-Commander Archive is a personal Commander collection viewer and deck picker. Its character comes from actual Magic cards, commander artwork, mana symbols, and the spatial carousel. Preserve the dark card-studio look the owner likes. Improve specific details instead of periodically redesigning the whole app.
+DeckShelf is a personal Commander collection viewer and deck picker. Its character comes from actual Magic cards, commander artwork, mana symbols, and the spatial carousel. Preserve the dark card-studio look the owner likes. Improve specific details instead of periodically redesigning the whole app.
 
 “AI telltales” here means generic, unnecessary design choices that make the app feel templated. These are project preferences, not a reliable way to detect whether something was made with AI.
 

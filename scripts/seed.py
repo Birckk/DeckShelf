@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 NS = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
-HEADERS = {'User-Agent': 'CommanderArchive/1.0 (personal deck showcase)', 'Accept': 'application/json,text/html,image/*'}
+HEADERS = {'User-Agent': 'DeckShelf/1.0 (personal deck showcase)', 'Accept': 'application/json,text/html,image/*'}
 
 def get(url):
     for attempt in range(3):

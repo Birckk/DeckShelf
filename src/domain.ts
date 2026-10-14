@@ -300,7 +300,7 @@ export function parseCollection(raw: string): Collection {
         !v.sources.every(validateSource) ||
         new Set(v.sources.map((s) => s.key)).size !== v.sources.length))
   ) {
-    throw new Error("This is not a valid Commander Archive collection file.");
+    throw new Error("This is not a valid DeckShelf collection file.");
   }
   return {
     version: 1,

@@ -58,7 +58,7 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
     let cached = cache.get(id);
     if (url.searchParams.get('refresh') === '1' || !cached || Date.now() - cached.time > 3600000) {
       const response = await fetch(`https://archidekt.com/api/decks/${id}/`, {
-        headers:{ 'User-Agent':'CommanderArchive/1.0 (personal deck showcase)', Accept:'application/json' },
+        headers:{ 'User-Agent':'DeckShelf/1.0 (personal deck showcase)', Accept:'application/json' },
         signal:AbortSignal.timeout(20000),
       });
       if (!response.ok) throw new Error(response.status === 404 ? 'Deck not found. Check the link and make sure the deck is public.' : 'Archidekt is unavailable right now. Please try again later.');

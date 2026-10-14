@@ -3,7 +3,7 @@ from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 
 root = Path(__file__).resolve().parents[1]
-destination = root.parent / 'commander-archive.zip'
+destination = root.parent / 'deckshelf.zip'
 directories = {'src', 'public', 'server', 'desktop', 'deploy', 'scripts', 'tests', 'docs', '.github', 'dist'}
 files = {'package.json', 'package-lock.json', 'index.html', 'vite.config.ts',
          'tsconfig.json', 'playwright.config.ts', 'README.md', 'AGENTS.md',
@@ -25,6 +25,6 @@ with ZipFile(destination, 'w', ZIP_DEFLATED) as archive:
         archive.write(path, Path(root.name) / relative)
 with ZipFile(destination) as archive:
     assert archive.testzip() is None
-    assert 'commander-archive/dist/index.html' in archive.namelist()
-    assert 'commander-archive/scripts/start-windows.cmd' in archive.namelist()
+    assert f'{root.name}/dist/index.html' in archive.namelist()
+    assert f'{root.name}/scripts/start-windows.cmd' in archive.namelist()
     print(f'{destination} ({destination.stat().st_size:,} bytes, {len(archive.namelist())} files)')

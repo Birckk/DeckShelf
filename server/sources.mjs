@@ -5,7 +5,7 @@ async function read(path, signal) {
   const response = await fetch(`${ORIGIN}${path}`, {
     headers: {
       Accept: "application/json",
-      "User-Agent": "CommanderArchive/1.0 (personal deck showcase)",
+      "User-Agent": "DeckShelf/1.0 (personal deck showcase)",
     },
     signal: AbortSignal.any([signal, AbortSignal.timeout(20000)]),
   });
@@ -139,7 +139,7 @@ export async function discoverFolders(kind, value) {
   let root = value;
   if (kind === 'account') {
     const response = await fetch(`${ORIGIN}/u/${encodeURIComponent(value)}`, {
-      headers: { Accept: 'text/html', 'User-Agent': 'CommanderArchive/1.0 (personal deck showcase)' },
+      headers: { Accept: 'text/html', 'User-Agent': 'DeckShelf/1.0 (personal deck showcase)' },
       signal, redirect: 'error',
     });
     if (!response.ok) throw new Error('Account not found or not public. Check the username.');
