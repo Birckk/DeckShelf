@@ -17,3 +17,6 @@ playwright-report/
 # Local familiar-logo tracing tools and discovery previews.
 /work/familiar/
 /outputs/familiar/
+
+# Local agent worktrees and preview config.
+/.claude/
