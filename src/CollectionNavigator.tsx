@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ChevronRight, Folder, Library, LayoutGrid } from 'lucide-react';
+import { ChevronRight, Eye, Folder, Library, LayoutGrid } from 'lucide-react';
 import HiddenCollections from './HiddenCollections';
 import type { Collection, CollectionSource, Deck } from './domain';
-import { groupActive, hiddenEntries, isHidden, sourceDeckIds, type HiddenEntry, type ShowcaseGroup } from './collection';
+import { groupActive, hiddenEntries, isHidden, sourceDeckIds, type ShowcaseGroup } from './collection';
 
 type Node = { key: string; name: string; sources: CollectionSource[]; children: Node[] };
 function sourceTree(sources: CollectionSource[]): Node[] {
@@ -30,7 +30,7 @@ export default function CollectionNavigator({ collection, decks, groups, section
   navigate: (key: string) => void;
   openScope: (key: string, name: string, keys: string[]) => void;
   toggle: (keys: string[], enabled: boolean, all?: boolean) => void;
-  show: (entry: HiddenEntry) => void;
+  show: (keys: string[]) => void;
 }) {
   const [query, setQuery] = useState('');
   const [folded, setFolded] = useState<string[]>(() => {
@@ -39,11 +39,14 @@ export default function CollectionNavigator({ collection, decks, groups, section
   useEffect(() => { try { localStorage.setItem('deckshelf.folded-folders', JSON.stringify(folded)); } catch { /* Folding still works when storage is unavailable. */ } }, [folded]);
   const [showSwitches, setShowSwitches] = useState(() => { try { return localStorage.getItem('deckshelf.folder-switches') !== 'false'; } catch { return true; } });
   const roots = sourceTree((collection.sources || []).filter(s => !isHidden(collection, s.key)));
+  const hiddenRoots = sourceTree((collection.sources || []).filter(s => isHidden(collection, s.key)));
+  const hiddenBuiltIns = hiddenEntries(collection, groups).filter(entry => entry.keys.every(key => !collection.sources?.some(s => s.key === key)));
   const count = (sources: CollectionSource[]) => new Set(sources.filter(s => groupActive(collection, s.key)).flatMap(s => sourceDeckIds(s, decks)).filter(id => !collection.hidden.includes(id))).size;
-  function renderNode(node: Node, depth: number) {
+  function renderNode(node: Node, depth: number, hidden = false) {
     const match = (n: Node): boolean => n.name.toLowerCase().includes(query.toLowerCase()) || n.children.some(match);
     if (query && !match(node)) return null;
-    const expanded = !!query || !folded.includes(node.key);
+    const foldKey = hidden ? `hidden:${node.key}` : node.key;
+    const expanded = !!query || !folded.includes(foldKey);
     const keys = node.sources.map(s => s.key);
     const aggregate = node.children.length > 0 || keys.length > 1;
     const target = aggregate ? `scope:${node.key}` : keys[0];
@@ -54,15 +57,18 @@ export default function CollectionNavigator({ collection, decks, groups, section
     return <div className="navigator-node" key={node.key}>
       <div className="navigator-row" style={{ paddingLeft: Math.min(depth, 4) * 10 }}>
         {aggregate ? <button className="navigator-fold" aria-label={`${expanded ? 'Collapse' : 'Expand'} ${node.name}`} aria-expanded={expanded}
-          onClick={() => setFolded(current => expanded ? [...current, node.key] : current.filter(key => key !== node.key))}><ChevronRight size={14} style={{ transform: expanded ? 'rotate(90deg)' : undefined }} /></button> : <Folder size={14} />}
+          onClick={() => setFolded(current => expanded ? [...current, foldKey] : current.filter(key => key !== foldKey))}><ChevronRight size={14} style={{ transform: expanded ? 'rotate(90deg)' : undefined }} /></button> : <Folder size={14} />}
         <button className="navigator-name" disabled={busy} aria-current={section === target ? 'page' : undefined}
           title={node.name} onClick={() => aggregate ? openScope(target, node.name, keys) : navigate(keys[0])}>{node.name}</button>
-        <small title="Active here / available">{count(node.sources)}/{total}</small>
-        {(depth === 0 || showSwitches) && <label className={`overview-switch ${partial ? 'is-partial' : ''}`} title={partial ? 'Some folders enabled; switch off to pause this selection' : undefined}><input type="checkbox" role="switch" aria-label={`Enable ${node.name} in sidebar`} aria-description={partial ? 'Some folders enabled' : undefined} checked={enabled} disabled={busy} title="Click to pause/resume. Ctrl-click or Cmd-click to enable all folders; repeat to disable all." onChange={e => { const event = e.nativeEvent as MouseEvent; const all = event.ctrlKey || event.metaKey; toggle(keys, all ? keys.some(key => collection.disabledGroups?.includes(key)) : e.target.checked, all); }} /></label>}
+        {hidden ? <small title="Saved decks">{total}</small> : <small title="Active here / available">{count(node.sources)}/{total}</small>}
+        {hidden ? showButton(node.name, keys) : (depth === 0 || showSwitches) && <label className={`overview-switch ${partial ? 'is-partial' : ''}`} title={partial ? 'Some folders enabled; switch off to pause this selection' : undefined}><input type="checkbox" role="switch" aria-label={`Enable ${node.name} in sidebar`} aria-description={partial ? 'Some folders enabled' : undefined} checked={enabled} disabled={busy} title="Click to pause/resume. Ctrl-click or Cmd-click to enable all folders; repeat to disable all." onChange={e => { const event = e.nativeEvent as MouseEvent; const all = event.ctrlKey || event.metaKey; toggle(keys, all ? keys.some(key => collection.disabledGroups?.includes(key)) : e.target.checked, all); }} /></label>}
       </div>
-      {expanded && direct.map(source => <div className="navigator-row" key={source.key} style={{ paddingLeft: Math.min(depth + 1, 4) * 10 }}><Folder size={14} /><button className="navigator-name" disabled={busy} aria-current={section === source.key ? 'page' : undefined} title={`Direct decks in ${source.name}`} aria-label={`Direct decks in ${source.name}`} onClick={() => navigate(source.key)}>Direct decks</button><small title="Active here / available">{count([source])}/{source.entries.length}</small>{showSwitches && <label className="overview-switch"><input type="checkbox" role="switch" aria-label={`Enable direct decks in ${source.name}`} checked={groupActive(collection, source.key)} disabled={busy} onChange={e => toggle([source.key], e.target.checked)} /></label>}</div>)}
-      {expanded && node.children.map(child => renderNode(child, depth + 1))}
+      {expanded && direct.map(source => <div className="navigator-row" key={source.key} style={{ paddingLeft: Math.min(depth + 1, 4) * 10 }}><Folder size={14} /><button className="navigator-name" disabled={busy} aria-current={section === source.key ? 'page' : undefined} title={`Direct decks in ${source.name}`} aria-label={`Direct decks in ${source.name}`} onClick={() => navigate(source.key)}>Direct decks</button>{hidden ? <small title="Saved decks">{source.knownIds.length}</small> : <small title="Active here / available">{count([source])}/{source.entries.length}</small>}{hidden ? showButton(`direct decks in ${source.name}`, [source.key]) : showSwitches && <label className="overview-switch"><input type="checkbox" role="switch" aria-label={`Enable direct decks in ${source.name}`} checked={groupActive(collection, source.key)} disabled={busy} onChange={e => toggle([source.key], e.target.checked)} /></label>}</div>)}
+      {expanded && node.children.map(child => renderNode(child, depth + 1, hidden))}
     </div>;
+  }
+  function showButton(name: string, keys: string[]) {
+    return <button className="navigator-show" disabled={busy} aria-label={`Show ${name}`} title="Show again" onClick={() => show(keys)}><Eye size={14} /></button>;
   }
   return <nav className="manager-nav" aria-label="Collection sources">
     <button disabled={busy} aria-current={section === 'overview' ? 'page' : undefined} onClick={() => navigate('overview')}><LayoutGrid size={16} /><span>Overview</span></button>
@@ -71,7 +77,9 @@ export default function CollectionNavigator({ collection, decks, groups, section
     {roots.length > 0 && <label className="navigator-switch-option"><input type="checkbox" checked={showSwitches} onChange={e => { setShowSwitches(e.target.checked); try { localStorage.setItem('deckshelf.folder-switches', String(e.target.checked)); } catch { /* Session preference still works without storage. */ } }} />Show folder switches</label>}
     {roots.map(node => renderNode(node, 0))}
     {groups.filter(g => !['account', 'folder'].includes(g.kind) && !isHidden(collection, g.key) && g.name.toLowerCase().includes(query.toLowerCase())).map(group => <div className="navigator-row navigator-saved-group" key={group.key}><Library size={16} /><button className="navigator-name" disabled={busy} aria-current={section === group.key ? 'page' : undefined} onClick={() => navigate(group.key)}>{group.name}</button><small title="Active here / available">{group.enabled ? group.ids.filter(id => !collection.hidden.includes(id)).length : 0}/{group.available}</small><label className="overview-switch"><input type="checkbox" role="switch" aria-label={`Enable ${group.name} in sidebar`} checked={group.enabled} disabled={busy} onChange={e => toggle([group.key], e.target.checked)} /></label></div>)}
-    <HiddenCollections entries={hiddenEntries(collection, groups)} busy={busy} show={show}
-      open={entry => entry.scope ? openScope(entry.key, entry.name, entry.keys) : navigate(entry.key)} />
+    <HiddenCollections count={hiddenRoots.length + hiddenBuiltIns.length}>
+      {hiddenRoots.map(node => renderNode(node, 0, true))}
+      {hiddenBuiltIns.map(entry => <div className="navigator-row navigator-saved-group" key={entry.key}><Library size={16} /><button className="navigator-name" disabled={busy} aria-current={section === entry.key ? 'page' : undefined} onClick={() => navigate(entry.key)}>{entry.name}</button><small title="Saved decks">{entry.count}</small>{showButton(entry.name, entry.keys)}</div>)}
+    </HiddenCollections>
   </nav>;
 }

@@ -483,7 +483,7 @@ export default function CollectionManager({
             <CollectionNavigator collection={collection} decks={decks} groups={groups} section={connecting ? '' : section} busy={!!busy} navigate={navigate}
               openScope={(key, name, keys) => { navigate(key); setScope({ name, keys }); }}
               toggle={(keys, enabled, all) => setCollection(c => enableGroups(c, keys, enabled, all))}
-              show={entry => setCollection(c => hideGroups(c, entry.keys, false))} />
+              show={keys => setCollection(c => hideGroups(c, keys, false))} />
           </div>
           <section
             className="manager-content"

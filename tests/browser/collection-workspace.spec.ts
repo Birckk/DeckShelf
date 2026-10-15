@@ -539,6 +539,10 @@ for (const width of [1440, 390]) test('hidden collections stay out of bulk enabl
   if (width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
   const nav = page.getByRole('navigation', { name: 'Collection sources' });
   await nav.getByRole('button', { name: /^Hidden/ }).click();
+  // The hidden section mirrors the folder tree and never scrolls the sidebar sideways.
+  await expect(nav.getByRole('button', { name: 'Show Birckk', exact: true })).toBeVisible();
+  await expect(nav.getByRole('button', { name: 'Show Mono-color', exact: true })).toBeVisible();
+  expect(await nav.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
   await nav.getByRole('button', { name: 'Birckk', exact: true }).click();
   await page.getByRole('button', { name: 'Show', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText('5 on display');

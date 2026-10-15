@@ -272,16 +272,13 @@ body:has(.collection-workspace) { min-width:320px; }
 .collection-workspace .text-button.is-danger { border-color:#7a3f36; color:#f1c3b8; }
 .collection-workspace .text-button.is-danger:hover:not(:disabled) { border-color:#a8574a; background:#3a221e; color:#ffd9cf; }
 
-/* Hidden collections fold away at the bottom of the sidebar. */
-.hidden-collections { margin-top:14px; padding-top:8px; border-top:1px solid #ffffff10; font-size:12px; color:#aaa6a0; }
-.hidden-collections-toggle { display:flex; align-items:center; gap:6px; width:100%; padding:6px 4px; border:0; border-radius:4px; background:none; color:inherit; font:inherit; cursor:pointer; }
-.hidden-collections-toggle:hover { background:#ffffff06; color:#ead9b8; }
-.hidden-collections-toggle:focus-visible, .hidden-collection-name:focus-visible { outline:2px solid #d3bd91; outline-offset:2px; }
-.hidden-collections-toggle span { flex:1; text-align:left; }
-.hidden-collections-toggle small { margin-left:auto; font-size:10px; color:#827f79; }
-.hidden-collections ul { list-style:none; margin:4px 0 0; padding:0 0 0 20px; display:grid; gap:4px; }
-.hidden-collections li { display:flex; align-items:center; gap:8px; min-height:32px; }
-.hidden-collection-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:4px 0; border:0; background:none; color:#c9c5bc; font:inherit; text-align:left; cursor:pointer; }
-.hidden-collection-name:hover { color:#ead9b8; }
-.hidden-collections li small { font-size:10px; color:#827f79; }
-.collection-workspace .hidden-collections .text-button { min-height:26px; padding:3px 8px; font-size:11px; }
+/* Hidden collections fold away at the bottom of the sidebar, in the same columns as the tree. */
+.hidden-collections { margin-top:14px; padding-top:8px; border-top:1px solid #ffffff10; }
+.collection-workspace .hidden-collections-toggle { width:100%; padding:0; border:0; border-radius:4px; background:none; color:#aaa6a0; font:inherit; font-size:12px; text-align:left; cursor:pointer; }
+.collection-workspace .hidden-collections-toggle > svg { justify-self:center; }
+.hidden-collections-toggle > span { display:flex; align-items:center; gap:7px; }
+.hidden-collections-toggle:hover { color:#ead9b8; background:#ffffff06; }
+.hidden-collections-toggle:focus-visible, .navigator-show:focus-visible { outline:2px solid #d3bd91; outline-offset:2px; }
+.hidden-collections .navigator-name { color:#b9b5ac; }
+.collection-workspace .navigator-row > .navigator-show { grid-column:4; justify-self:end; display:grid; place-items:center; width:30px; height:24px; padding:0; border:1px solid #363638; border-radius:4px; background:#1b1c1e; color:#c9c7c1; cursor:pointer; }
+.navigator-show:hover:not(:disabled) { border-color:#696153; background:#262521; color:#eddfc4; }

@@ -170,7 +170,7 @@ The concrete rules above reflect this project's owner feedback; the references s
 Owner decision (#56): the pill, Disable, Remove precons and Disconnect overlapped and felt random. There are now three things you can do to a collection:
 
 - **Pill (On/Off/Some)**: a quick show/hide that Enable all undoes. Always visible.
-- **Hide**: for something you don't want to look at. It is switched off, leaves the sidebar tree and the overview grid, and waits in a folded Hidden list at the bottom of the sidebar. Enable all skips it. Show (in the list, or on its own page) brings it back on with its deck choices intact. Works the same for imported sources, folders, Individual decks and precons. Precons can only be hidden, never removed (they keep the v1 `demo.removed` flag).
+- **Hide**: for something you don't want to look at. It is switched off, leaves the sidebar tree and the overview grid, and waits in a folded Hidden section at the bottom of the sidebar. That section mirrors the sidebar tree (same columns, indentation, folds and counts), with an eye Show button where the pill would be. Never flatten folders into long path labels or let the sidebar scroll sideways. Enable all skips it. Show (in the list, or on its own page) brings it back on with its deck choices intact. Works the same for imported sources, folders, Individual decks and precons. Precons can only be hidden, never removed (they keep the v1 `demo.removed` flag).
 - **Remove**: for something you don't want at all, such as a mistyped username. It asks once, then removes the source and the saved decks only it had; decks another source or Individual decks still has stay. The toast offers Undo for 10 seconds. Imported sources only.
 
 Layout, the same on overview boxes, source headers and phones:
