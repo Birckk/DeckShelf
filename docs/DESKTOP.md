@@ -17,7 +17,9 @@ This build is unsigned. Windows may display an unknown-publisher or SmartScreen
 warning. Check where the download came from and its checksum before deciding
 whether to run it; signing and reputation are not supplied by a checksum.
 
-Close the window or choose File → Exit to stop the application. Launching it again
+The slim bar at the top holds the window buttons and, at the left, a menu
+button (≡): File (Export backup), View (zoom, full screen), Go (the main views,
+with Ctrl+1–4 and Ctrl+F) and Help (DeckShelf Help with F1, and About). Close the window or choose ≡ → File → Exit to stop the application. Launching it again
 while it is open brings the existing window forward. External deck links open in
 your default browser, where deck editing belongs.
 

@@ -10,9 +10,11 @@ import "./helix.css";
 import "./studio.css";
 import App from "./App";
 import { registerServiceWorker } from "./pwa";
+import { WindowBar } from "./WindowBar";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
+    <WindowBar />
     <App />
   </React.StrictMode>,
 );

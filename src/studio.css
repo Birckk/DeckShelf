@@ -6,6 +6,8 @@
   --muted: #9b9ba2;
   --gold: #f2ddb0;
   --line: #ffffff14;
+  /* Viewport height below any window bar; views that fill the screen size from this. */
+  --app-height: 100svh;
   background: var(--bg);
   color: var(--ink);
 }
@@ -13,7 +15,7 @@ body {
   background: var(--bg);
 }
 .studio-theme {
-  min-height: 100svh;
+  min-height: var(--app-height);
   background:
     radial-gradient(ellipse at 50% 48%, #27252855, transparent 68%), #111214;
 }
@@ -281,7 +283,7 @@ body {
   background: linear-gradient(#fff2d5, #e7cd95);
 }
 .card-studio {
-  --card-height: clamp(280px, calc(100svh - 380px), 560px);
+  --card-height: clamp(280px, calc(var(--app-height) - 380px), 560px);
   --card-width: calc(var(--card-height) * 488 / 680);
   --card-step: calc(var(--card-width) * 0.94);
 }
@@ -709,7 +711,7 @@ option {
   color: #e8e2d6;
 }
 .helix-stage {
-  height: clamp(420px, calc(100svh - 240px), 860px);
+  height: clamp(420px, calc(var(--app-height) - 240px), 860px);
 }
 @media (max-width: 1150px) {
   .studio-header {
@@ -795,7 +797,7 @@ option {
     margin: 0 -24px;
   }
   .card-studio {
-    --card-height: clamp(280px, calc(100svh - 425px), 480px);
+    --card-height: clamp(280px, calc(var(--app-height) - 425px), 480px);
   }
   .studio-hint {
     display: none;
@@ -808,7 +810,7 @@ option {
     gap: 16px;
   }
   .helix-stage {
-    height: clamp(430px, calc(100svh - 310px), 720px);
+    height: clamp(430px, calc(var(--app-height) - 310px), 720px);
   }
 }
 @media (max-width: 550px) {
@@ -887,7 +889,7 @@ option {
     height: calc(var(--card-height) + 30px);
   }
   .card-studio {
-    --card-height: clamp(270px, calc(100svh - 425px), 410px);
+    --card-height: clamp(270px, calc(var(--app-height) - 425px), 410px);
     --card-step: calc(var(--card-width) * 0.93);
   }
   .studio-caption {
@@ -968,7 +970,7 @@ option {
     padding: 0;
   }
   .helix-stage {
-    height: clamp(430px, calc(100svh - 194px), 720px);
+    height: clamp(430px, calc(var(--app-height) - 194px), 720px);
   }
   .helix-picker {
     margin-top: 5px;
@@ -1055,7 +1057,7 @@ option {
   bottom: 116px;
 }
 .has-winner .revealed-card {
-  width: min(245px, calc((100svh - 395px) * 0.718));
+  width: min(245px, calc((var(--app-height) - 395px) * 0.718));
   min-width: 165px;
 }
 @media (max-width: 550px) {
@@ -1695,7 +1697,7 @@ body:has(.studio-workspace) { min-width:320px; }
   .studio-workspace .results-toolbar.view-picker .shortlist-controls:not(.is-active) { display: none; }
   /* The result panel is up to ~150px tall on phones; the card sits fully above it. */
   .has-winner .helix-reveal { bottom: 160px; }
-  .has-winner .revealed-card { width: min(208px, calc((100svh - 400px) * 0.718)); min-width: 150px; }
+  .has-winner .revealed-card { width: min(208px, calc((var(--app-height) - 400px) * 0.718)); min-width: 150px; }
 }
 @media (max-width: 370px) {
   /* The narrowest phones keep the compact sizes; close plus entry still equal the idle entry. */
@@ -1724,3 +1726,9 @@ body:has(.studio-workspace) { min-width:320px; }
   /* One results-row geometry in every view, so quick choice never shifts. */
   .studio-workspace .results-toolbar[class*=view-] { padding: 6px 0; row-gap: 6px; min-height: 0; }
 }
+
+/* Windows app window bar (src/WindowBar.tsx): slim, darker than the header, and it drags the window. */
+.window-bar { position: sticky; top: 0; z-index: 30; height: 34px; display: flex; align-items: center; padding-left: 4px; background: #0e0f11; -webkit-app-region: drag; user-select: none; }
+.window-bar-menu { -webkit-app-region: no-drag; display: grid; place-items: center; width: 36px; height: 28px; border-radius: 5px; color: #b5b3ae; transition: background-color 0.15s, color 0.15s; }
+.window-bar-menu:hover { background: #ffffff12; color: #f3f1ec; }
+.window-bar-shown { --app-height: calc(100svh - 34px); }

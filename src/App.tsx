@@ -38,6 +38,7 @@ import {
 } from "./domain";
 import { Artwork, Mana, ManaSymbol, Modal } from "./components";
 import { applyUpdate, useOnline, useUpdateReady } from "./pwa";
+import { onMenuCommand } from "./WindowBar";
 import { CollectionLayoutSwitch } from "./CollectionLayoutSwitch";
 import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
@@ -238,6 +239,15 @@ function App() {
     setCollectionScope(null);
     setShowCollection(true);
   }
+  // Commands from the Windows app's ≡ menu (desktop/main.mjs); the latest state handles each one.
+  const menuCommand = useRef((_command: string) => {});
+  menuCommand.current = (command) => {
+    if (spinning) return;
+    if (command === "backup") backup();
+    else if (command === "help") { setShowCollection(false); setHelp("start"); }
+    else if (["grid", "cards", "picker", "search", "collection"].includes(command)) goToFeature(command as FeatureTarget);
+  };
+  useEffect(() => onMenuCommand((command) => menuCommand.current(command)), []);
   function goToFeature(target: FeatureTarget) {
     setHelp(null);
     if (target === "collection" || target === "precons") {

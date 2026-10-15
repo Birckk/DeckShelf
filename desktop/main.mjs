@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, Menu, protocol, session, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, protocol, session, shell } from 'electron';
 import { join, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { appendFileSync, writeFileSync } from 'node:fs';
@@ -36,7 +36,10 @@ function createWindow() {
   window = new BrowserWindow({
     title: 'DeckShelf', width: 1440, height: 960, minWidth: 640, minHeight: 480,
     backgroundColor: '#161a18', show: false,
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, webSecurity: true, devTools: !app.isPackaged || (testing && !process.argv.includes('--production-window')) },
+    // A slim window bar replaces the title bar and menu bar: Windows draws only its window buttons,
+    // and the bar's menu button opens the app menu (src/WindowBar.tsx).
+    titleBarStyle: 'hidden', titleBarOverlay: { color: '#0e0f11', symbolColor: '#c9c7c2', height: 34 },
+    webPreferences: { preload: fileURLToPath(new URL('./preload.cjs', import.meta.url)), nodeIntegration: false, contextIsolation: true, sandbox: true, webSecurity: true, devTools: !app.isPackaged || (testing && !process.argv.includes('--production-window')) },
   });
   window.webContents.setWindowOpenHandler(({ url }) => { void openExternal(url); return { action: 'deny' }; });
   window.webContents.on('will-navigate', (event, url) => {
@@ -61,16 +64,39 @@ if (!app.requestSingleInstanceLock()) {
     });
     session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
     session.defaultSession.setPermissionCheckHandler(() => false);
-    Menu.setApplicationMenu(Menu.buildFromTemplate([
-      { label: 'File', submenu: [{ role: 'quit' }] },
-      { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] },
-      { label: 'View', submenu: [{ role: 'reload' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'togglefullscreen' }] },
+    // Only actions that mean something in DeckShelf. Text fields keep their own copy and paste shortcuts.
+    const send = command => () => window?.webContents.send('menu-command', command);
+    const menu = Menu.buildFromTemplate([
+      { label: 'File', submenu: [
+        { label: 'Export backup', accelerator: 'CmdOrCtrl+S', click: send('backup') },
+        { type: 'separator' },
+        { role: 'quit', label: 'Exit' },
+      ] },
+      { label: 'View', submenu: [
+        { role: 'resetZoom', label: 'Actual size' }, { role: 'zoomIn' }, { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' },
+        { role: 'reload', visible: false },
+      ] },
+      { label: 'Go', submenu: [
+        { label: 'Collection', accelerator: 'CmdOrCtrl+1', click: send('grid') },
+        { label: 'Cards', accelerator: 'CmdOrCtrl+2', click: send('cards') },
+        { label: 'Pick a deck', accelerator: 'CmdOrCtrl+3', click: send('picker') },
+        { type: 'separator' },
+        { label: 'Search decks', accelerator: 'CmdOrCtrl+F', click: send('search') },
+        { label: 'My collection', accelerator: 'CmdOrCtrl+4', click: send('collection') },
+      ] },
       { label: 'Help', submenu: [
-        { label: 'Desktop guide', click: () => { void shell.openPath(join(process.resourcesPath, 'DESKTOP.md')); } },
-        { label: 'Third-party notices', click: () => { void shell.openPath(join(process.resourcesPath, 'THIRD_PARTY_NOTICES.md')); } },
+        { label: 'DeckShelf Help', accelerator: 'F1', click: send('help') },
+        { type: 'separator' },
         { label: 'About DeckShelf', click: () => { void dialog.showMessageBox(window, { title: 'DeckShelf', message: `DeckShelf ${app.getVersion()}`, detail: 'A personal Commander collection viewer and picker.\n\nDeckShelf is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.\n\nYour collection is saved on this device. Use My collection to export a backup.' }); } },
       ] },
-    ]));
+    ]);
+    // Hidden with the title bar, the menu still provides the keyboard shortcuts.
+    Menu.setApplicationMenu(menu);
+    ipcMain.on('window-menu', event => {
+      if (window && event.sender === window.webContents) menu.popup({ window, x: 4, y: 34 });
+    });
     createWindow();
     app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) createWindow(); });
   }).catch(startupFailed);
