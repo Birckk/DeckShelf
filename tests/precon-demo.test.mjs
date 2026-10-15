@@ -60,7 +60,7 @@ test('personal source and manual overlaps survive demo removal, backup and sourc
   assert.deepEqual(ids(visible(manual)), [deck.id]);
   assert.deepEqual(parseCollection(JSON.stringify(manual)), manual);
   // A manual copy of the same deck survives removing the source.
-  const removed = removeSources({ ...c, manualIds: [deck.id] }, [source.key]).collection;
+  const removed = removeSources({ ...c, manualIds: [deck.id] }, [source.key]);
   assert.deepEqual(ids(visible(removeDemo(removed))), [deck.id]);
   // Hiding precons is the v1 removed flag, listed under Hidden and shown again with its choices.
   const hidden = hideGroups(c, ['demo'], true);

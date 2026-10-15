@@ -177,12 +177,11 @@ export function archiveGroups(collection: Collection, keys: string[], disabled: 
     ? [...new Set([...(collection.archivedGroups || []), ...keys])]
     : (collection.archivedGroups || []).filter(key => !keys.includes(key)) };
 }
-// Showing a collection again also switches it on, unless an Undo restores its earlier state.
-// Its deck choices were never touched.
-export function hideGroups(collection: Collection, keys: string[], hidden: boolean, enable = true): Collection {
+// Showing a collection again also switches it on. Its deck choices were never touched.
+export function hideGroups(collection: Collection, keys: string[], hidden: boolean): Collection {
   let next = archiveGroups(collection, keys.filter(key => key !== "demo"), hidden);
   if (keys.includes("demo") && next.demo) next = { ...next, demo: { ...next.demo, removed: hidden } };
-  return hidden || !enable ? next : enableGroups(next, keys, true, true);
+  return hidden ? next : enableGroups(next, keys, true, true);
 }
 
 export type HiddenEntry = { key: string; name: string; keys: string[]; scope: boolean; count: number };
@@ -271,13 +270,8 @@ export function selectSourceDecks(
     ),
   };
 }
-// Everything Remove takes away, so Undo can put it back without touching later changes.
-export type RemovedSources = {
-  sources: CollectionSource[]; decks: Deck[]; hidden: string[];
-  disabledGroups: string[]; archivedGroups: string[]; pausedGroups: { keys: string[]; enabled: string[] }[];
-};
 // Removing a source also removes its saved decks, unless another source or Individual decks still has them.
-export function removeSources(collection: Collection, keys: string[]): { collection: Collection; removed: RemovedSources } {
+export function removeSources(collection: Collection, keys: string[]): Collection {
   const sources = collection.sources || [];
   const gone = sources.filter(s => keys.includes(s.key));
   const kept = sources.filter(s => !keys.includes(s.key));
@@ -285,36 +279,13 @@ export function removeSources(collection: Collection, keys: string[]): { collect
   const ids = new Set(gone.flatMap(s => [...s.knownIds, ...(s.ownedIds || [])]).filter(id => !stillUsed.has(id)));
   const touches = (p: { keys: string[] }) => p.keys.some(key => keys.includes(key));
   return {
-    collection: {
-      ...collection,
-      sources: kept,
-      added: collection.added.filter(d => !ids.has(d.id)),
-      hidden: collection.hidden.filter(id => !ids.has(id)),
-      disabledGroups: (collection.disabledGroups || []).filter(k => !keys.includes(k)),
-      archivedGroups: (collection.archivedGroups || []).filter(k => !keys.includes(k)),
-      ...(collection.pausedGroups ? { pausedGroups: collection.pausedGroups.filter(p => !touches(p)) } : {}),
-    },
-    removed: {
-      sources: gone,
-      decks: collection.added.filter(d => ids.has(d.id)),
-      hidden: collection.hidden.filter(id => ids.has(id)),
-      disabledGroups: (collection.disabledGroups || []).filter(k => keys.includes(k)),
-      archivedGroups: (collection.archivedGroups || []).filter(k => keys.includes(k)),
-      pausedGroups: (collection.pausedGroups || []).filter(touches),
-    },
-  };
-}
-export function restoreSources(collection: Collection, removed: RemovedSources): Collection {
-  const present = new Set((collection.sources || []).map(s => s.key));
-  const saved = new Set(collection.added.map(d => d.id));
-  return {
     ...collection,
-    sources: [...(collection.sources || []), ...removed.sources.filter(s => !present.has(s.key))],
-    added: [...collection.added, ...removed.decks.filter(d => !saved.has(d.id))],
-    hidden: [...new Set([...collection.hidden, ...removed.hidden])],
-    disabledGroups: [...new Set([...(collection.disabledGroups || []), ...removed.disabledGroups])],
-    archivedGroups: [...new Set([...(collection.archivedGroups || []), ...removed.archivedGroups])],
-    ...(collection.pausedGroups || removed.pausedGroups.length ? { pausedGroups: [...(collection.pausedGroups || []), ...removed.pausedGroups] } : {}),
+    sources: kept,
+    added: collection.added.filter(d => !ids.has(d.id)),
+    hidden: collection.hidden.filter(id => !ids.has(id)),
+    disabledGroups: (collection.disabledGroups || []).filter(k => !keys.includes(k)),
+    archivedGroups: (collection.archivedGroups || []).filter(k => !keys.includes(k)),
+    ...(collection.pausedGroups ? { pausedGroups: collection.pausedGroups.filter(p => !touches(p)) } : {}),
   };
 }
 

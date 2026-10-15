@@ -33,7 +33,7 @@ test('hierarchy and retained membership survive refresh, backup and removal', ()
   assert.equal(refreshed.sources[0].folderPath, source.folderPath);
   assert.deepEqual(refreshed.sources[0].ownedIds, [deck.id]);
   assert.deepEqual(parseCollection(JSON.stringify(refreshed)), refreshed);
-  const detached = removeSources(refreshed, [source.key]).collection;
+  const detached = removeSources(refreshed, [source.key]);
   assert.deepEqual(detached.added, []);
   assert.deepEqual(showcaseDecks(detached, [], []), []);
 });
@@ -63,6 +63,6 @@ test('nested pauses retain child choices while explicit edits supersede enclosin
   assert.deepEqual(resumed.disabledGroups, [keys[1]]);
   const edited = enableGroup(parent, keys[0], true);
   assert.deepEqual(edited.pausedGroups, []);
-  assert.doesNotThrow(() => parseCollection(JSON.stringify(removeSources(parent, [keys[0]]).collection)));
+  assert.doesNotThrow(() => parseCollection(JSON.stringify(removeSources(parent, [keys[0]]))));
   assert.throws(() => parseCollection(JSON.stringify({ ...base, pausedGroups: [{ keys: ['folder:42', 'unknown'], enabled: [] }] })));
 });

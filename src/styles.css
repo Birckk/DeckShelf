@@ -2101,15 +2101,3 @@ main {
     white-space: nowrap;
   }
 }
-.toast-action {
-  margin-left: 4px;
-  padding: 4px 10px;
-  border: 1px solid #bda26f99;
-  border-radius: 4px;
-  background: #1f281c;
-  color: #f2ddb0;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-.toast-action:hover { background: #3a4a34; }

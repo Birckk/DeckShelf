@@ -68,10 +68,6 @@ test('failed refresh retains snapshots and hierarchy; Remove keeps decks other c
   const after = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
   expect(after.sources.map((s: { key: string }) => s.key)).toEqual(['folder:43']);
   expect(after.added.map((d: { id: string }) => d.id)).toEqual([decks[0].id, decks[3].id, decks[4].id]);
-  await page.getByRole('button', { name: 'Undo', exact: true }).click();
-  const undone = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
-  expect(undone.sources.map((s: { key: string }) => s.key).sort()).toEqual(['folder:42', 'folder:43']);
-  expect(undone.added.map((d: { id: string }) => d.id).sort()).toEqual(fixture.added.map(d => d.id).sort());
 });
 
 test('new source entries stay staged until added and can be retried after failure', async ({ page }) => {

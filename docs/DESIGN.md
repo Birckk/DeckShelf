@@ -173,7 +173,8 @@ Owner decision (#56): the pill, Disable, Remove precons and Disconnect overlappe
 
 - **Pill (On/Off/Some)**: a quick show/hide that Enable all undoes. Always visible.
 - **Hide**: for something you don't want to look at. It is switched off, leaves the sidebar tree and the overview grid, and waits in a folded Hidden section at the bottom of the sidebar. That section mirrors the sidebar tree (same columns, indentation, folds and counts), with an eye Show button where the pill would be. Never flatten folders into long path labels or let the sidebar scroll sideways. Enable all skips it. Show (in the list, or on its own page) brings it back on with its deck choices intact. Works the same for imported sources, folders, Individual decks and precons. Precons can only be hidden, never removed (they keep the v1 `demo.removed` flag).
-- **Remove**: for something you don't want at all, such as a mistyped username. It asks once, then removes the source and the saved decks only it had; decks another source or Individual decks still has stay. The toast offers Undo for 10 seconds. Imported sources only.
+- **Remove**: for something you don't want at all, such as a mistyped username. It asks once, then removes the source and the saved decks only it had; decks another source or Individual decks still has stay. Imported sources only.
+- No toast or Undo after Hide or Remove (owner, October 16). Whether local actions get Undo or a change history at all is open in #57.
 
 Layout, the same on overview boxes, source headers and phones:
 

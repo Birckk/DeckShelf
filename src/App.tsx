@@ -52,7 +52,6 @@ const STORAGE_KEY = "commander-archive.collection.v1";
 type View = "cards" | "grid" | "picker";
 const HOME_VIEW: View = "grid";
 type CollectionLayout = "grid" | "art" | "list";
-type NoticeAction = { label: string; run: () => void };
 const DISPLAY_KEY = "commander-archive.display.v1";
 function readDisplay(): { layout: CollectionLayout; size: number } {
   try {
@@ -158,8 +157,7 @@ function App() {
     };
   }, [showFilters]);
   const [spinning, setSpinning] = useState(false);
-  const [notice, setNoticeState] = useState<{ text: string; action?: NoticeAction } | null>(null);
-  const setNotice = (text: string, action?: NoticeAction) => setNoticeState(text ? { text, action } : null);
+  const [notice, setNotice] = useState("");
   const online = useOnline();
   const updateReady = useUpdateReady();
   const [updateLater, setUpdateLater] = useState(false);
@@ -176,8 +174,7 @@ function App() {
   }, [collection, storageLocked]);
   useEffect(() => {
     if (!notice) return;
-    // An Undo needs longer to read and reach than a plain confirmation.
-    const timer = setTimeout(() => setNoticeState(null), notice.action ? 10000 : 5500);
+    const timer = setTimeout(() => setNotice(""), 5500);
     return () => clearTimeout(timer);
   }, [notice]);
   const allDecks = useMemo(
@@ -783,8 +780,7 @@ function App() {
       {notice && (
         <div className="toast" role="status">
           <Check size={15} />
-          {notice.text}
-          {notice.action && <button className="toast-action" onClick={() => { notice.action!.run(); setNoticeState(null); }}>{notice.action.label}</button>}
+          {notice}
         </div>
       )}
       {detail && (

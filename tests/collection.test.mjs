@@ -14,7 +14,6 @@ import {
   onlyGroup,
   selectSourceDecks,
   removeSources,
-  restoreSources,
   hideGroups,
   hiddenEntries,
 } from "../src/collection.ts";
@@ -154,7 +153,7 @@ test("individual links can include a deck also present in a disabled source or i
   );
   assert.deepEqual(parseCollection(JSON.stringify(c)), c);
 });
-test("removing a source removes its own decks and Undo puts back exactly what was removed", () => {
+test("removing a source removes its own decks", () => {
   const personal = { ...deck, id: "777" };
   const s = {
     ...source,
@@ -171,7 +170,7 @@ test("removing a source removes its own decks and Undo puts back exactly what wa
     disabledGroups: [s.key],
   };
   const c2 = { ...c, hidden: ["777"] };
-  const { collection: next, removed } = removeSources(c2, [s.key]);
+  const next = removeSources(c2, [s.key]);
   assert.deepEqual(next.added, []);
   assert.deepEqual(next.sources, []);
   assert.deepEqual(next.hidden, []);
@@ -179,14 +178,6 @@ test("removing a source removes its own decks and Undo puts back exactly what wa
   assert.deepEqual(next.disabledGroups, []);
   assert.deepEqual(showcaseGroups(next, [], []).find((g) => g.key === "manual").ids, []);
   assert.doesNotThrow(() => parseCollection(JSON.stringify(next)));
-  // Undo merges back onto later changes instead of replacing them.
-  const later = { ...next, disabledGroups: ["manual"] };
-  const undone = restoreSources(later, removed);
-  assert.deepEqual(undone.sources, [s]);
-  assert.deepEqual(undone.added, [personal]);
-  assert.deepEqual(undone.hidden, ["777"]);
-  assert.deepEqual(undone.disabledGroups, ["manual", s.key]);
-  assert.deepEqual(parseCollection(JSON.stringify(undone)), undone);
 });
 test("removing a source keeps decks that another source or Individual decks still has", () => {
   const other = { ...deck, id: "888" };
@@ -194,9 +185,9 @@ test("removing a source keeps decks that another source or Individual decks stil
   const a = { ...source, key: "folder:1", value: "1", knownIds: ["888", "999"], selectedIds: ["888", "999"] };
   const b = { ...source, key: "folder:2", value: "2", knownIds: ["999"], selectedIds: ["999"] };
   const c = { version: 1, hidden: [], excluded: [], added: [other, shared, deck], sources: [a, b], manualIds: [deck.id] };
-  const { collection: next } = removeSources(c, [a.key]);
+  const next = removeSources(c, [a.key]);
   assert.deepEqual(next.added.map((d) => d.id), ["999", deck.id]);
-  const { collection: both } = removeSources(c, [a.key, b.key]);
+  const both = removeSources(c, [a.key, b.key]);
   assert.deepEqual(both.added.map((d) => d.id), [deck.id]);
 });
 test("hiding moves a collection out of view and Show switches it back on", () => {
@@ -208,8 +199,6 @@ test("hiding moves a collection out of view and Show switches it back on", () =>
   const shown = hideGroups(hidden, [source.key], false);
   assert.equal(showcaseGroups(shown, [], [deck]).find((g) => g.key === source.key).enabled, true);
   assert.equal(showcaseDecks(shown, [], [deck]).length, 1);
-  const undone = hideGroups(hidden, [source.key], false, false);
-  assert.equal(showcaseGroups(undone, [], [deck]).find((g) => g.key === source.key).enabled, false, "Undo keeps the earlier pill state");
 });
 test("legacy source selections survive refresh and invalid group settings are rejected", () => {
   const c = rememberSource(rememberSource(collection, source), source);
@@ -423,7 +412,7 @@ test('persistent disabling survives bulk enabling, backup, overlaps and disconne
   assert.equal('disabledDecks' in migrated, false);
   assert.equal(showcaseDecks(migrated, [], [deck]).length, 0);
   assert.equal(showcaseDecks(setShown(migrated, [deck.id], true), [], [deck]).length, 1);
-  const detached = removeSources(next, [second.key]).collection;
+  const detached = removeSources(next, [second.key]);
   assert.doesNotThrow(() => parseCollection(JSON.stringify(detached)));
   assert.ok(!detached.archivedGroups.includes(second.key));
   assert.throws(() => parseCollection(JSON.stringify({ ...base, archivedGroups: ['bad'] })));

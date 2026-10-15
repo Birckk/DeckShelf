@@ -10,8 +10,8 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
   navigate: (key: string) => void; openScope: (key: string, name: string, keys: string[]) => void;
   toggle: (keys: string[], enabled: boolean, all?: boolean) => void; only: (key: string) => void;
   onlyMany: (keys: string[]) => void; enableAll: () => void;
-  hide: (keys: string[], name: string) => void;
-  remove: (keys: string[], name: string) => void;
+  hide: (keys: string[]) => void;
+  remove: (keys: string[]) => void;
   addDemo: () => void;
 }) {
   const [expanded, setExpanded] = useState(() => { try { return localStorage.getItem('deckshelf.expanded-collections') === 'true'; } catch { return false; } });
@@ -62,8 +62,8 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
             <small>{active}/{group.available} active</small>
             <button className="text-button" disabled={busy} onClick={() => children.length ? onlyMany(keys) : only(group.key)}><Focus size={14} />Only this</button>
             <CollectionMenu name={group.name} busy={busy} items={[
-              { label: group.kind === 'demo' ? 'Hide precons' : 'Hide', icon: <EyeOff size={14} />, run: () => hide(keys, group.name) },
-              ...(['account', 'folder'].includes(group.kind) ? [{ label: 'Remove…', icon: <Trash2 size={14} />, run: () => remove(keys, group.name),
+              { label: group.kind === 'demo' ? 'Hide precons' : 'Hide', icon: <EyeOff size={14} />, run: () => hide(keys) },
+              ...(['account', 'folder'].includes(group.kind) ? [{ label: 'Remove…', icon: <Trash2 size={14} />, run: () => remove(keys),
                 confirm: { text: `Remove ${group.name} and its ${group.ids.length} saved ${group.ids.length === 1 ? 'deck' : 'decks'}? Decks that are also in another collection stay.`, action: 'Remove' } }] : []),
             ]} />
           </div>

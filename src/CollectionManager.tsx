@@ -49,7 +49,6 @@ import {
   onlyGroup,
   sourceDeckIds,
   removeSources,
-  restoreSources,
   addDemo,
   updateDemo,
   importFolderSelection,
@@ -69,7 +68,7 @@ type Props = {
   setCollection: (update: Collection | ((c: Collection) => Collection)) => void;
   onClose: () => void;
   backup: () => void;
-  notify: (message: string, action?: { label: string; run: () => void }) => void;
+  notify: (message: string) => void;
   startPersonal?: boolean;
   initialSection?: string;
   initialScope?: { name: string; keys: string[] } | null;
@@ -429,15 +428,12 @@ export default function CollectionManager({
     }
     event.target.value = "";
   }
-  function hide(keys: string[], name: string) {
+  function hide(keys: string[]) {
     setCollection(c => hideGroups(c, keys, true));
-    notify(`${name} hidden. Find it under Hidden in the sidebar.`, { label: "Undo", run: () => setCollection(c => hideGroups(c, keys, false, false)) });
   }
-  function remove(keys: string[], name: string) {
-    const result = removeSources(collection, keys);
-    setCollection(result.collection);
+  function remove(keys: string[]) {
+    setCollection(c => removeSources(c, keys));
     navigate("overview");
-    notify(`${name} removed.`, { label: "Undo", run: () => setCollection(c => restoreSources(c, result.removed)) });
   }
   async function updatePrecons() {
     const signal = begin("Checking Archidekt for new precons…");
@@ -467,8 +463,8 @@ export default function CollectionManager({
       { label: "All folders on", icon: <Power size={14} />, run: () => setCollection(c => enableGroups(c, scopedKeys, true, true)) },
       { label: "All folders off", icon: <PowerOff size={14} />, run: () => setCollection(c => enableGroups(c, scopedKeys, false, true)) },
     ] : []),
-    ...(!headerHidden && headerKeys.length ? [{ label: section === "demo" ? "Hide precons" : "Hide", icon: <EyeOff size={14} />, run: () => hide(headerKeys, headerName) }] : []),
-    ...(scopedSources.length ? [{ label: "Remove…", icon: <Trash2 size={14} />, run: () => remove(scopedKeys, headerName),
+    ...(!headerHidden && headerKeys.length ? [{ label: section === "demo" ? "Hide precons" : "Hide", icon: <EyeOff size={14} />, run: () => hide(headerKeys) }] : []),
+    ...(scopedSources.length ? [{ label: "Remove…", icon: <Trash2 size={14} />, run: () => remove(scopedKeys),
       confirm: { text: `Remove ${headerName} and its ${sourceIds.size} saved ${sourceIds.size === 1 ? "deck" : "decks"}? Decks that are also in another collection stay.`, action: "Remove" } }] : []),
   ];
   return (
