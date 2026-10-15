@@ -34,12 +34,63 @@ test('dialog keeps keyboard focus, closes with Escape, and restores the deck tri
   await expect(dialog).toHaveCount(0);
 });
 
-test('Guide focuses every changed page including Back to page one', async ({ page }) => {
-  await page.getByRole('button', { name: 'Guide', exact: true }).click();
+test('Help guide focuses every changed page including Back to page one', async ({ page }) => {
+  await page.getByRole('button', { name: 'Help', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Start here', exact: true })).toBeFocused();
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Find tonight’s deck' })).toBeFocused();
   await page.getByRole('button', { name: 'Back', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Bring your decks' })).toBeFocused();
+});
+
+test('Help sections have their own addresses, follow history, and features navigate', async ({ page }) => {
+  await page.getByRole('button', { name: 'Help', exact: true }).click();
+  await expect(page).toHaveURL(/\/help\/start$/);
+  const nav = page.getByRole('navigation', { name: 'Help sections' });
+  await nav.getByRole('link', { name: 'FAQ', exact: true }).click();
+  await expect(page).toHaveURL(/\/help\/faq$/);
+  await expect(nav.getByRole('link', { name: 'FAQ', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('heading', { name: 'FAQ', exact: true })).toBeFocused();
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Start here', exact: true })).toBeVisible();
+  await page.goto('/help/roadmap');
+  await expect(page.getByRole('heading', { name: 'Next', exact: true })).toBeVisible();
+  await page.goto('/help/unknown');
+  await expect(page.getByRole('heading', { name: 'Start here', exact: true })).toBeVisible();
+  await nav.getByRole('link', { name: 'Features', exact: true }).click();
+  await page.getByRole('button', { name: /Search and filters/ }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('textbox', { name: 'Search decks' })).toBeFocused();
+  await page.getByRole('button', { name: 'Help', exact: true }).click();
+  await page.getByRole('button', { name: 'Back to collection' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('button', { name: 'Help', exact: true })).toBeFocused();
+});
+
+test('Help folders open overview pages, remember folds, and unfold for their topics', async ({ page }) => {
+  await page.goto('/help/core');
+  const nav = page.getByRole('navigation', { name: 'Help sections' });
+  await page.getByRole('link', { name: /Finding and picking/ }).last().click();
+  await expect(page).toHaveURL(/\/help\/picking$/);
+  await page.getByRole('link', { name: 'Core', exact: true }).last().click();
+  await expect(page).toHaveURL(/\/help\/core$/);
+  await nav.getByRole('button', { name: 'Collapse Project' }).click();
+  await expect(nav.getByRole('link', { name: 'Roadmap', exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(nav.getByRole('button', { name: 'Expand Project' })).toHaveAttribute('aria-expanded', 'false');
+  await page.goto('/help/roadmap');
+  await expect(nav.getByRole('link', { name: 'Roadmap', exact: true })).toHaveAttribute('aria-current', 'page');
+});
+
+test('Help topics pair rules with figures and FAQ answers link to their topic', async ({ page }) => {
+  await page.goto('/help/showing');
+  await expect(page.getByRole('group', { name: 'Collection view' }).locator('[aria-pressed="true"]')).toHaveCount(0);
+  await expect(page.locator('.help-rules li')).toHaveCount(4);
+  await expect(page.locator('.help-topic-figure figure')).toBeVisible();
+  await page.goto('/help/faq');
+  await page.getByText('Why is one of my decks missing?').click();
+  await page.getByRole('link', { name: /Adding your decks/ }).last().click();
+  await expect(page).toHaveURL(/\/help\/adding$/);
 });
 
 test('late refresh failure stays with its deck and preserves saved choices', async ({ page }) => {
@@ -91,12 +142,10 @@ for (const width of [1440, 390, 320]) {
       await expect(dialog.getByRole('button', { name: 'Refresh snapshot' })).toBeInViewport();
       await page.keyboard.press('Escape');
     }
-    for (const name of ['Help and about DeckShelf', 'Guide']) {
-      if (width <= 700) await page.locator('.phone-help summary').click();
-      await page.getByRole('button', { name, exact: name !== 'My collection' }).click();
-      await expect.poll(() => page.getByRole('dialog').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
-      await expect.poll(() => page.getByRole('dialog').evaluate(el => el.contains(document.activeElement))).toBe(true);
-      await page.keyboard.press('Escape');
+    for (const section of ['start', 'core', 'adding', 'showing', 'updates', 'picking', 'saving', 'faq', 'project', 'features', 'roadmap', 'about']) {
+      await page.goto(`/help/${section}`);
+      await expect(page.locator('#help-section-title')).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
   });
 }

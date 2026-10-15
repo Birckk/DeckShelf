@@ -13,8 +13,7 @@ import {
   ChevronDown,
   ExternalLink,
   Eye,
-  Info,
-  BookOpen,
+  CircleHelp,
   LayoutGrid,
   Library,
   Search,
@@ -42,7 +41,7 @@ import { CollectionLayoutSwitch } from "./CollectionLayoutSwitch";
 import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
 import CardStudio from "./CardStudio";
-import CollectionGuide from "./CollectionGuide";
+import HelpCenter, { helpSectionFromPath, type FeatureTarget, type HelpSection } from "./HelpCenter";
 import CollectionManager from "./CollectionManager";
 import { showcaseDecks, collectionDecks, freshCollection, addDemo } from "./collection";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
@@ -112,11 +111,21 @@ function App() {
   const collectionTrigger = useRef<HTMLButtonElement>(null);
   const [showCollection, setShowCollection] = useState(false);
   const [personalStart, setPersonalStart] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
   const [collectionSection, setCollectionSection] = useState("overview");
   const [collectionScope, setCollectionScope] = useState<{ name: string; keys: string[] } | null>(null);
   const [collectionVisit, setCollectionVisit] = useState(0);
-  const [showAbout, setShowAbout] = useState(false);
+  const [help, setHelp] = useState<HelpSection | null>(() => helpSectionFromPath(location.pathname));
+  const helpTrigger = useRef<HTMLButtonElement>(null);
+  // Help is the only addressable page; every other view keeps the plain root URL.
+  useEffect(() => {
+    const current = helpSectionFromPath(location.pathname);
+    if (help ? current !== help : current) history.pushState(null, "", help ? `/help/${help}` : "/");
+  }, [help]);
+  useEffect(() => {
+    const sync = () => setHelp(helpSectionFromPath(location.pathname));
+    addEventListener("popstate", sync);
+    return () => removeEventListener("popstate", sync);
+  }, []);
   const [showFilters, setShowFilters] = useState(false);
   const [showDisplayOptions, setShowDisplayOptions] = useState(false);
   const filterDropdownRef = useRef<HTMLDivElement>(null);
@@ -219,6 +228,29 @@ function App() {
     Number(!!filters.count);
   function updateFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
     setFilters((f) => ({ ...f, [key]: value }));
+  }
+  function openPrecons() {
+    setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
+    setHelp(null);
+    setPersonalStart(false);
+    setCollectionSection("demo");
+    setCollectionScope(null);
+    setShowCollection(true);
+  }
+  function goToFeature(target: FeatureTarget) {
+    setHelp(null);
+    if (target === "collection" || target === "precons") {
+      const present = !!collection.demo && !collection.demo.removed;
+      setPersonalStart(false);
+      setCollectionSection(target === "precons" && present ? "demo" : "overview");
+      setCollectionScope(null);
+      setShowCollection(true);
+      return;
+    }
+    setShowCollection(false);
+    if (target === "shortlist") setSelecting(true);
+    selectView(target === "search" || target === "shortlist" ? "grid" : target);
+    if (target === "search") requestAnimationFrame(() => document.querySelector<HTMLInputElement>(".studio-search input")?.focus());
   }
   function selectView(next: View) {
     if (spinning) return;
@@ -323,6 +355,7 @@ function App() {
           onClick={(e) => {
             e.preventDefault();
             setShowCollection(false);
+            setHelp(null);
             selectView(HOME_VIEW);
           }}
           aria-label="DeckShelf home"
@@ -344,10 +377,10 @@ function App() {
           ).map(({ id, label, Icon }) => (
             <button
               key={id}
-              aria-pressed={view === id}
-              className={view === id ? "active" : ""}
+              aria-pressed={view === id && !help}
+              className={view === id && !help ? "active" : ""}
               disabled={spinning}
-              onClick={() => { setShowCollection(false); selectView(id); }}
+              onClick={() => { setShowCollection(false); setHelp(null); selectView(id); }}
             >
               <Icon size={15} />
               <span>{label}</span>
@@ -355,22 +388,22 @@ function App() {
           ))}
         </div>
         <div className="header-actions">
-          <details className="phone-help" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false; }} onKeyDown={(e) => { if (e.key === "Escape") { e.currentTarget.open = false; e.currentTarget.querySelector("summary")?.focus(); } }}><summary><Info size={15} /><span>Help</span></summary><div><button onClick={(e) => { const menu = e.currentTarget.closest("details"); menu?.removeAttribute("open"); menu?.querySelector("summary")?.focus(); setShowGuide(true); }}><BookOpen size={15} />Guide</button><button aria-label="Help and about DeckShelf" onClick={(e) => { const menu = e.currentTarget.closest("details"); menu?.removeAttribute("open"); menu?.querySelector("summary")?.focus(); setShowAbout(true); }}><Info size={15} />About</button></div></details>
           <button
-            className="icon-button about-button"
-            aria-label="Help and about DeckShelf"
-            title="About DeckShelf"
-            onClick={() => setShowAbout(true)}
+            className="button button-outline help-trigger"
+            ref={helpTrigger}
+            disabled={spinning}
+            aria-current={help ? "page" : undefined}
+            onClick={() => { setShowCollection(false); setHelp("start"); }}
           >
-            <Info size={18} />
+            <CircleHelp size={16} />
+            <span>Help</span>
           </button>
-          <button className="button button-outline guide-trigger" onClick={() => setShowGuide(true)}><BookOpen size={16} /><span>Guide</span></button>
           <button
             className="button button-outline"
             disabled={spinning}
             ref={collectionTrigger}
             aria-label="My collection"
-            onClick={() => { setPersonalStart(false); if (showCollection) { setCollectionSection("overview"); setCollectionScope(null); setCollectionVisit(v => v + 1); } setShowCollection(true); }}
+            onClick={() => { setHelp(null); setPersonalStart(false); if (showCollection) { setCollectionSection("overview"); setCollectionScope(null); setCollectionVisit(v => v + 1); } setShowCollection(true); }}
           >
             <Library size={16} />
             <span>My collection</span>
@@ -386,7 +419,14 @@ function App() {
           </button>
         </div>
       )}
-      {!showCollection && <div className="studio-workspace">
+      {help && !showCollection && <HelpCenter
+        section={help}
+        onSection={setHelp}
+        onClose={() => { setHelp(null); requestAnimationFrame(() => helpTrigger.current?.focus()); }}
+        onGo={goToFeature}
+        precons={{ present: !!collection.demo && !collection.demo.removed, open: openPrecons }}
+      />}
+      {!showCollection && !help && <div className="studio-workspace">
         <fieldset
           className="studio-toolbar"
           disabled={spinning}
@@ -843,53 +883,6 @@ function App() {
           backup={backup}
           notify={setNotice}
         />
-      )}
-      {showGuide && <CollectionGuide
-        present={!!collection.demo && !collection.demo.removed}
-        onClose={() => setShowGuide(false)}
-        onPrecons={() => {
-          setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
-          setShowGuide(false);
-          setPersonalStart(false);
-          setCollectionSection("demo");
-          setCollectionScope(null);
-          setShowCollection(true);
-        }}
-      />}
-      {showAbout && (
-        <Modal
-          title="About DeckShelf"
-          onClose={() => setShowAbout(false)}
-        >
-          <div className="about-copy">
-            <p className="about-lead">Your decks, ready for game night.</p>
-            <ul className="about-points">
-              <li><strong>Showcase your collection.</strong> Browse the artwork or pick a deck at random.</li>
-              <li><strong>Make it yours.</strong> Mix public Archidekt decks with official precons. Choose what’s shown.</li>
-              <li><strong>No account needed.</strong> Choices are saved in this browser. Export a backup to keep a copy.</li>
-              <li><strong>Run it locally, too.</strong> Source imports and new artwork need internet. Edit decklists on Archidekt.</li>
-            </ul>
-            <div className="about-actions">
-              <button className="button button-gold" onClick={() => { setShowAbout(false); setPersonalStart(false); setShowCollection(true); }}>My collection <ArrowRight size={16} /></button>
-              <button className="button button-outline" onClick={() => { setShowAbout(false); setShowGuide(true); }}>Quick guide</button>
-            </div>
-            <div className="about-credits">
-              <a
-                href="https://archidekt.com/commander-precons"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Deck information: Archidekt <ExternalLink size={12} />
-              </a>
-              <span>
-                DeckShelf is unofficial Fan Content permitted under the Fan
-                Content Policy. Not approved/endorsed by Wizards. Portions of
-                the materials used are property of Wizards of the Coast.
-                ©Wizards of the Coast LLC.
-              </span>
-            </div>
-          </div>
-        </Modal>
       )}
     </div>
   );

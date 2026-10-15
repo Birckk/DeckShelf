@@ -39,9 +39,11 @@ export async function desktopResponse(request, root, api = handleApi) {
     const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
     const local = relative(root, file);
     if (local.startsWith('..') || isAbsolute(local)) return new Response('Forbidden', { status: 403 });
-    const bytes = await readFile(file);
+    // Like the web server, app routes such as /help/faq load the single page.
+    const page = extname(pathname) ? file : await readFile(file).then(() => file, () => resolve(root, 'index.html'));
+    const bytes = await readFile(page);
     return new Response(request.method === 'HEAD' ? null : bytes, { headers: {
-      'Content-Type': mime[extname(file)] || 'application/octet-stream',
+      'Content-Type': mime[extname(page)] || 'application/octet-stream',
       'Content-Security-Policy': CSP,
       'X-Content-Type-Options': 'nosniff',
       'Cache-Control': 'no-cache',

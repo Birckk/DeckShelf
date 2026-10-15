@@ -1651,9 +1651,6 @@ main {
     padding-left: 6px;
     font-size: 8px;
   }
-  .about-button {
-    display: none;
-  }
   .workspace {
     display: block;
   }

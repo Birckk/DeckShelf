@@ -23,11 +23,9 @@ try {
     await expect(page).toHaveTitle('DeckShelf');
     await expect(page.getByRole('link', { name: 'DeckShelf home' })).toBeVisible();
     await expect(page.getByRole('button', { name: /^My collection/ })).toBeVisible();
-    if (viewport.width > 600) {
-      await page.getByRole('button', { name: 'Help and about DeckShelf' }).click();
-      await expect(page.getByText('Your decks, ready for game night.', { exact: true })).toBeVisible();
-      await page.keyboard.press('Escape');
-    }
+    await page.goto(new URL('/help/about', base).href);
+    await expect(page.getByText('Your decks, ready for game night.', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Back to collection' }).click();
     await page.getByRole('button', { name: 'Collection', exact: true }).click();
     await expect.poll(() => page.locator('img').evaluateAll(images => images.filter(i => i.complete && i.naturalWidth > 0).length)).toBeGreaterThan(5);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

@@ -1539,7 +1539,6 @@ html { scrollbar-gutter: stable; }
   .inline-colors .color-button { min-height: 36px; }
 }
 
-.studio-header .about-button { display: inline-flex; flex-shrink: 0; }
 
 /* Deck details share the readable scale and compact actions of About/Guide. */
 .deck-detail { grid-template-columns: minmax(0, 280px) minmax(0, 1fr); align-items: start; }
@@ -1615,22 +1614,16 @@ body:has(.studio-workspace) { min-width:320px; }
 @media(max-width:360px) { .studio-color-controls { padding-inline:6px; gap:6px; } .inline-colors { gap:1px; } .inline-colors .color-button { width:29px; } .studio-color-controls .switch-label { padding-left:8px; gap:6px; } }
 /* Phone controls unfold only when needed; the decks lead the page. */
 .desktop-color-controls, .display-tools { display: contents; }
-.phone-color-controls, .phone-help, .display-options-toggle { display: none; }
+.phone-color-controls, .display-options-toggle { display: none; }
 @media (max-width: 700px) {
   .studio-header { padding-top: 2px; gap: 0; }
   .studio-header .brand { font-size: 18px; }
   .studio-header .brand img { width: 24px; height: 24px; }
   .studio-header .header-actions { gap: 6px; }
-  .studio-header .header-actions > .about-button,
-  .studio-header .header-actions > .guide-trigger { display: none; }
   .studio-header .header-actions > .button { min-height: 32px; padding: 4px 7px; font-size: 11px; }
   .studio-header .studio-nav { height: 34px; }
   .studio-header .studio-nav button { min-height: 34px; padding: 5px 8px; font-size: 12px; }
-  .phone-help { display: block; position: relative; font-size: 11px; }
-  .phone-help summary { display: flex; align-items: center; gap: 4px; padding: 7px 4px; cursor: pointer; list-style: none; }
-  .phone-help summary::-webkit-details-marker { display: none; }
-  .phone-help > div { position: absolute; right: 0; top: 100%; z-index: 100; padding: 4px; min-width: 120px; background: #202023; border: 1px solid #414044; border-radius: 6px; box-shadow: 0 8px 24px #0008; }
-  .phone-help button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px; border: 0; background: transparent; color: inherit; text-align: left; }
+  .studio-header .header-actions > .help-trigger { border-color: transparent; background: none; gap: 4px; padding-inline: 4px; }
   .desktop-color-controls { display: none; }
   .phone-color-controls { display: block; }
   .phone-color-controls .studio-color-controls { display: flex; border: 0; padding: 8px 0; justify-content: space-between; }

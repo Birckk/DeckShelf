@@ -18,6 +18,9 @@ test('desktop serves only packaged assets and rejects foreign origins and file e
     assert.equal((await desktopResponse(new Request('archive://app/%2e%2e%2fsecret'), root)).status, 403);
     assert.equal((await desktopResponse(new Request('archive://app/%5csecret'), root)).status, 400);
     assert.equal((await desktopResponse(new Request('archive://app/missing.js'), root)).status, 404);
+    const route = await desktopResponse(new Request('archive://app/help/faq'), root);
+    assert.equal(await route.text(), '<h1>Archive</h1>');
+    assert.match(route.headers.get('Content-Type'), /text\/html/);
     assert.equal(await (await desktopResponse(new Request('archive://app/', { method: 'HEAD' }), root)).text(), '');
   } finally { await rm(root, { recursive: true, force: true }); }
 });

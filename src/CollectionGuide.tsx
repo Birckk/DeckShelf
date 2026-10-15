@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Dices, Link2 } from "lucide-react";
-import { Modal } from "./components";
 import decks from "./data/decks.json";
 
 const pages = [
@@ -25,8 +24,9 @@ function GuidePicture({ step }: { step: number }) {
     {step === 1 && <div className="guide-dice"><Dices size={25} /><span>Pick a deck</span></div>}
   </div>;
 }
-export default function CollectionGuide({ present, onClose, onPrecons }: {
-  present: boolean; onClose: () => void; onPrecons: () => void;
+/** The three-page visual guide, shown as Help's Start here section. */
+export default function CollectionGuide({ present, onPrecons }: {
+  present: boolean; onPrecons: () => void;
 }) {
   const [step, setStep] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -35,19 +35,17 @@ export default function CollectionGuide({ present, onClose, onPrecons }: {
     if (previousStep.current !== step) heading.current?.focus();
     previousStep.current = step;
   }, [step]);
-  return <Modal title="Quick guide" onClose={onClose}>
-    <div className="collection-guide">
-      <GuidePicture step={step} />
-      <h2 ref={heading} tabIndex={-1}>{pages[step].title}</h2>
-      <p>{pages[step].caption}</p>
-      <div className="guide-progress" aria-label={`Page ${step + 1} of 3`}>
-        {pages.map((page, index) => <span key={page.title} className={index === step ? "active" : ""} />)}
-      </div>
-      <div className="guide-actions">
-        {step > 0 ? <button className="button button-outline" onClick={() => setStep(step - 1)}><ArrowLeft size={16} /> Back</button> : <span />}
-        {step < 2 ? <button className="button button-gold" onClick={() => setStep(step + 1)}>Next <ArrowRight size={16} /></button> :
-          <button className="button button-gold" onClick={onPrecons}>{present ? "View official precons" : "Add official precons"} <ArrowRight size={16} /></button>}
-      </div>
+  return <div className="collection-guide">
+    <GuidePicture step={step} />
+    <h3 ref={heading} tabIndex={-1}>{pages[step].title}</h3>
+    <p>{pages[step].caption}</p>
+    <div className="guide-progress" aria-label={`Page ${step + 1} of 3`}>
+      {pages.map((page, index) => <span key={page.title} className={index === step ? "active" : ""} />)}
     </div>
-  </Modal>;
+    <div className="guide-actions">
+      {step > 0 ? <button className="button button-outline" onClick={() => setStep(step - 1)}><ArrowLeft size={16} /> Back</button> : <span />}
+      {step < 2 ? <button className="button button-gold" onClick={() => setStep(step + 1)}>Next <ArrowRight size={16} /></button> :
+        <button className="button button-gold" onClick={onPrecons}>{present ? "View official precons" : "Add official precons"} <ArrowRight size={16} /></button>}
+    </div>
+  </div>;
 }

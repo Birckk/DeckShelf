@@ -1,5 +1,7 @@
 # Using DeckShelf
 
+The same topics are in the app under **Help** (`/help`), with a FAQ and the roadmap.
+
 ## Browsing
 
 DeckShelf has three views of the same collection:

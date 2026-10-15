@@ -6,6 +6,8 @@ import { handleApi } from './server/api.mjs';
 
 export default defineConfig({
   plugins: [react(), { name: 'archidekt-import', configureServer(server) { server.middlewares.use(handleApi); } }],
-  server: { port: 4317, strictPort: true },
+  // Agent worktrees live under .claude/; watching or scanning them reloads this checkout's dev server.
+  server: { port: 4317, strictPort: true, watch: { ignored: ['**/.claude/**'] } },
+  optimizeDeps: { entries: ['index.html'] },
   preview: { port: 4318, strictPort: true },
 });
