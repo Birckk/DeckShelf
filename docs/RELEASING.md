@@ -93,10 +93,11 @@ request elevation. It adds a Start menu shortcut and Windows uninstall registrat
 but no desktop shortcut. The stable appId identifies upgrades. Uninstall retains
 the separate user profile. The ZIP is an optional portable alternative. No certificate,
 auto-updater or machine-wide install is configured.
-`signAndEditExecutable: false` avoids signing-tool requirements; consequently the
-runtime executable's embedded branding/metadata may retain Electron defaults.
+`signExecutable: false` avoids signing-tool requirements while electron-builder still
+writes the DeckShelf icon (`desktop/icon.ico`, from `scripts/app-icons.mjs`) and
+version details into the executable; the installer and uninstaller use the same icon.
 The window title and executable filename are DeckShelf. Authenticode
-signing, a branded executable icon, ARM64, macOS and Linux distributables remain
+signing, ARM64, macOS and Linux distributables remain
 future release work. Checksums detect corruption but do not establish authenticity.
 
 Keep Electron's LICENSE/Chromium notices and generated dependency licenses in the

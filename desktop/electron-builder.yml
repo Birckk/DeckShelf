@@ -11,6 +11,7 @@ files:
   - desktop/**/*
   - '!desktop/electron-builder.yml'
   - '!desktop/installer.nsh'
+  - '!desktop/icon.ico'
   - server/api.mjs
   - server/sources.mjs
   - package.json
@@ -31,7 +32,10 @@ win:
     - target: zip
       arch: [x64]
   artifactName: DeckShelf-${version}-windows-${arch}.${ext}
-  signAndEditExecutable: false
+  # Rendered by scripts/app-icons.mjs; also used for the installer and uninstaller.
+  icon: desktop/icon.ico
+  # Unsigned, but still let electron-builder write the icon and version details into the exe.
+  signExecutable: false
 nsis:
   artifactName: DeckShelf-Setup-${version}-x64.exe
   oneClick: false
