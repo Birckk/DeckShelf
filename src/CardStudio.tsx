@@ -131,6 +131,7 @@ export default function CardStudio({
               <Artwork
                 src={item.commanders[0].image}
                 alt={item.commanders[0].name}
+                colors={item.colors}
                 eager={distance <= 3}
               />
             </button>

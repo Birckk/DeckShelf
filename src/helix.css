@@ -161,6 +161,10 @@
   object-fit: cover;
   pointer-events: none;
 }
+/* The caption already names the deck; keep only the identity art. */
+.helix-card > .art-fallback > :not(.identity-art) {
+  display: none;
+}
 .helix-card-shade {
   position: absolute;
   inset: 0;

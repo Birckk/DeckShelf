@@ -1,5 +1,5 @@
 import { chromium, expect } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const base = process.env.BASE_URL || 'http://127.0.0.1:4319';
 await expect.poll(async () => {
@@ -32,8 +32,53 @@ try {
     await page.screenshot({ path: `qa/web/${viewport.width}.png`, fullPage: false });
     await context.close();
   }
+  await offlineSmoke(browser);
   expect(errors).toEqual([]);
-  console.log('Web smoke passed: health, routes, desktop and mobile collection.');
+  console.log('Web smoke passed: health, routes, desktop and mobile collection, offline shell and update.');
 } finally {
   await browser.close();
+}
+
+// Installable shell: a previously loaded app opens offline with artwork it has shown, sources
+// are never served from cache, and an update waits for Reload. The update step needs a server reading this checkout's dist/.
+async function offlineSmoke(browser) {
+  const manifest = await fetch(`${base}/manifest.webmanifest`);
+  expect(manifest.headers.get('content-type')).toContain('application/manifest+json');
+  const { display, icons } = await manifest.json();
+  expect(display).toBe('standalone');
+  for (const { src } of icons) expect((await fetch(base + src)).status, src).toBe(200);
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(base);
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  const loadedArt = () => page.locator('img[src^="https://cards.scryfall.io/"]').evaluateAll(images => images.filter(i => i.complete && i.naturalWidth > 0).length);
+  await expect.poll(loadedArt).toBeGreaterThan(3);
+  await expect.poll(() => page.evaluate(async () => (await (await caches.open('deckshelf-art-v1')).keys()).length)).toBeGreaterThan(3);
+  // Without the browser's HTTP cache, offline artwork can only come from the worker's art cache.
+  await (await context.newCDPSession(page)).send('Network.clearBrowserCache');
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page).toHaveTitle('DeckShelf');
+  await expect(page.getByRole('button', { name: /^My collection/ })).toBeVisible();
+  await expect.poll(loadedArt).toBeGreaterThan(3);
+  expect(await page.evaluate(async () => (await fetch('/brand-familiar.svg')).ok)).toBe(true);
+  expect(await page.evaluate(() => fetch('/api/decks/1').then(() => 'served', () => 'network'))).toBe('network');
+  await context.setOffline(false);
+  const file = new URL('../dist/sw.js', import.meta.url);
+  const original = await readFile(file, 'utf8').catch(() => null);
+  if (original !== null && original === await (await fetch(`${base}/sw.js`)).text()) {
+    try {
+      await writeFile(file, original.replace(/const VERSION = "(\w+)"/, 'const VERSION = "$1-next"'));
+      await page.evaluate(() => navigator.serviceWorker.getRegistration().then(r => r.update()));
+      await Promise.all([page.waitForEvent('load'), page.getByRole('button', { name: 'Reload', exact: true }).click()]);
+      // The old shell is removed; viewed artwork survives the update.
+      await expect.poll(() => page.evaluate(async () => (await caches.keys()).sort())).toEqual(['deckshelf-art-v1', expect.stringMatching(/^deckshelf-shell-.*-next$/)]);
+    } finally {
+      await writeFile(file, original);
+    }
+  }
+  await context.close();
 }

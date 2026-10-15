@@ -950,6 +950,30 @@ main {
   padding: 20px;
   font-size: 11px;
 }
+/* Identity art fills the frame; the name and Offline sit over its lower part. */
+.art-fallback.has-identity,
+.detail-cards > div > .art-fallback.has-identity {
+  position: relative;
+  overflow: hidden;
+  justify-content: flex-end;
+  padding: 0 12px 14%;
+  background: #1b1c20;
+  color: #e8e4da;
+}
+.identity-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.art-fallback.has-identity > :not(.identity-art) {
+  position: relative;
+  text-shadow: 0 1px 3px #000c;
+}
+.art-fallback small {
+  font-size: 10px;
+  color: #8f977f;
+}
 .picker {
   position: relative;
   border: 1px solid #c0a26520;
@@ -1501,6 +1525,18 @@ main {
 }
 .storage-warning .text-button {
   color: #fff;
+}
+.update-notice {
+  background: #2f3b2a;
+  color: #e3d6b7;
+  padding: 10px 30px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.update-notice .text-button {
+  color: #f3f1ec;
 }
 @media (min-width: 1500px) {
   .workspace {

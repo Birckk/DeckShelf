@@ -75,6 +75,12 @@ export function matchesDeck(deck: Deck, f: Filters): boolean {
 export type DescriptionPart = { text: string; card?: true };
 // Archidekt descriptions reference cards as [[Card Name]]; split them out so
 // the name renders as plain (emphasised) text instead of raw markup.
+// Archidekt mirrors Scryfall's card images byte for byte, but only Scryfall's CDN allows
+// cross-origin reads, which lets the service worker check and keep artwork for offline use.
+const ARCHIDEKT_IMAGE = /^https:\/\/card-images\.archidekt\.com\/(art|grid)\/(front|back)\/([0-9a-f])\/([0-9a-f])\/([0-9a-f-]{36})\.webp$/;
+export function cardImage(url: string) {
+  return url.replace(ARCHIDEKT_IMAGE, "https://cards.scryfall.io/$1/$2/$3/$4/$5.webp");
+}
 export function descriptionParts(description: string): DescriptionPart[] {
   const parts: DescriptionPart[] = [];
   let last = 0;

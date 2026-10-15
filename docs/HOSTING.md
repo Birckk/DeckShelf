@@ -51,6 +51,16 @@ deckshelf.example.com {
 If a CDN proxies the site, do not cache `/api/*` or `/healthz`. Keep registry
 credentials in Docker's credential store, never in this repository.
 
+## Offline app
+
+The build writes `sw.js`, a service worker that precaches the app shell and
+bundled files under a content hash, plus `manifest.webmanifest`. Serve both
+uncached or revalidated (the Node server sends `no-cache` for everything outside
+`/assets/`); a long CDN cache on `sw.js` delays updates. `/api/` responses are
+never cached by the worker. Viewed card art is cached in the browser from
+Scryfall's CDN, which allows cross-origin reads; the server never proxies images.
+Offline support needs HTTPS (or `localhost`) and is not used by the desktop app.
+
 ## Updates and rollback
 
 Change the pinned digest and run `up -d --wait` again; keep the previous digest to

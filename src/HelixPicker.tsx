@@ -382,6 +382,7 @@ export default function HelixPicker({
               <Artwork
                 src={deck.commanders[0].art}
                 alt={deck.commanders[0].name}
+                colors={deck.colors}
                 eager={index < 42}
               />
               <span className="helix-card-shade" />
@@ -405,6 +406,7 @@ export default function HelixPicker({
               <Artwork
                 src={winner.commanders[0].image}
                 alt={winner.commanders[0].name}
+                colors={winner.colors}
                 eager
               />
             </button>

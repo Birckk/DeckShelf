@@ -132,7 +132,7 @@
 .overview-previews > :not(:first-child) {
   margin-left: -17px;
 }
-.overview-previews .art-fallback span {
+.overview-previews .art-fallback :is(span, small) {
   display: none;
 }
 .overview-catalog {
@@ -444,7 +444,7 @@
   border-radius: 4px;
   background: #23242b;
 }
-.manager-deck > .art-fallback span {
+.manager-deck > .art-fallback :is(span, small) {
   display: none;
 }
 .manager-art-placeholder {

@@ -17,9 +17,12 @@ to their respective owners, including Wizards of the Coast and the credited arti
   deck viewer and in `resources/notices/artwork.json` in the desktop package.
 - Mana SVGs came from [Scryfall's symbology API](https://scryfall.com/docs/api/card-symbols).
   Availability through an API is not a transfer of copyright.
-- Added accounts, folders and decks are read-only public Archidekt sources. Images
-  for imported decks are requested from their remote source and are not guaranteed
-  to be available offline.
+- Added accounts, folders and decks are read-only public Archidekt sources.
+- Card images for the precon catalog and imported decks load from
+  [Scryfall](https://scryfall.com/docs/api/images) (the same files Archidekt
+  mirrors), unmodified. The hosted app keeps up to about 800 viewed images in the
+  visitor's browser for offline use; nothing is re-hosted or proxied. Artists are
+  credited in deck details.
 - Card art and mana symbols are included in the app and its downloads under the
   [Wizards Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy)
   (owner decision, 2026-10-12). DeckShelf stays free, has no paywall, uses no

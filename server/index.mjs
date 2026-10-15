@@ -7,7 +7,7 @@ import { handleApi } from './api.mjs';
 
 const root = fileURLToPath(new URL('../dist/', import.meta.url));
 if (!existsSync(resolve(root, 'index.html'))) { console.error('Build the app first: npm run build'); process.exit(1); }
-const mime = {'.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.json':'application/json', '.svg':'image/svg+xml', '.webp':'image/webp', '.png':'image/png', '.woff2':'font/woff2', '.ico':'image/x-icon'};
+const mime = {'.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.json':'application/json', '.svg':'image/svg+xml', '.webp':'image/webp', '.png':'image/png', '.woff2':'font/woff2', '.ico':'image/x-icon', '.webmanifest':'application/manifest+json'};
 const port = Number(process.env.PORT || 4317);
 const host = process.env.HOST || '127.0.0.1';
 const server = createServer((req,res) => {

@@ -9,9 +9,12 @@ import "./styles.css";
 import "./helix.css";
 import "./studio.css";
 import App from "./App";
+import { registerServiceWorker } from "./pwa";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
 );
+
+registerServiceWorker();

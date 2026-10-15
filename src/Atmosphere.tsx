@@ -4,7 +4,7 @@ import {
   type CSSProperties,
   type PointerEvent,
 } from "react";
-import type { Deck } from "./domain";
+import { cardImage, type Deck } from "./domain";
 
 const light: Record<string, string> = {
   W: "218, 193, 136",
@@ -48,7 +48,7 @@ export function Atmosphere({
             } as CSSProperties
           }
         >
-          <img src={item.commanders[0].art} alt="" />
+          <img src={cardImage(item.commanders[0].art)} crossOrigin="anonymous" alt="" />
           <div className="atmosphere-colors" />
         </div>
       ))}

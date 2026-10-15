@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { X, ImageOff } from "lucide-react";
-import { COLORS, type Color } from "./domain";
+import { cardImage, COLORS, type Color } from "./domain";
+import { useOnline } from "./pwa";
+import { NestArt } from "./placeholders/NestArt";
 
 export function ManaSymbol({ color }: { color: Color | "C" }) {
   return (
@@ -43,27 +45,34 @@ export function Artwork({
   alt,
   className = "",
   eager = false,
+  colors,
 }: {
   src: string;
   alt: string;
   className?: string;
   eager?: boolean;
+  /** Deck colour identity; drawn in place of the artwork when it can't load. */
+  colors?: Color[];
 }) {
   const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [src]);
+  const online = useOnline();
+  // Imported artwork comes from Archidekt; retry once the connection returns.
+  useEffect(() => setFailed(false), [src, online]);
   return failed ? (
     <div
-      className={`art-fallback ${className}`}
+      className={`art-fallback ${colors ? "has-identity" : ""} ${className}`}
       role="img"
-      aria-label={`${alt} — image unavailable`}
+      aria-label={`${alt} — ${online ? "image unavailable" : "artwork unavailable offline"}`}
     >
-      <ImageOff size={28} />
+      {colors ? <NestArt colors={colors} /> : <ImageOff size={28} />}
       <span>{alt}</span>
+      {!online && <small>Offline</small>}
     </div>
   ) : (
     <img
       className={className}
-      src={src}
+      src={cardImage(src)}
+      crossOrigin={cardImage(src) === src ? undefined : "anonymous"}
       alt={alt}
       loading={eager ? "eager" : "lazy"}
       onError={() => setFailed(true)}

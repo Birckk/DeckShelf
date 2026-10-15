@@ -62,5 +62,25 @@ browsers or move to another computer. **Restore backup** shows what the file
 contains and asks before it replaces the current collection.
 
 Adding or refreshing decks needs an internet connection. Deck details are saved
-locally, so browsing and picking work offline, but card artwork loads from the
-internet unless your browser has cached it.
+locally, so browsing and picking work offline.
+
+## Installing and offline use
+
+The hosted site can be installed as an app; it is optional, and the normal web
+address keeps working.
+
+- **Chrome, Edge (desktop and Android):** use the install icon in the address bar
+  or *Install app* / *Add to Home screen* in the browser menu.
+- **Safari on iPhone and iPad:** Share → *Add to Home Screen*. The installed app
+  keeps its **own** storage, separate from Safari: export a backup in Safari and
+  restore it in the installed app to bring your collection across.
+- **Firefox (desktop):** no install option; offline use still works in the tab.
+
+Once DeckShelf has loaded, it opens offline with your saved collection, filters
+and the picker. Artwork you have already seen is kept on the device (up to about
+800 images); artwork you haven't seen yet shows a dragon holding the deck's mana
+symbols, marked *Offline*. Adding and refreshing decks wait for a connection. Installing does not
+sync anything between devices; use backups for that.
+
+When a new version is ready, DeckShelf says so above the collection. **Reload**
+switches to it; **Later** keeps the current page. Your collection is unaffected.

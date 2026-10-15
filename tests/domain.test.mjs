@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { descriptionParts, matchesDeck, randomIndex, parseCollection, validateDeck, EMPTY_FILTERS } from '../src/domain.ts';
+import { cardImage, descriptionParts, matchesDeck, randomIndex, parseCollection, validateDeck, EMPTY_FILTERS } from '../src/domain.ts';
 import { normalizeDeck, descriptionText } from '../server/api.mjs';
 
 const decks = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)));
@@ -114,4 +114,12 @@ test('[[Card Name]] references in descriptions become plain, marked card names',
   assert.deepEqual(descriptionParts(''),[]);
   const bundled = JSON.parse(readFileSync(new URL('../src/data/precons.json', import.meta.url)));
   for (const d of [...decks, ...bundled.decks]) for (const p of descriptionParts(d.description || '')) assert.ok(!p.text.includes('[['), d.name);
+});
+
+test('Archidekt card images map to the identical Scryfall files; other images are untouched', () => {
+  const id = '0ba9362f-eb35-4e72-8c51-7047c0a3f648';
+  assert.equal(cardImage(`https://card-images.archidekt.com/art/front/0/b/${id}.webp`), `https://cards.scryfall.io/art/front/0/b/${id}.webp`);
+  assert.equal(cardImage(`https://card-images.archidekt.com/grid/back/0/b/${id}.webp`), `https://cards.scryfall.io/grid/back/0/b/${id}.webp`);
+  for (const url of ['/images/x-art.webp', `https://card-images.archidekt.com/crop/front/0/b/${id}.webp`, `https://example.com/art/front/0/b/${id}.webp`])
+    assert.equal(cardImage(url), url);
 });

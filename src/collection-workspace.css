@@ -145,7 +145,7 @@ body:has(.collection-workspace) { min-width:320px; }
 .collection-box-art { display:flex; width:100%; height:140px; overflow:hidden; }
 .collection-box-art > img, .collection-box-art > .art-fallback { width:0; flex:1; min-width:0; height:100%; object-fit:cover; object-position:50% 35%; border-radius:0; }
 .collection-box-art > :not(:first-child) { border-left:2px solid #191a1e; }
-.collection-box-art .art-fallback span { display:none; }
+.collection-box-art .art-fallback :is(span, small) { display:none; }
 .collection-box-empty { height:140px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#85858e; background:#15161a; font-size:12px; }
 .collection-box-open { position:absolute; bottom:8px; right:8px; width:27px; height:27px; display:grid; place-items:center; border-radius:3px; background:#111214db; color:#e7e1d5; }
 .collection-box-cover:hover .collection-box-open { background:#e2cba4; color:#1a1916; }

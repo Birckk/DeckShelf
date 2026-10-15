@@ -77,6 +77,8 @@ type Props = {
   onRestore: (collection: Collection) => void;
 };
 async function jsonRequest(path: string, signal: AbortSignal) {
+  if (!navigator.onLine)
+    throw new Error("You're offline. Connect to the internet to read Archidekt.");
   const response = await fetch(path, {
     signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]),
   });

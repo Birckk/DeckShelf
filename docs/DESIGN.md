@@ -181,3 +181,8 @@ Layout, the same on overview boxes, source headers and phones:
 - Header: pill and Only this on the left; Refresh (sources only) and ⋯ More at the far edge. A hidden collection shows Hidden · Show in place of the pill.
 - More holds the rarer actions in a fixed order: All folders on / All folders off (folder scopes), Hide, Remove…. Remove confirms inside the menu with focus on Cancel. The menu supports arrow keys and Escape and returns focus to its button.
 - Do not reintroduce Disable/Disconnect/Remove precons synonyms, a phone-only Actions toggle, or a restore banner.
+
+### Offline artwork (October 15)
+
+- When commander art can't load, show the dragon nest (`src/placeholders/NestArt.tsx`): the familiar coiled around five mana orbs. Each colour in the deck's identity shows its symbol, and missing colours stay as empty sockets. Colourless decks show the colourless symbol in the centre. Below it go the commander name and *Offline* when the device is offline. The picker shows only the art because its caption already names the deck. Explore visuals by generating many image ideas around the mana symbols, then convert the owner's pick to SVG (see the exploration in issue #62).
+- Installed-app icons (`public/icons/`) are the header mark, `brand-familiar.svg`, rendered unchanged on the app background by `scripts/pwa-icons.mjs`. Never recolour the mark for icons. The browser tab keeps `favicon.svg`.

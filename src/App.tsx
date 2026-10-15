@@ -37,6 +37,7 @@ import {
   type Filters,
 } from "./domain";
 import { Artwork, Mana, ManaSymbol, Modal } from "./components";
+import { applyUpdate, useOnline, useUpdateReady } from "./pwa";
 import { CollectionLayoutSwitch } from "./CollectionLayoutSwitch";
 import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
@@ -159,6 +160,9 @@ function App() {
   const [spinning, setSpinning] = useState(false);
   const [notice, setNoticeState] = useState<{ text: string; action?: NoticeAction } | null>(null);
   const setNotice = (text: string, action?: NoticeAction) => setNoticeState(text ? { text, action } : null);
+  const online = useOnline();
+  const updateReady = useUpdateReady();
+  const [updateLater, setUpdateLater] = useState(false);
   useEffect(() => {
     if (storageLocked) return;
     try {
@@ -416,6 +420,17 @@ function App() {
           {storageError}{" "}
           <button className="text-button" onClick={backup}>
             Export backup
+          </button>
+        </div>
+      )}
+      {updateReady && !updateLater && (
+        <div className="update-notice" role="status">
+          A new version of DeckShelf is ready.
+          <button className="text-button" onClick={applyUpdate}>
+            Reload
+          </button>
+          <button className="text-button" onClick={() => setUpdateLater(true)}>
+            Later
           </button>
         </div>
       )}
@@ -784,7 +799,7 @@ function App() {
             >
               {detail.commanders.map((c) => (
                 <div key={c.name}>
-                  <Artwork src={c.image} alt={c.name} eager />
+                  <Artwork src={c.image} alt={c.name} colors={detail.colors} eager />
                   <span>Illustration by {c.artist || "artist unlisted"}</span>
                 </div>
               ))}
@@ -836,7 +851,7 @@ function App() {
               </a>
               <button
                 className="button button-outline refresh-source"
-                disabled={refreshing}
+                disabled={refreshing || !online}
                 onClick={() => refreshDeck(detail)}
               >
                 <RefreshCw size={15} className={refreshing ? "refreshing" : ""} />
@@ -854,6 +869,11 @@ function App() {
                     Original reference <ExternalLink size={12} />
                   </a>
                 )}
+              {!online && (
+                <p className="source-note">
+                  You're offline. Refresh when you're connected.
+                </p>
+              )}
               {refreshError?.id === detail.id && (
                 <p className="inline-error" role="alert">
                   {refreshError.message}
@@ -920,6 +940,7 @@ function DeckTile({
         <Artwork
           src={deck.commanders[0].image}
           alt={deck.commanders[0].name}
+          colors={deck.colors}
           eager={index < 8}
         />
       </button>
