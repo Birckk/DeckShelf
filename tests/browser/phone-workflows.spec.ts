@@ -63,6 +63,9 @@ for (const width of [320, 390]) test('phone browsing controls form compact group
   await page.goto('/');
   const count = page.locator('.result-count');
   const trigger = page.getByRole('button',{name:'Choose a few',exact:true});
+  // Measure after DM Sans replaces the fallback font, which is narrower.
+  await expect(count).toBeVisible();
+  await page.evaluate(()=>document.fonts.ready);
   const countBox=(await count.boundingBox())!, entryBox=(await trigger.boundingBox())!;
   expect(Math.abs(countBox.y+countBox.height/2-entryBox.y-entryBox.height/2)).toBeLessThan(2);
   const mode=page.getByRole('button',{name:'Cards only',exact:true});
