@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { buildCatalog, updateCatalog } from '../scripts/precon-catalog.mjs';
 import { discoverSource } from '../server/sources.mjs';
 import { parseCollection, validateDeck } from '../src/domain.ts';
-import { freshCollection, addDemo, removeDemo, collectionDecks, showcaseDecks, showcaseGroups, enableGroup, onlyGroup, saveSnapshots, selectSourceDecks, disconnectSource } from '../src/collection.ts';
+import { freshCollection, addDemo, removeDemo, collectionDecks, showcaseDecks, showcaseGroups, enableGroup, onlyGroup, saveSnapshots, selectSourceDecks, removeSources, hideGroups, hiddenEntries } from '../src/collection.ts';
 const legacy = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)));
 const snapshot = JSON.parse(readFileSync(new URL('../src/data/precons.json', import.meta.url)));
 const deck = snapshot.decks[0];
@@ -49,7 +49,7 @@ test('legacy starter-only and personalized v1 backups never expand automatically
   }
   assert.equal(visible(parseCollection(JSON.stringify(old))).length, 29);
 });
-test('personal source and manual overlaps survive demo removal, backup and disconnect', () => {
+test('personal source and manual overlaps survive demo removal, backup and source removal', () => {
   const fresh = freshCollection(snapshot);
   let c = { ...saveSnapshots(fresh, [deck]), sources: [source] };
   c = selectSourceDecks(c, source.key, [deck.id], collectionDecks(c, legacy));
@@ -59,8 +59,14 @@ test('personal source and manual overlaps survive demo removal, backup and disco
   const manual = { ...paused, manualIds: [deck.id] };
   assert.deepEqual(ids(visible(manual)), [deck.id]);
   assert.deepEqual(parseCollection(JSON.stringify(manual)), manual);
-  const disconnected = disconnectSource(c, source.key, legacy, collectionDecks(c, legacy));
-  assert.deepEqual(ids(visible(removeDemo(disconnected))), [deck.id]);
+  // A manual copy of the same deck survives removing the source.
+  const removed = removeSources({ ...c, manualIds: [deck.id] }, [source.key]).collection;
+  assert.deepEqual(ids(visible(removeDemo(removed))), [deck.id]);
+  // Hiding precons is the v1 removed flag, listed under Hidden and shown again with its choices.
+  const hidden = hideGroups(c, ['demo'], true);
+  assert.equal(hidden.demo.removed, true);
+  assert.deepEqual(hiddenEntries(hidden, showcaseGroups(hidden, legacy, collectionDecks(hidden, legacy))).map(e => e.key), ['demo']);
+  assert.equal(hideGroups(hidden, ['demo'], false).demo.removed, false);
   const only = onlyGroup(c, source.key, showcaseGroups(c, legacy, collectionDecks(c, legacy)));
   assert.deepEqual(ids(visible(only)), [deck.id]);
   // Refreshing a demo card is metadata, not a personal import.

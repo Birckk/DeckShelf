@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parseCollection } from '../src/domain.ts';
-import { enableGroups, enableGroup, onlyGroup, rememberSource, setSourceSelection, showcaseDecks, showcaseGroups, disconnectSource } from '../src/collection.ts';
+import { enableGroups, enableGroup, onlyGroup, rememberSource, setSourceSelection, showcaseDecks, showcaseGroups, removeSources } from '../src/collection.ts';
 const deck = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)))[0];
 const makeSource = id => ({ key: `folder:${id}`, kind: 'folder', value: id, name: `Folder ${id}`, url: `https://archidekt.com/folders/${id}`, checkedAt: '2026-10-04T12:00:00Z', knownIds: [deck.id], selectedIds: [deck.id], entries: [{ id: deck.id, name: deck.name, colors: deck.colors, image: deck.commanders[0].art }] });
 const base = { version: 1, starter: false, added: [deck], hidden: [], excluded: [deck.id], sources: [makeSource('42'), makeSource('43')] };
@@ -26,16 +26,16 @@ test('discovering an overlapping source does not steal legacy individual imports
   assert.equal(showcaseDecks(discovered, [], [deck]).length, 1);
 });
 
-test('hierarchy and retained membership survive refresh, backup and disconnect', () => {
+test('hierarchy and retained membership survive refresh, backup and removal', () => {
   const source = { ...makeSource('42'), folderPath: 'Home / Test / Mono-color', connectionKey: 'account:birckk', connectionName: 'Birckk' };
   const c = setSourceSelection({ ...base, sources: [source] }, [source.key], [deck.id], false, [deck]);
   const refreshed = rememberSource(c, makeSource('42'));
   assert.equal(refreshed.sources[0].folderPath, source.folderPath);
   assert.deepEqual(refreshed.sources[0].ownedIds, [deck.id]);
   assert.deepEqual(parseCollection(JSON.stringify(refreshed)), refreshed);
-  const detached = disconnectSource(refreshed, source.key, [], [deck]);
-  assert.deepEqual(detached.added, [deck]);
-  assert.deepEqual(showcaseDecks(detached, [], [deck]), []);
+  const detached = removeSources(refreshed, [source.key]).collection;
+  assert.deepEqual(detached.added, []);
+  assert.deepEqual(showcaseDecks(detached, [], []), []);
 });
 
 
@@ -63,6 +63,6 @@ test('nested pauses retain child choices while explicit edits supersede enclosin
   assert.deepEqual(resumed.disabledGroups, [keys[1]]);
   const edited = enableGroup(parent, keys[0], true);
   assert.deepEqual(edited.pausedGroups, []);
-  assert.doesNotThrow(() => parseCollection(JSON.stringify(disconnectSource(parent, keys[0], [], [deck]))));
+  assert.doesNotThrow(() => parseCollection(JSON.stringify(removeSources(parent, [keys[0]]).collection)));
   assert.throws(() => parseCollection(JSON.stringify({ ...base, pausedGroups: [{ keys: ['folder:42', 'unknown'], enabled: [] }] })));
 });

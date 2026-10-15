@@ -1,33 +1,34 @@
-import PreconRemoval from './PreconRemoval';
+import CollectionMenu from './CollectionMenu';
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, ExternalLink, Folder, Library, Link2, UserRound, Power, Focus, ChevronDown, ChevronUp, PowerOff, Trash2, Plus } from 'lucide-react';
+import { ArrowUpRight, ExternalLink, EyeOff, Folder, Library, Link2, UserRound, Power, Focus, ChevronDown, ChevronUp, Trash2, Plus } from 'lucide-react';
 import { Artwork } from './components';
 import type { Collection, Deck } from './domain';
-import type { ShowcaseGroup } from './collection';
+import { isHidden, type ShowcaseGroup } from './collection';
 
-export default function CollectionOverview({ groups, collection, decks, busy, navigate, openScope, toggle, only, onlyMany, enableAll, browsePrecons, addDemo, removeDemo, removeSources, disable }: {
+export default function CollectionOverview({ groups, collection, decks, busy, navigate, openScope, toggle, only, onlyMany, enableAll, browsePrecons, addDemo, hide, remove }: {
   groups: ShowcaseGroup[]; collection: Collection; decks: Deck[]; busy: boolean;
   navigate: (key: string) => void; openScope: (key: string, name: string, keys: string[]) => void;
   toggle: (keys: string[], enabled: boolean, all?: boolean) => void; only: (key: string) => void;
   onlyMany: (keys: string[]) => void; enableAll: () => void;
-  disable: (keys: string[]) => void;
-  removeSources: (keys: string[]) => void;
-  browsePrecons: () => void; addDemo: () => void; removeDemo: () => void;
+  hide: (keys: string[], name: string) => void;
+  remove: (keys: string[], name: string) => void;
+  browsePrecons: () => void; addDemo: () => void;
 }) {
   const [expanded, setExpanded] = useState(() => { try { return localStorage.getItem('deckshelf.expanded-collections') === 'true'; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem('deckshelf.expanded-collections', String(expanded)); } catch { /* Keep session state if storage is unavailable. */ } }, [expanded]);
   const summaries: { group: ShowcaseGroup; children: ShowcaseGroup[]; keys: string[] }[] = [];
   const saved = new Map(decks.map(deck => [deck.id, deck]));
   const seen = new Set<string>();
-  const ordered = [...groups.filter(g => ['account', 'folder'].includes(g.kind)), ...groups.filter(g => !['account', 'folder'].includes(g.kind))];
+  const visible = groups.filter(g => !isHidden(collection, g.key));
+  const ordered = [...visible.filter(g => ['account', 'folder'].includes(g.kind)), ...visible.filter(g => !['account', 'folder'].includes(g.kind))];
   for (const group of ordered) {
     const source = collection.sources?.find(s => s.key === group.key);
     if (source?.connectionKey) {
       if (seen.has(source.connectionKey)) continue;
       seen.add(source.connectionKey);
-      const sources = collection.sources!.filter(s => s.connectionKey === source.connectionKey);
+      const sources = collection.sources!.filter(s => s.connectionKey === source.connectionKey && !isHidden(collection, s.key));
       const keys = sources.map(s => s.key);
-      const children = groups.filter(g => keys.includes(g.key));
+      const children = visible.filter(g => keys.includes(g.key));
       summaries.push({ keys, children, group: { ...group, key: `connection:${source.connectionKey}`, name: source.connectionName || source.name, kind: 'account',
         ids: [...new Set(children.flatMap(g => g.ids))], available: new Set(sources.flatMap(s => s.knownIds)).size, enabled: children.some(g => g.enabled) } });
     } else summaries.push({ group, children: [], keys: [group.key] });
@@ -36,7 +37,7 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
     <div className="overview-intro"><div><h3>Collections</h3></div><button className="text-button" disabled={busy} onClick={enableAll}><Power size={14} />Enable all</button></div>
     <button className="text-button overview-expand" aria-expanded={expanded} onClick={() => setExpanded(v => !v)}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}{expanded ? 'Collapse collections' : 'Expand collections'}</button>
     <div className="overview-groups">
-      {summaries.filter(({keys}) => !keys.every(key => collection.archivedGroups?.includes(key))).map(({ group, children, keys }) => {
+      {summaries.map(({ group, children, keys }) => {
         const Icon = group.kind === 'account' ? UserRound : group.kind === 'folder' ? Folder : group.kind === 'manual' ? Link2 : Library;
         const partial = group.enabled && children.some(child => !child.enabled);
         const activeIds = children.length ? children.filter(child => child.enabled).flatMap(child => child.ids) : group.enabled ? group.ids : [];
@@ -57,12 +58,14 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
             <button className="overview-group-title" disabled={busy} onClick={() => children.length ? openScope(`scope:${group.key}`, group.name, keys) : navigate(group.key)}>{group.name}</button>
             <label className={`overview-switch ${partial ? 'is-partial' : ''}`}><input type="checkbox" role="switch" aria-label={`Enable ${group.name} in overview`} aria-description={partial ? 'Some folders enabled' : undefined} checked={group.enabled} disabled={busy} title="Click to pause/resume. Ctrl-click or Cmd-click to enable all folders; repeat to disable all." onChange={e => { const event = e.nativeEvent as MouseEvent; const all = event.ctrlKey || event.metaKey; toggle(keys, all ? keys.some(key => collection.disabledGroups?.includes(key)) : e.target.checked, all); }} /><span>{partial ? 'Some' : group.enabled ? 'On' : 'Off'}</span></label>
           </div>
-          <div className="overview-group-info"><small>{active}/{group.available} active</small></div>
-          <div className="overview-group-actions">
-            <button className="text-button" disabled={busy} title="Keep out of Enable all until explicitly enabled" onClick={() => disable(keys)}><PowerOff size={14} />Disable</button>
+          <div className="overview-group-footer">
+            <small>{active}/{group.available} active</small>
             <button className="text-button" disabled={busy} onClick={() => children.length ? onlyMany(keys) : only(group.key)}><Focus size={14} />Only this</button>
-            {['account', 'folder'].includes(group.kind) && <details className="precon-removal"><summary><Trash2 size={13} />Remove…</summary><p>Remove this connection and its folders from DeckShelf. Saved decks stay in Individual decks. You can add the source again anytime.</p><button className="text-button" disabled={busy} onClick={() => removeSources(keys)}><Trash2 size={14} />Remove collection</button></details>}
-            {group.kind === 'demo' && <PreconRemoval busy={busy} remove={removeDemo} />}
+            <CollectionMenu name={group.name} busy={busy} items={[
+              { label: group.kind === 'demo' ? 'Hide precons' : 'Hide', icon: <EyeOff size={14} />, run: () => hide(keys, group.name) },
+              ...(['account', 'folder'].includes(group.kind) ? [{ label: 'Remove…', icon: <Trash2 size={14} />, run: () => remove(keys, group.name),
+                confirm: { text: `Remove ${group.name} and its ${group.ids.length} saved ${group.ids.length === 1 ? 'deck' : 'decks'}? Decks that are also in another collection stay.`, action: 'Remove' } }] : []),
+            ]} />
           </div>
           {expanded && children.length > 0 && <div className="overview-folder-summary">{children.map(folder => <button key={folder.key} disabled={busy} onClick={() => navigate(folder.key)}><Folder size={12} /><span>{collection.sources?.find(s => s.key === folder.key)?.folderPath || folder.name}</span><small>{folder.enabled ? folder.ids.filter(id => !collection.hidden.includes(id)).length : 0}/{folder.available} active</small></button>)}</div>}
           {expanded && group.kind === 'demo' && collection.demo && <p className="overview-provenance">Snapshot {new Date(collection.demo.snapshotAt).toLocaleDateString(undefined, { dateStyle: 'medium' })} · Curated by Archidekt</p>}
@@ -70,13 +73,9 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
         </article>;
       })}
     </div>
-    <div className="disabled-collections">
-      {summaries.filter(({keys}) => keys.every(key => collection.archivedGroups?.includes(key))).map(({group, children, keys}) => <button key={group.key} disabled={busy} onClick={() => children.length ? openScope('scope:' + group.key, group.name, keys) : navigate(group.key)}><Library size={14} /><span>{group.name}</span><small>Disabled</small></button>)}
-      {collection.demo?.removed && <button disabled={busy} onClick={() => navigate('demo')}><Library size={14} /><span>Official Commander precons</span><small>Disabled</small></button>}
-    </div>
     <div className="overview-precon-actions">
-      <a href="https://archidekt.com/commander-precons" target="_blank" rel="noreferrer">Archidekt precons <ExternalLink size={12} /></a>
-      <button className="text-button" disabled={busy} onClick={browsePrecons}><Library size={14} />Browse catalog</button>
+      <button className="text-button" disabled={busy} title="Choose single precons from Archidekt's full catalog" onClick={browsePrecons}><Library size={14} />Pick individual precons</button>
+      <a href="https://archidekt.com/commander-precons" target="_blank" rel="noreferrer">Precon list on Archidekt <ExternalLink size={12} /></a>
       {!collection.demo && <button className="text-button" disabled={busy} onClick={addDemo}><Plus size={14} />Add official precons</button>}
     </div>
   </div>;

@@ -13,6 +13,11 @@ const makeSource = (id: string, name: string, ids: number[], path: string) => ({
 });
 const sources = [makeSource('42', 'Mono-color', [0, 1, 2], 'Home / Test collection / Mono-color'), makeSource('43', 'Multicolor', [0, 3, 4], 'Home / Test collection / Multicolor')];
 const fixture = { version: 1, starter: false, added: decks.slice(0, 5), hidden: [], excluded: [decks[0].id], sources, manualIds: [] };
+// Less common collection actions live in the More menu beside each collection.
+const menu = async (page: import('@playwright/test').Page, name: string, item: string) => {
+  await page.getByRole('button', { name: `More actions for ${name}`, exact: true }).click();
+  await page.getByRole('menuitem', { name: item, exact: true }).click();
+};
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(({ key, fixture }) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(fixture)); }, { key, fixture });
   await page.goto('/');
@@ -41,7 +46,7 @@ test('search-scoped bulk selection and source switches keep other choices', asyn
   await page.getByRole('button', { name: 'Deselect all', exact: true }).click();
   await page.getByRole('textbox', { name: 'Find a deck in collection settings' }).clear();
   await expect(page.getByRole('checkbox', { name: `Show ${decks[2].name}`, exact: true })).toBeChecked();
-  await page.getByRole('button', { name: 'Only this collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Only this', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText('2 on display');
   await page.getByRole('switch', { name: 'Enable Mono-color', exact: true }).uncheck();
   await expect(page.locator('.workspace-heading')).toContainText('0 on display');
@@ -49,17 +54,24 @@ test('search-scoped bulk selection and source switches keep other choices', asyn
   await expect(page.locator('.workspace-heading')).toContainText('2 on display');
 });
 
-test('failed refresh retains snapshots and hierarchy; disconnect preserves saved decks', async ({ page }) => {
+test('failed refresh retains snapshots and hierarchy; Remove keeps decks other collections still have', async ({ page }) => {
   await page.route('**/api/sources?*', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Source unavailable.' }) }));
   await page.getByRole('navigation').getByRole('button', { name: 'Mono-color', exact: true }).click();
-  await page.getByRole('button', { name: 'Refresh source', exact: true }).click();
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   await expect(page.getByRole('alert')).toHaveText('Source unavailable.');
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
   expect(saved.sources).toEqual(sources);
   expect(saved.added).toEqual(fixture.added);
-  await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
-  await page.getByRole('navigation').getByRole('button', { name: /Individual decks/ }).click();
-  await expect(page.getByRole('checkbox', { name: `Show ${decks[1].name}`, exact: true })).toBeChecked();
+  await menu(page, 'Mono-color', 'Remove…');
+  await page.getByRole('button', { name: 'Remove', exact: true }).click();
+  // Deck 0 is also in Multicolor and stays; decks 1 and 2 only came from Mono-color.
+  const after = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
+  expect(after.sources.map((s: { key: string }) => s.key)).toEqual(['folder:43']);
+  expect(after.added.map((d: { id: string }) => d.id)).toEqual([decks[0].id, decks[3].id, decks[4].id]);
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  const undone = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
+  expect(undone.sources.map((s: { key: string }) => s.key).sort()).toEqual(['folder:42', 'folder:43']);
+  expect(undone.added.map((d: { id: string }) => d.id).sort()).toEqual(fixture.added.map(d => d.id).sort());
 });
 
 test('new source entries stay staged until added and can be retried after failure', async ({ page }) => {
@@ -70,7 +82,7 @@ test('new source entries stay staged until added and can be retried after failur
     return route.fulfill({ json: decks.find(d => d.id === id) });
   });
   await page.getByRole('navigation').getByRole('button', { name: 'Mono-color', exact: true }).click();
-  await page.getByRole('button', { name: 'Refresh source', exact: true }).click();
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   const choice = page.getByRole('checkbox', { name: `Select ${decks[5].name}`, exact: true });
   await expect(choice).not.toBeChecked();
   await choice.check();
@@ -123,7 +135,7 @@ test('returning to browsing preserves gallery search and layout', async ({ page 
   await expect(page.getByRole('button', { name: `View ${decks[0].name}`, exact: true })).toBeVisible();
 });
 
-test('overview is source-only and built-in collections can be paused, removed and restored', async ({ page }) => {
+test('overview is source-only and built-in collections can be paused, hidden and shown again', async ({ page }) => {
   const profile = { ...fixture, manualIds: [decks[4].id], hidden: [decks[1].id], demo: { snapshotAt: '2026-10-04T12:00:00Z', decks: decks.slice(0, 2), removed: false } };
   await page.evaluate(({ key, profile }) => localStorage.setItem(key, JSON.stringify(profile)), { key, profile });
   await page.reload();
@@ -138,27 +150,23 @@ test('overview is source-only and built-in collections can be paused, removed an
     await control.check();
     await expect(control).toBeChecked();
   }
-  await expect(page.getByRole('button', { name: 'Remove precons', exact: true })).toBeVisible();
-  await expect(page.getByText('Restore anytime', { exact: true })).toBeVisible();
   await nav.getByRole('button', { name: 'Official Commander precons', exact: true }).click();
-  await expect(page.getByText('Restore anytime', { exact: true })).toBeVisible();
-  await page.screenshot({ path: 'qa/collection/precon-removal-desktop.png', fullPage: true });
+  await menu(page, 'Official Commander precons', 'Hide precons');
+  await expect(page.locator('.collection-hidden-state')).toBeVisible();
+  await page.screenshot({ path: 'qa/collection/precons-hidden-1440.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 900 });
-  await page.screenshot({ path: 'qa/collection/precon-removal-mobile.png', fullPage: true });
+  await page.screenshot({ path: 'qa/collection/precons-hidden-390.png', fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.getByRole('button', { name: 'Remove precons', exact: true }).click();
-  await expect(nav.getByRole('button', { name: 'Official Commander precons Disabled', exact: true })).toBeVisible();
-  await page.screenshot({ path: 'qa/collection/precons-disabled-1440.png', fullPage: true });
-  await page.setViewportSize({ width: 390, height: 900 });
-  await page.screenshot({ path: 'qa/collection/precons-disabled-390.png', fullPage: true });
-  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'More actions for Official Commander precons', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Enable all', exact: true }).click();
   await expect(nav.getByRole('switch', { name: 'Enable Official Commander precons in sidebar', exact: true })).toHaveCount(0);
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).demo.removed, key)).toBe(true);
   await page.reload();
   await page.getByRole('button', { name: 'My collection', exact: true }).click();
-  await nav.getByRole('button', { name: 'Official Commander precons Disabled', exact: true }).click();
-  await page.getByRole('button', { name: 'Enable collection', exact: true }).click();
+  await nav.getByRole('button', { name: /^Hidden/ }).click();
+  await nav.getByRole('button', { name: 'Show Official Commander precons', exact: true }).click();
+  await expect(nav.getByRole('switch', { name: 'Enable Official Commander precons in sidebar', exact: true })).toBeChecked();
   const restored = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
   expect(restored.demo).toEqual(profile.demo);
   expect(restored.hidden).toEqual(profile.hidden);
@@ -235,10 +243,9 @@ for (const width of [1440, 390]) test(`folder pills preserve subsets and scoped 
   await expect(page.getByRole('checkbox', { name: `Show ${decks[0].name}`, exact: true })).toBeChecked();
   if (width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
   await nav.getByRole('button', { name: 'Birckk', exact: true }).click();
-  if (width < 700) await page.getByRole('button', { name: 'Actions', exact: true }).click();
-  await page.getByRole('button', { name: 'Enable all folders', exact: true }).click();
+  await menu(page, 'Birckk', 'All folders on');
   await expect(page.locator('.workspace-heading')).toContainText('5 on display');
-  await page.getByRole('button', { name: 'Disable all folders', exact: true }).click();
+  await menu(page, 'Birckk', 'All folders off');
   await expect(page.locator('.workspace-heading')).toContainText('0 on display');
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: `qa/collection/folder-scope-${width}.png`, fullPage: true });
@@ -351,23 +358,23 @@ test('shortlist numbers follow displayed order after reverse selection and sorti
 });
 
 
-for (const width of [1440, 390]) test(`remove an imported collection keeps saved decks at ${width}px`, async ({ page }) => {
+for (const width of [1440, 390]) test(`remove an imported collection asks first and removes its decks at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 });
   const box = page.locator('.collection-box').filter({ has: page.getByRole('button', { name: 'Open Birckk', exact: true }) });
-  await box.locator('summary').click();
-  await expect(box).toContainText('Saved decks stay in Individual decks');
+  await menu(page, 'Birckk', 'Remove…');
+  await expect(page.getByRole('dialog', { name: 'Remove…' })).toContainText('Remove Birckk and its 5 saved decks?');
   await page.screenshot({ path: `qa/collection/remove-collection-${width}.png`, fullPage: true });
-  await box.getByRole('button', { name: 'Remove collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Remove', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Open Birckk', exact: true })).toHaveCount(0);
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
   expect(saved.sources).toEqual([]);
-  expect(saved.added).toEqual(fixture.added);
+  expect(saved.added).toEqual([]);
   expect(saved.excluded).toEqual(fixture.excluded);
-  await expect(page.locator('.workspace-heading')).toContainText('5 on display');
+  await expect(page.locator('.workspace-heading')).toContainText('0 on display');
   await page.reload();
   await page.getByRole('button', { name: 'My collection', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Open Birckk', exact: true })).toHaveCount(0);
-  await expect(page.locator('.workspace-heading')).toContainText('5 on display');
+  await expect(page.locator('.workspace-heading')).toContainText('0 on display');
 });
 
 
@@ -510,8 +517,7 @@ for (const width of [1440, 390]) test('My collection remembers pages and folder 
   await nav.getByRole('button', { name: 'Test collection', exact: true }).click();
   await reopen();
   await expect(page.getByRole('heading', { name: 'Test collection', exact: true })).toBeVisible();
-  if (width < 700) await page.getByRole('button', { name: 'Actions', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Enable all folders', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'More actions for Test collection', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'My collection', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Collections', exact: true })).toBeVisible();
   await openNav();
@@ -520,19 +526,21 @@ for (const width of [1440, 390]) test('My collection remembers pages and folder 
   await expect(page.getByRole('heading', { name: 'All saved decks', exact: true })).toBeVisible();
 });
 
-for (const width of [1440, 390]) test('disabled collections stay out of bulk enabling at ' + width + 'px', async ({ page }) => {
+for (const width of [1440, 390]) test('hidden collections stay out of bulk enabling at ' + width + 'px', async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 });
   const box = page.locator('.collection-box').filter({ has: page.getByRole('button', { name: 'Open Birckk', exact: true }) });
-  await box.getByRole('button', { name: 'Disable', exact: true }).click();
+  await menu(page, 'Birckk', 'Hide');
   await page.getByRole('button', { name: 'Enable all', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText('0 on display');
   await expect(page.getByRole('button', { name: 'Open Birckk', exact: true })).toHaveCount(0);
-  await page.screenshot({ path: 'qa/collection/disabled-' + width + '.png', fullPage: true });
+  await page.screenshot({ path: 'qa/collection/hidden-' + width + '.png', fullPage: true });
   await page.reload();
   await page.getByRole('button', { name: 'My collection', exact: true }).click();
-  await page.locator('.disabled-collections').getByRole('button', { name: 'Birckk Disabled', exact: true }).click();
-  await expect(page.getByText('Disabled · excluded from Enable all', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Enable collection', exact: true }).click();
+  if (width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
+  const nav = page.getByRole('navigation', { name: 'Collection sources' });
+  await nav.getByRole('button', { name: /^Hidden/ }).click();
+  await nav.getByRole('button', { name: 'Birckk', exact: true }).click();
+  await page.getByRole('button', { name: 'Show', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText('5 on display');
   await expect(page.locator('.workspace-tile').getByRole('button', { name: /^(Disable|Enable) / })).toHaveCount(0);
 

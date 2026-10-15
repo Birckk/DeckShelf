@@ -1,4 +1,4 @@
-import PreconRemoval from './PreconRemoval';
+import CollectionMenu, { type MenuItem } from './CollectionMenu';
 import CollectionDeckTile from "./CollectionDeckTile";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ChangeEvent } from "react";
 import {
@@ -7,7 +7,8 @@ import {
   PowerOff,
   Focus,
   ListChecks,
-  SlidersHorizontal,
+  Eye,
+  EyeOff,
   Square,
   FolderTree,
   Trash2,
@@ -18,7 +19,6 @@ import {
   Plus,
   RefreshCw,
   Search,
-  Unplug,
   Upload,
   X,
 } from "lucide-react";
@@ -41,15 +41,16 @@ import {
   setSourceSelection,
   showcaseGroups,
   showcaseDecks,
-  archiveGroups,
+  hideGroups,
+  isHidden,
   groupActive,
   enableGroup,
   enableGroups,
   onlyGroup,
   sourceDeckIds,
-  disconnectSource,
+  removeSources,
+  restoreSources,
   addDemo,
-  removeDemo,
   importFolderSelection,
 } from "./collection";
 import precons from "./data/precons.json";
@@ -67,7 +68,7 @@ type Props = {
   setCollection: (update: Collection | ((c: Collection) => Collection)) => void;
   onClose: () => void;
   backup: () => void;
-  notify: (message: string) => void;
+  notify: (message: string, action?: { label: string; run: () => void }) => void;
   startPersonal?: boolean;
   initialSection?: string;
   initialScope?: { name: string; keys: string[] } | null;
@@ -132,7 +133,6 @@ export default function CollectionManager({
   const [size, setSize] = useState(175);
   const [scope, setScope] = useState<{ name: string; keys: string[] } | null>(initialScope);
   const [mobileNav, setMobileNav] = useState(false);
-  const [showActions, setShowActions] = useState(false);
   useEffect(() => { heading.current?.focus(); }, []);
   const [section, setSection] = useState(initialSection);
   useEffect(() => { onLocationChange(section, scope); }, [section, scope]);
@@ -228,7 +228,6 @@ export default function CollectionManager({
     setDiscovery(null);
     setScope(null);
     setMobileNav(false);
-    setShowActions(false);
     setSection(next);
     setSearch("");
     setStatus("all");
@@ -427,16 +426,15 @@ export default function CollectionManager({
     }
     event.target.value = "";
   }
-  function removeSources(keys: string[]) {
-    setCollection(c => keys.reduce((next, key) => disconnectSource(next, key, catalog, decks), c));
-    navigate("overview");
-    notify("Collection removed. Saved decks are kept in Individual decks. Add the source again anytime.");
+  function hide(keys: string[], name: string) {
+    setCollection(c => hideGroups(c, keys, true));
+    notify(`${name} hidden. Find it under Hidden in the sidebar.`, { label: "Undo", run: () => setCollection(c => hideGroups(c, keys, false, false)) });
   }
-  function disconnect() {
-    if (!source) return;
-    setCollection((c) => disconnectSource(c, source.key, catalog, decks));
+  function remove(keys: string[], name: string) {
+    const result = removeSources(collection, keys);
+    setCollection(result.collection);
     navigate("overview");
-    notify("Source disconnected. Saved decks and display choices were kept.");
+    notify(`${name} removed.`, { label: "Undo", run: () => setCollection(c => restoreSources(c, result.removed)) });
   }
   async function browsePrecons() {
     const key = "account:archidekt_precons";
@@ -458,6 +456,19 @@ export default function CollectionManager({
       setBusy("");
     }
   }
+  const headerKeys = scope ? scopedKeys : activeGroup || section === "demo" ? [section] : [];
+  const headerName = scope?.name || activeGroup?.name || "Official Commander precons";
+  const headerHidden = headerKeys.length > 0 && headerKeys.every(key => isHidden(collection, key));
+  const scopePartial = scopedKeys.some(key => groupActive(collection, key)) && scopedKeys.some(key => !groupActive(collection, key));
+  const menuItems: MenuItem[] = [
+    ...(scope && !headerHidden ? [
+      { label: "All folders on", icon: <Power size={14} />, run: () => setCollection(c => enableGroups(c, scopedKeys, true, true)) },
+      { label: "All folders off", icon: <PowerOff size={14} />, run: () => setCollection(c => enableGroups(c, scopedKeys, false, true)) },
+    ] : []),
+    ...(!headerHidden && headerKeys.length ? [{ label: section === "demo" ? "Hide precons" : "Hide", icon: <EyeOff size={14} />, run: () => hide(headerKeys, headerName) }] : []),
+    ...(scopedSources.length ? [{ label: "Remove…", icon: <Trash2 size={14} />, run: () => remove(scopedKeys, headerName),
+      confirm: { text: `Remove ${headerName} and its ${sourceIds.size} saved ${sourceIds.size === 1 ? "deck" : "decks"}? Decks that are also in another collection stay.`, action: "Remove" } }] : []),
+  ];
   return (
     <main className="collection-workspace" aria-label="My collection">
       <header className="workspace-heading">
@@ -471,7 +482,8 @@ export default function CollectionManager({
           <div className={mobileNav ? 'workspace-navigation is-open' : 'workspace-navigation'}>
             <CollectionNavigator collection={collection} decks={decks} groups={groups} section={connecting ? '' : section} busy={!!busy} navigate={navigate}
               openScope={(key, name, keys) => { navigate(key); setScope({ name, keys }); }}
-              toggle={(keys, enabled, all) => setCollection(c => enableGroups(c, keys, enabled, all))} />
+              toggle={(keys, enabled, all) => setCollection(c => enableGroups(c, keys, enabled, all))}
+              show={entry => setCollection(c => hideGroups(c, entry.keys, false))} />
           </div>
           <section
             className="manager-content"
@@ -532,9 +544,8 @@ export default function CollectionManager({
                 }
                 browsePrecons={browsePrecons}
                 addDemo={() => setCollection(c => addDemo(c, precons as { snapshotAt: string; decks: Deck[] }))}
-                removeDemo={() => setCollection(removeDemo)}
-                removeSources={removeSources}
-                disable={keys => setCollection(c => archiveGroups(c, keys, true))}
+                hide={hide}
+                remove={remove}
               />
               )}
               {section !== "overview" && <>
@@ -550,7 +561,7 @@ export default function CollectionManager({
                     </h3>
                     {(source || scope || section === "demo") && <p className="workspace-scope-note">
                       {source ? source.folderPath ? source.folderPath + ' · Direct decks' : 'Archidekt source'
-                        : scope ? 'Includes connected subfolders' : 'Curated by Archidekt · Turn off to keep your selections'}
+                        : scope ? 'Includes connected subfolders' : 'Curated by Archidekt'}
                     </p>}
                   </div>
                   {source && (
@@ -565,91 +576,28 @@ export default function CollectionManager({
                     </a>
                   )}
                 </div>
-                <div className={`manager-toolbar ${showActions ? "is-expanded" : ""}`}>
-                  <button className="text-button mobile-collection-actions" aria-expanded={showActions} onClick={() => setShowActions(v => !v)}><SlidersHorizontal size={14} />Actions</button>
-                  {scope && <div className="manager-group-control">
-                    <label className="overview-switch"><input type="checkbox" role="switch" aria-label={`Enable ${scope.name} folders`} disabled={!!busy || scopedKeys.every(key => collection.archivedGroups?.includes(key))}
-                      checked={scopedKeys.some(key => groupActive(collection, key))}
-                      title="Click to pause/resume. Ctrl-click or Cmd-click to enable all folders; repeat to disable all." onChange={e => { const event = e.nativeEvent as MouseEvent; const all = event.ctrlKey || event.metaKey; const enabled = e.target.checked; setCollection(c => enableGroups(c, scopedKeys, all ? scopedKeys.some(key => c.disabledGroups?.includes(key)) : enabled, all)); }} /><span>{scopedKeys.every(key => !groupActive(collection, key)) ? "Folders off" : scopedKeys.some(key => !groupActive(collection, key)) ? "Some folders enabled" : "Folders enabled"}</span></label>
-                    <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => enableGroups(c, scopedKeys, true, true))}><Power size={14} />Enable all folders</button>
-                    <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => enableGroups(c, scopedKeys, false, true))}><PowerOff size={14} />Disable all folders</button>
-                    <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => ({ ...c, pausedGroups: [], disabledGroups: groups.filter(g => !scopedKeys.includes(g.key)).map(g => g.key) }))}><Focus size={14} />Only these folders</button>
-                    <details className="precon-removal"><summary><Trash2 size={13} />Remove…</summary><p>Remove these folder connections from DeckShelf. Saved decks stay in Individual decks. You can add the source again anytime.</p><button className="text-button" disabled={!!busy} onClick={() => removeSources(scopedKeys)}><Trash2 size={14} />Remove collection</button></details>
-                  </div>}
-                  {(activeGroup || scope || (section === "demo" && collection.demo?.removed)) && <div className={`collection-disable-control ${(scope ? scopedKeys : [section]).every(key => collection.archivedGroups?.includes(key)) || (section === "demo" && collection.demo?.removed) ? "is-disabled" : ""}`}>
-                    <button className="text-button" disabled={!!busy} title="Disabled collections stay out of Enable all" onClick={() => setCollection(c => { const keys = scope ? scopedKeys : [section]; const disabled = keys.every(key => c.archivedGroups?.includes(key)) || (section === "demo" && c.demo?.removed); return archiveGroups(section === "demo" && c.demo?.removed ? addDemo(c, precons as { snapshotAt: string; decks: Deck[] }) : c, keys, !disabled); })}>{(scope ? scopedKeys : [section]).every(key => collection.archivedGroups?.includes(key)) || (section === "demo" && collection.demo?.removed) ? <><Power size={14} />Enable collection</> : <><PowerOff size={14} />Disable collection</>}</button>
-                    {((scope ? scopedKeys : [section]).some(key => collection.archivedGroups?.includes(key)) || (section === "demo" && collection.demo?.removed)) && <small>Disabled · excluded from Enable all</small>}
-                  </div>}
-                  {activeGroup && (
-                    <div className="manager-group-control">
-                      <label className="overview-switch">
-                        <input
-                          type="checkbox"
-                          role="switch"
-                          aria-label={`Enable ${activeGroup.name}`}
-                          checked={activeGroup.enabled}
-                          disabled={!!busy || collection.archivedGroups?.includes(activeGroup.key)}
-                          onChange={(e) =>
-                            setCollection((c) =>
-                              enableGroup(c, activeGroup.key, e.target.checked),
-                            )
-                          }
-                        />
-                        <span>
-                          {activeGroup.enabled
-                            ? "Collection enabled"
-                            : "Collection off — selections kept"}
-                        </span>
-                      </label>
-                      <button
-                        className="text-button"
-                        disabled={!!busy}
-                        onClick={() =>
-                          setCollection((c) =>
-                            onlyGroup(c, activeGroup.key, groups),
-                          )
-                        }
-                      >
-                        <Focus size={14} /> Only this collection
-                      </button>
-                    </div>
-                  )}
-                  {section === "demo" && !collection.demo?.removed && <PreconRemoval busy={!!busy} remove={() => { setCollection(removeDemo); navigate("overview"); notify("Precons removed. Restore them anytime; your selections are kept."); }} />}
-                  {section === "starter" && (
-                    <div className="manager-precon-link">
-                      <button
-                        className="text-button"
-                        disabled={!!busy}
-                        onClick={browsePrecons}
-                      >
-                        Browse Archidekt’s full precon catalog{" "}
-                        <ArrowLeft
-                          size={12}
-                          style={{ transform: "rotate(180deg)" }}
-                        />
-                      </button>
-                    </div>
-                  )}
-                  {source && (
-                    <div className="manager-source-actions">
-                      <button
-                        className="text-button"
-                        disabled={!!busy}
-                        onClick={refreshSource}
-                      >
-                        <RefreshCw size={14} /> Refresh source
-                      </button>
-                      <button
-                        className="text-button"
-                        disabled={!!busy}
-                        onClick={disconnect}
-                        title="Disconnect source; keep saved decks"
-                      >
-                        <Unplug size={14} /> Disconnect
-                      </button>
-                    </div>
-                  )}
-                </div>
+                {headerKeys.length > 0 && <div className="manager-toolbar">
+                  {headerHidden
+                    ? <div className="collection-hidden-state"><EyeOff size={14} /><span>Hidden</span>
+                        <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => hideGroups(c, headerKeys, false))}><Eye size={14} />Show</button></div>
+                    : <div className="manager-group-control">
+                        {scope
+                          ? <label className={`overview-switch ${scopePartial ? "is-partial" : ""}`}><input type="checkbox" role="switch" aria-label={`Enable ${scope.name} folders`} aria-description={scopePartial ? "Some folders enabled" : undefined} disabled={!!busy}
+                              checked={scopedKeys.some(key => groupActive(collection, key))}
+                              title="Click to pause/resume. Ctrl-click or Cmd-click to enable all folders; repeat to disable all." onChange={e => { const event = e.nativeEvent as MouseEvent; const all = event.ctrlKey || event.metaKey; const enabled = e.target.checked; setCollection(c => enableGroups(c, scopedKeys, all ? scopedKeys.some(key => c.disabledGroups?.includes(key)) : enabled, all)); }} /><span>{scopePartial ? "Some" : scopedKeys.some(key => groupActive(collection, key)) ? "On" : "Off"}</span></label>
+                          : activeGroup && <label className="overview-switch"><input type="checkbox" role="switch" aria-label={`Enable ${activeGroup.name}`} checked={activeGroup.enabled} disabled={!!busy}
+                              onChange={e => setCollection(c => enableGroup(c, activeGroup.key, e.target.checked))} /><span>{activeGroup.enabled ? "On" : "Off"}</span></label>}
+                        <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => scope
+                          ? { ...c, pausedGroups: [], disabledGroups: groups.filter(g => !scopedKeys.includes(g.key)).map(g => g.key) }
+                          : onlyGroup(c, section, groups))}><Focus size={14} />Only this</button>
+                      </div>}
+                  <div className="manager-toolbar-end">
+                    {source && <button className="text-button" disabled={!!busy} onClick={refreshSource}><RefreshCw size={14} />Refresh</button>}
+                    <CollectionMenu name={headerName} busy={!!busy} items={menuItems} />
+                  </div>
+                  {section === "starter" && <div className="manager-precon-link"><button className="text-button" disabled={!!busy} onClick={browsePrecons}>
+                    Browse Archidekt’s full precon catalog <ArrowLeft size={12} style={{ transform: "rotate(180deg)" }} /></button></div>}
+                </div>}
                 <div className="manager-search">
                   <label>
                     <Search size={16} />
@@ -716,7 +664,7 @@ export default function CollectionManager({
                       : setSelected(ids => on ? [...new Set([...ids, row.id])] : ids.filter(id => id !== row.id));
                     return <CollectionDeckTile key={row.id} row={row} deck={deck} layout={layout} checked={checked} member={member} busy={!!busy}
                       toggle={toggle}
-                      note={missing ? 'No longer listed · saved copy kept' : !member ? 'Not added' : !displayedHere(row.id) && displaying ? 'Collection off · selection kept' : deck?.commanders.map(c => c.name).join(' & ') || ''}
+                      note={missing ? 'No longer listed · saved copy kept' : !member ? 'Not added' : !displayedHere(row.id) && displaying ? (headerHidden ? 'Hidden · selection kept' : 'Collection off · selection kept') : deck?.commanders.map(c => c.name).join(' & ') || ''}
                       />;
                   })}
                   {!shown.length && (

@@ -13,7 +13,10 @@ import {
   enableGroup,
   onlyGroup,
   selectSourceDecks,
-  disconnectSource,
+  removeSources,
+  restoreSources,
+  hideGroups,
+  hiddenEntries,
 } from "../src/collection.ts";
 import { discoverSource } from "../server/sources.mjs";
 
@@ -151,7 +154,7 @@ test("individual links can include a deck also present in a disabled source or i
   );
   assert.deepEqual(parseCollection(JSON.stringify(c)), c);
 });
-test("disconnecting a paused source keeps its snapshot without unexpectedly showing it", () => {
+test("removing a source removes its own decks and Undo puts back exactly what was removed", () => {
   const personal = { ...deck, id: "777" };
   const s = {
     ...source,
@@ -167,15 +170,46 @@ test("disconnecting a paused source keeps its snapshot without unexpectedly show
     sources: [s],
     disabledGroups: [s.key],
   };
-  const next = disconnectSource(c, s.key, [], [personal]);
-  assert.deepEqual(next.added, [personal]);
-  assert.deepEqual(next.hidden, ["777"]);
-  assert.deepEqual(next.excluded, ["777"]);
+  const c2 = { ...c, hidden: ["777"] };
+  const { collection: next, removed } = removeSources(c2, [s.key]);
+  assert.deepEqual(next.added, []);
+  assert.deepEqual(next.sources, []);
+  assert.deepEqual(next.hidden, []);
+  assert.deepEqual(next.excluded, ["777"], "legacy exclusions are left alone");
   assert.deepEqual(next.disabledGroups, []);
-  assert.deepEqual(
-    showcaseGroups(next, [], [personal]).find((g) => g.key === "manual").ids,
-    ["777"],
-  );
+  assert.deepEqual(showcaseGroups(next, [], []).find((g) => g.key === "manual").ids, []);
+  assert.doesNotThrow(() => parseCollection(JSON.stringify(next)));
+  // Undo merges back onto later changes instead of replacing them.
+  const later = { ...next, disabledGroups: ["manual"] };
+  const undone = restoreSources(later, removed);
+  assert.deepEqual(undone.sources, [s]);
+  assert.deepEqual(undone.added, [personal]);
+  assert.deepEqual(undone.hidden, ["777"]);
+  assert.deepEqual(undone.disabledGroups, ["manual", s.key]);
+  assert.deepEqual(parseCollection(JSON.stringify(undone)), undone);
+});
+test("removing a source keeps decks that another source or Individual decks still has", () => {
+  const other = { ...deck, id: "888" };
+  const shared = { ...deck, id: "999" };
+  const a = { ...source, key: "folder:1", value: "1", knownIds: ["888", "999"], selectedIds: ["888", "999"] };
+  const b = { ...source, key: "folder:2", value: "2", knownIds: ["999"], selectedIds: ["999"] };
+  const c = { version: 1, hidden: [], excluded: [], added: [other, shared, deck], sources: [a, b], manualIds: [deck.id] };
+  const { collection: next } = removeSources(c, [a.key]);
+  assert.deepEqual(next.added.map((d) => d.id), ["999", deck.id]);
+  const { collection: both } = removeSources(c, [a.key, b.key]);
+  assert.deepEqual(both.added.map((d) => d.id), [deck.id]);
+});
+test("hiding moves a collection out of view and Show switches it back on", () => {
+  const c = { version: 1, starter: false, hidden: [], excluded: [], added: [deck], sources: [{ ...source, selectedIds: [deck.id] }], disabledGroups: [source.key] };
+  const hidden = hideGroups(c, [source.key, "manual"], true);
+  assert.deepEqual(showcaseDecks(hidden, [], [deck]), []);
+  assert.deepEqual(hiddenEntries(hidden, showcaseGroups(hidden, [], [deck])).map((e) => e.key), [source.key, "manual"]);
+  assert.deepEqual(parseCollection(JSON.stringify(hidden)), hidden);
+  const shown = hideGroups(hidden, [source.key], false);
+  assert.equal(showcaseGroups(shown, [], [deck]).find((g) => g.key === source.key).enabled, true);
+  assert.equal(showcaseDecks(shown, [], [deck]).length, 1);
+  const undone = hideGroups(hidden, [source.key], false, false);
+  assert.equal(showcaseGroups(undone, [], [deck]).find((g) => g.key === source.key).enabled, false, "Undo keeps the earlier pill state");
 });
 test("legacy source selections survive refresh and invalid group settings are rejected", () => {
   const c = rememberSource(rememberSource(collection, source), source);
@@ -389,7 +423,7 @@ test('persistent disabling survives bulk enabling, backup, overlaps and disconne
   assert.equal('disabledDecks' in migrated, false);
   assert.equal(showcaseDecks(migrated, [], [deck]).length, 0);
   assert.equal(showcaseDecks(setShown(migrated, [deck.id], true), [], [deck]).length, 1);
-  const detached = disconnectSource(next, second.key, [], [deck]);
+  const detached = removeSources(next, [second.key]).collection;
   assert.doesNotThrow(() => parseCollection(JSON.stringify(detached)));
   assert.ok(!detached.archivedGroups.includes(second.key));
   assert.throws(() => parseCollection(JSON.stringify({ ...base, archivedGroups: ['bad'] })));

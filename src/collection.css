@@ -113,12 +113,6 @@
 .overview-switch > span {
   min-width: 18px;
 }
-.overview-group-info {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 8px 0;
-}
 .overview-previews {
   display: flex;
   align-items: center;
@@ -140,22 +134,6 @@
 }
 .overview-previews .art-fallback span {
   display: none;
-}
-.overview-group-info p {
-  font-size: 11px;
-  line-height: 1.6;
-  color: #9b9ca6;
-  margin: 0 0 5px;
-}
-.overview-group-info small {
-  font-size: 11px;
-  color: #c0bcb4;
-}
-.overview-group-actions {
-  display: flex;
-  justify-content: space-between;
-  border-top: 1px solid #ffffff0a;
-  padding-top: 10px;
 }
 .overview-catalog {
   display: flex;
@@ -345,19 +323,6 @@
   font-weight: 500;
   font-size: 19px;
   margin: 0 0 3px;
-}
-.manager-source-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin: 0 0 0 auto;
-  min-height: 30px;
-}
-.manager-source-actions > span {
-  flex: 1;
-  font-size: 11px;
-  color: #92939e;
 }
 .manager-heading .button,
 .collection-manager .button {
@@ -787,13 +752,6 @@
   .manager-bulk {
     gap: 12px;
   }
-  .manager-source-actions {
-    margin-left: 0;
-    width: 100%;
-  }
-  .manager-source-actions > .text-button {
-    margin-left: auto;
-  }
   .manager-kinds {
     gap: 7px;
   }
@@ -852,7 +810,6 @@
     font-size: 13px;
   }
 }
-.demo-provenance { margin-top: 6px !important; font-size: 11px !important; }
 .overview-intro .button { flex-shrink: 0; }
 @media (max-width: 700px) { .overview-intro { flex-wrap: wrap; } }
 /* Optional visual guide; artwork is bundled for offline use. */

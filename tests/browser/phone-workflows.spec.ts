@@ -20,8 +20,7 @@ for (const width of [320, 390, 800, 1440]) {
     await page.getByRole('button', { name: 'My collection', exact: true }).click();
     await page.getByRole('button', { name: 'Open Test account', exact: true }).click();
     const saved = await page.evaluate(key => localStorage.getItem(key), key);
-    if (width < 700) await page.getByRole('button', { name: 'Actions', exact: true }).click();
-    const actions = page.locator('.manager-group-control > button');
+    const actions = page.locator('.manager-toolbar button');
     for (const action of await actions.all()) {
       const box = (await action.boundingBox())!;
       expect(box.x).toBeGreaterThanOrEqual(0);
@@ -50,9 +49,11 @@ for (const width of [320, 390, 800, 1440]) {
     await page.keyboard.press('Space');
     await expect(checkbox).toBeChecked();
     await page.screenshot({ path: `qa/phone/verified-${width}.png`, fullPage: true });
-    await page.getByRole('button', { name: 'Disable all folders', exact: true }).click();
+    await page.getByRole('button', { name: 'More actions for Test account', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'All folders off', exact: true }).click();
     await expect(page.getByRole('switch', { name: 'Enable Test account folders', exact: true })).not.toBeChecked();
-    await page.getByRole('button', { name: 'Enable all folders', exact: true }).click();
+    await page.getByRole('button', { name: 'More actions for Test account', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'All folders on', exact: true }).click();
     await expect(page.getByRole('switch', { name: 'Enable Test account folders', exact: true })).toBeChecked();
   });
 }
@@ -103,14 +104,16 @@ for (const width of [320, 390]) test('phone browsing controls form compact group
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   await page.getByRole('button',{name:'My collection',exact:true}).click();
   await page.getByRole('button',{name:'Open Test account',exact:true}).click();
-  const actions=page.getByRole('button',{name:'Actions',exact:true});
-  await expect(actions).toHaveAttribute('aria-expanded','false');
-  await expect(page.getByRole('button',{name:'Disable collection',exact:true})).toBeHidden();
+  // Pill, Only this and the More menu share one row; the rarer actions wait in the menu.
+  const more=page.getByRole('button',{name:'More actions for Test account',exact:true});
+  const pill=page.locator('.manager-toolbar .overview-switch');
+  expect(Math.abs((await more.boundingBox())!.y-(await pill.boundingBox())!.y)).toBeLessThan(12);
   expect((await page.locator('.workspace-display-controls').boundingBox())!.height).toBeLessThan(95);
-  await actions.click();
-  await expect(page.getByRole('button',{name:'Disable collection',exact:true})).toBeVisible();
-  await actions.click();
-  await expect(page.getByRole('button',{name:'Disable collection',exact:true})).toBeHidden();
+  await more.click();
+  await expect(page.getByRole('menuitem',{name:'Hide',exact:true})).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await expect(more).toBeFocused();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
 });
 

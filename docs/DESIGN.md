@@ -58,12 +58,12 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Public accounts, folders, and individual deck links are read-only sources. Do not ask for platform passwords.
 - Discovering a source does not mean the user owns all its decks. New discoveries wait for selection; refresh preserves display and picker choices.
 - Distinguish local saved decks, starter precons, and source listings. Deduplicate decks shared by multiple sources.
-- Disconnecting a source or losing access to it must not delete saved decks. Keep the last usable snapshot when refresh fails.
+- Losing access to a source or a failed refresh must not delete saved decks. Keep the last usable snapshot when refresh fails. Removing a source on purpose is different: see Collection controls (October 15).
 - Preserve the version-1 collection backup format and existing local choices. Include source connections in exports.
 - Select all / Deselect all affect the current deck results, including search and status filters. New source entries are staged until Add selected decks; bulk actions preserve choices outside the results. Keep list controls compact, with no repeated introductory banner.
 - My collection reopens the last visited page or folder during the session. Clicking My collection while already inside returns to Overview. First entry starts on Overview. Collection switches pause whole sources without changing individual deck selections or picker exclusions; “Only this” isolates one collection across all viewer modes.
 - Overlapping enabled collections form a unique union of decks. Direct deck links may belong to Individual decks even when the same deck appears in another collection.
-- Fresh profiles start with Official Commander precons: a dated, complete snapshot curated by Archidekt. Use precons/catalog in user-facing copy, never demo. Removing it preserves personal overlaps; restoring it keeps selections and exclusions. Opening source setup never removes or pauses existing collections.
+- Fresh profiles start with Official Commander precons: a dated, complete snapshot curated by Archidekt. Use precons/catalog in user-facing copy, never demo. Hiding it preserves personal overlaps; showing it again keeps selections and exclusions. Opening source setup never removes or pauses existing collections.
 - My collection uses the same readable normal-case dialog title as Guide and About. Add decks is the single setup entry; accept a username, profile, folder or deck link without an Account/Folder/Deck mode switch.
 - Username and folder discovery previews public folders before saving. Use compact artwork previews, direct-deck counts and expandable individual choices. Nested folders have separate rows and visible paths; selecting a row does not silently include descendants. The explicit Show only these folders option pauses other collections on successful import, preserving their saved choices. Selection is fixed; do not imply automatic following.
 - “Included precons” remains the original 29 requested decks with bundled artwork for legacy profiles. Never silently expand existing profiles. Browse precons previews Archidekt’s catalog without selecting it; adding the demo is a separate explicit action.
@@ -97,7 +97,6 @@ The concrete rules above reflect this project's owner feedback; the references s
 
 - Overview contains collection switches and optional folder summaries, without a duplicate deck grid. All saved decks is the combined deck view; individual sources/folders retain their own views.
 - Built-in collections (official/included precons and individual decks) have sidebar switches just like imported sources.
-- Precon removal must visibly explain that it is reversible. Keep removed precons as a compact clickable Disabled row; open it to enable again, preserving selections.
 - Keep the workspace header compact. Avoid repeated counts, instructions and snapshot dates above deck results; retain useful folder scope and direct-deck context.
 
 ### Box overview and flat controls — October 8
@@ -125,7 +124,6 @@ The concrete rules above reflect this project's owner feedback; the references s
 - Reserve a stable quick-choice toolbar footprint so entering selection does not move the controls or layout selector. All toggles visible decks on; None deselects visible decks while keeping selection mode open and preserving selections outside the view. X clears and exits.
 - Number shortlisted cards by the current displayed order, updating after sorting/filtering or deselection. The quick-choice bar fits its contents, has no appearing outer border, and keeps a stable left edge; do not reserve a visibly oversized bar.
 - Quick-choice entry, empty selection and Pick from N share identical button dimensions, typography and icon sizing.
-- Imported collection boxes and aggregate folder scopes offer Remove… with a clear Remove collection action. Disconnect the affected sources while keeping saved copies in Individual decks; explain that the source can be added again. Do not delete local deck snapshots.
 - Remember collapsed folder branches and Overview folder-summary expansion locally across navigation and reload. Search may reveal matching branches temporarily without replacing saved folds; invalid/unavailable browser storage must fall back safely.
 - My collection actions use compact rectangular buttons with familiar icons and visible labels. Keep folder navigation lightweight, and preserve keyboard focus indicators.
 - Keep shortlist clearing visually consistent across browsing views. In the picker, a selected-count button returns to Collection to edit the same shortlist.
@@ -137,15 +135,13 @@ The concrete rules above reflect this project's owner feedback; the references s
 - The count button's pressed state indicates card selection mode; click it again to finish selection. All / None is available while editing. Out-of-view selections are explained separately, and only currently active, filtered selections can be picked.
 - Verify selected-count wording, dimensions, font metrics and desktop position across all views together to avoid per-view styling drift.
 
-- Reversible Remove precons remains available. Removed precons appear as a compact clickable Disabled row; open it to enable again. Do not bring back the large restore banner.
-- Temporary collection on/off choices and persistent collection Disable are separate. Disabled collections stay excluded from Enable all, survive reload and backup, and retain their previous choices. Show explicit Enable controls inside disabled collections . Removing source connections stays separate and keeps saved snapshots.
 
 - Individual decks have one show/hide selection control only; no separate Disable state or button. Keep the Archidekt link beside the selection control, without an extra footer row. Card-only/Compact layouts use one small overlay control group. Avoid growing per-card button clusters.
 
 ### Phone control grouping revision
 
 - On phones, align deck count and quick-choice entry on one summary row; group view modes above a shared size/sort row. Keep the entry and count anchored when selection reveals its action row, without reserving an empty band. Desktop toolbar remains unchanged.
-- My collection groups layout, size, count and All/None in two rows. Keep the collection switch visible; infrequent source/disable/remove controls open through Actions. Disabled collections still show their Enable action directly.
+- My collection groups layout, size, count and All/None in two rows. Collection actions follow Collection controls (October 15) at every width.
 - Narrow picker stages use proportionally smaller cards, reduced perspective enlargement and greater separation. Preserve desktop geometry, equal picking odds, screw-path dragging and reduced-motion support. Intentional helix layering remains.
 
 ### Compact phone browsing controls (October 8)
@@ -167,3 +163,19 @@ The concrete rules above reflect this project's owner feedback; the references s
 - Header logo, results row and quick-choice position are identical across views; no per-view header or toolbar overrides.
 - The phone picker stage fills the remaining viewport without page scroll; the revealed card sits fully above the result panel.
 - After a backup is chosen, the restore confirmation scrolls into view and takes focus.
+
+
+### Collection controls — October 15
+
+Owner decision (#56): the pill, Disable, Remove precons and Disconnect overlapped and felt random. There are now three things you can do to a collection:
+
+- **Pill (On/Off/Some)**: a quick show/hide that Enable all undoes. Always visible.
+- **Hide**: for something you don't want to look at. It is switched off, leaves the sidebar tree and the overview grid, and waits in a folded Hidden list at the bottom of the sidebar. Enable all skips it. Show (in the list, or on its own page) brings it back on with its deck choices intact. Works the same for imported sources, folders, Individual decks and precons. Precons can only be hidden, never removed (they keep the v1 `demo.removed` flag).
+- **Remove**: for something you don't want at all, such as a mistyped username. It asks once, then removes the source and the saved decks only it had; decks another source or Individual decks still has stay. The toast offers Undo for 10 seconds. Imported sources only.
+
+Layout, the same on overview boxes, source headers and phones:
+
+- Box: title and pill on top; then the active count, Only this and a ⋯ More menu on one row.
+- Header: pill and Only this on the left; Refresh (sources only) and ⋯ More at the far edge. A hidden collection shows Hidden · Show in place of the pill.
+- More holds the rarer actions in a fixed order: All folders on / All folders off (folder scopes), Hide, Remove…. Remove confirms inside the menu with focus on Cancel. The menu supports arrow keys and Escape and returns focus to its button.
+- Do not reintroduce Disable/Disconnect/Remove precons synonyms, a phone-only Actions toggle, or a restore banner.

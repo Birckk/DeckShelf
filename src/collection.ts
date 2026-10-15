@@ -167,11 +167,47 @@ export function showcaseDecks(
 export function groupActive(collection: Collection, key: string): boolean {
   return !collection.disabledGroups?.includes(key) && !collection.archivedGroups?.includes(key);
 }
-// Persistent disabling is independent of temporary on/off choices.
+// Hidden collections leave the sidebar and overview grid and stay out of Enable all,
+// independently of the temporary pill. Precons keep their v1 `demo.removed` flag.
+export function isHidden(collection: Collection, key: string): boolean {
+  return key === "demo" ? !!collection.demo?.removed : !!collection.archivedGroups?.includes(key);
+}
 export function archiveGroups(collection: Collection, keys: string[], disabled: boolean): Collection {
   return { ...collection, archivedGroups: disabled
     ? [...new Set([...(collection.archivedGroups || []), ...keys])]
     : (collection.archivedGroups || []).filter(key => !keys.includes(key)) };
+}
+// Showing a collection again also switches it on, unless an Undo restores its earlier state.
+// Its deck choices were never touched.
+export function hideGroups(collection: Collection, keys: string[], hidden: boolean, enable = true): Collection {
+  let next = archiveGroups(collection, keys.filter(key => key !== "demo"), hidden);
+  if (keys.includes("demo") && next.demo) next = { ...next, demo: { ...next.demo, removed: hidden } };
+  return hidden || !enable ? next : enableGroups(next, keys, true, true);
+}
+
+export type HiddenEntry = { key: string; name: string; keys: string[]; scope: boolean; count: number };
+// One row per hidden connection, or per hidden folder when the rest of its connection is visible.
+export function hiddenEntries(collection: Collection, groups: ShowcaseGroup[]): HiddenEntry[] {
+  const sources = collection.sources || [];
+  const entries: HiddenEntry[] = [];
+  const seen = new Set<string>();
+  for (const source of sources) {
+    if (!isHidden(collection, source.key)) continue;
+    const connection = source.connectionKey ? sources.filter(s => s.connectionKey === source.connectionKey) : [source];
+    const all = connection.length > 1 && connection.every(s => isHidden(collection, s.key));
+    if (all) {
+      if (seen.has(source.connectionKey!)) continue;
+      seen.add(source.connectionKey!);
+      entries.push({ key: `scope:connection:${source.connectionKey}`, name: source.connectionName || source.name, keys: connection.map(s => s.key), scope: true,
+        count: new Set(connection.flatMap(s => s.knownIds)).size });
+    } else entries.push({ key: source.key, keys: [source.key], scope: false, count: source.knownIds.length,
+      name: source.folderPath && source.connectionName ? `${source.connectionName} / ${source.folderPath}` : source.name });
+  }
+  for (const group of groups) if (!["account", "folder"].includes(group.kind) && isHidden(collection, group.key))
+    entries.push({ key: group.key, name: group.name, keys: [group.key], scope: false, count: group.available });
+  if (collection.demo?.removed)
+    entries.push({ key: "demo", name: "Official Commander precons", keys: ["demo"], scope: false, count: collection.demo.decks.length });
+  return entries;
 }
 export function enableGroup(
   collection: Collection,
@@ -235,30 +271,51 @@ export function selectSourceDecks(
     ),
   };
 }
-export function disconnectSource(
-  collection: Collection,
-  key: string,
-  catalog: Deck[],
-  decks: Deck[],
-): Collection {
-  const visible = new Set(
-    showcaseDecks(collection, catalog, decks).map((d) => d.id),
-  );
-  const next = {
-    ...collection,
-    sources: (collection.sources || []).filter((s) => s.key !== key),
-    archivedGroups: (collection.archivedGroups || []).filter(k => k !== key),
-    ...(collection.pausedGroups ? { pausedGroups: collection.pausedGroups.filter(p => !p.keys.includes(key)) } : {}),
-    disabledGroups: (collection.disabledGroups || []).filter((k) => k !== key),
-    manualIds: [...new Set([...(collection.manualIds || []),
-      ...(collection.sources || []).filter(s => s.key === key).flatMap(s => sourceDeckIds(s, decks)),
-    ])],
+// Everything Remove takes away, so Undo can put it back without touching later changes.
+export type RemovedSources = {
+  sources: CollectionSource[]; decks: Deck[]; hidden: string[];
+  disabledGroups: string[]; archivedGroups: string[]; pausedGroups: { keys: string[]; enabled: string[] }[];
+};
+// Removing a source also removes its saved decks, unless another source or Individual decks still has them.
+export function removeSources(collection: Collection, keys: string[]): { collection: Collection; removed: RemovedSources } {
+  const sources = collection.sources || [];
+  const gone = sources.filter(s => keys.includes(s.key));
+  const kept = sources.filter(s => !keys.includes(s.key));
+  const stillUsed = new Set([...(collection.manualIds || []), ...kept.flatMap(s => [...(s.selectedIds ?? s.knownIds), ...(s.ownedIds || [])])]);
+  const ids = new Set(gone.flatMap(s => [...s.knownIds, ...(s.ownedIds || [])]).filter(id => !stillUsed.has(id)));
+  const touches = (p: { keys: string[] }) => p.keys.some(key => keys.includes(key));
+  return {
+    collection: {
+      ...collection,
+      sources: kept,
+      added: collection.added.filter(d => !ids.has(d.id)),
+      hidden: collection.hidden.filter(id => !ids.has(id)),
+      disabledGroups: (collection.disabledGroups || []).filter(k => !keys.includes(k)),
+      archivedGroups: (collection.archivedGroups || []).filter(k => !keys.includes(k)),
+      ...(collection.pausedGroups ? { pausedGroups: collection.pausedGroups.filter(p => !touches(p)) } : {}),
+    },
+    removed: {
+      sources: gone,
+      decks: collection.added.filter(d => ids.has(d.id)),
+      hidden: collection.hidden.filter(id => ids.has(id)),
+      disabledGroups: (collection.disabledGroups || []).filter(k => keys.includes(k)),
+      archivedGroups: (collection.archivedGroups || []).filter(k => keys.includes(k)),
+      pausedGroups: (collection.pausedGroups || []).filter(touches),
+    },
   };
-  // Orphaned snapshots become individual decks, but a paused source must not reveal them.
-  const newlyVisible = showcaseDecks(next, catalog, decks)
-    .filter((d) => !visible.has(d.id))
-    .map((d) => d.id);
-  return setShown(next, newlyVisible, false);
+}
+export function restoreSources(collection: Collection, removed: RemovedSources): Collection {
+  const present = new Set((collection.sources || []).map(s => s.key));
+  const saved = new Set(collection.added.map(d => d.id));
+  return {
+    ...collection,
+    sources: [...(collection.sources || []), ...removed.sources.filter(s => !present.has(s.key))],
+    added: [...collection.added, ...removed.decks.filter(d => !saved.has(d.id))],
+    hidden: [...new Set([...collection.hidden, ...removed.hidden])],
+    disabledGroups: [...new Set([...(collection.disabledGroups || []), ...removed.disabledGroups])],
+    archivedGroups: [...new Set([...(collection.archivedGroups || []), ...removed.archivedGroups])],
+    ...(collection.pausedGroups || removed.pausedGroups.length ? { pausedGroups: [...(collection.pausedGroups || []), ...removed.pausedGroups] } : {}),
+  };
 }
 
 export function collectionDecks(collection: Collection, legacy: Deck[]): Deck[] {
