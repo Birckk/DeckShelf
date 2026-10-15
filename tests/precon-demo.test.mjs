@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { buildCatalog, updateCatalog } from '../scripts/precon-catalog.mjs';
 import { discoverSource } from '../server/sources.mjs';
 import { parseCollection, validateDeck } from '../src/domain.ts';
-import { freshCollection, addDemo, removeDemo, collectionDecks, showcaseDecks, showcaseGroups, enableGroup, onlyGroup, saveSnapshots, selectSourceDecks, removeSources, hideGroups, hiddenEntries } from '../src/collection.ts';
+import { freshCollection, addDemo, removeDemo, collectionDecks, showcaseDecks, showcaseGroups, enableGroup, onlyGroup, saveSnapshots, selectSourceDecks, removeSources, hideGroups, hiddenEntries, updateDemo } from '../src/collection.ts';
 const legacy = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)));
 const snapshot = JSON.parse(readFileSync(new URL('../src/data/precons.json', import.meta.url)));
 const deck = snapshot.decks[0];
@@ -119,4 +119,22 @@ test('strict catalog pagination rejects truncated counts, duplicate IDs and chan
   let calls = 0;
   globalThis.fetch.mock.mockImplementation(async () => ({ ok: true, json: async () => ({ count: ++calls === 1 ? 2 : 3, results: [row(calls)], next: calls === 1 ? 'next' : null }) }));
   await assert.rejects(discoverSource('account', 'Archidekt_Precons', { strict: true }), /changed/);
+});
+
+test('updating precons adds new catalog decks to the one collection and keeps every choice', () => {
+  const fresh = freshCollection(snapshot);
+  const newer = { ...deck, id: '99999901', name: 'Brand New Precon' };
+  const updated = updateDemo(fresh, [deck, newer], '2026-11-01T00:00:00Z');
+  assert.equal(updated.demo.decks.length, snapshot.decks.length + 1, 'known precons are not duplicated');
+  assert.equal(updated.demo.decks[0].id, newer.id, 'newest first');
+  assert.equal(updated.demo.snapshotAt, '2026-11-01T00:00:00Z');
+  assert.ok(ids(visible(updated)).includes(newer.id), 'an uncurated collection shows new precons');
+  assert.deepEqual(parseCollection(JSON.stringify(updated)), updated);
+  // Once the user has unticked a precon, new ones wait to be ticked.
+  const curated = { ...fresh, hidden: [deck.id] };
+  const waiting = updateDemo(curated, [newer], '2026-11-01T00:00:00Z');
+  assert.ok(!ids(visible(waiting)).includes(newer.id));
+  assert.ok(waiting.hidden.includes(deck.id));
+  assert.equal((updateDemo(old, [newer], '2026-11-01T00:00:00Z')), old, 'profiles without precons are untouched');
+  assert.equal(updateDemo(fresh, [deck], '2026-11-01T00:00:00Z').demo.decks.length, snapshot.decks.length);
 });

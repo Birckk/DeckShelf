@@ -332,6 +332,20 @@ export function addDemo(collection: Collection, snapshot: { snapshotAt: string; 
     : { snapshotAt: snapshot.snapshotAt, decks: snapshot.decks, removed: false } }, "demo", true);
 }
 
+// The bundled snapshot is the baseline; updating adds precons Archidekt listed since, newest first.
+// They show straight away unless the user has already unticked some precons, then they wait to be ticked.
+export function updateDemo(collection: Collection, found: Deck[], checkedAt: string): Collection {
+  if (!collection.demo) return collection;
+  const known = new Set(collection.demo.decks.map(d => d.id));
+  const fresh = found.filter(d => !known.has(d.id)).slice(0, 1000 - known.size);
+  const curated = collection.demo.decks.some(d => collection.hidden.includes(d.id));
+  return {
+    ...collection,
+    demo: { ...collection.demo, snapshotAt: checkedAt, decks: [...fresh, ...collection.demo.decks] },
+    hidden: curated ? [...new Set([...collection.hidden, ...fresh.map(d => d.id)])] : collection.hidden,
+  };
+}
+
 export function removeDemo(collection: Collection): Collection {
   return collection.demo ? { ...collection, demo: { ...collection.demo, removed: true } } : collection;
 }

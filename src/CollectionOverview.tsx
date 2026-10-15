@@ -1,18 +1,18 @@
 import CollectionMenu from './CollectionMenu';
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, ExternalLink, EyeOff, Folder, Library, Link2, UserRound, Power, Focus, ChevronDown, ChevronUp, Trash2, Plus } from 'lucide-react';
+import { ArrowUpRight, EyeOff, Folder, Library, Link2, UserRound, Power, Focus, ChevronDown, ChevronUp, Trash2, Plus } from 'lucide-react';
 import { Artwork } from './components';
 import type { Collection, Deck } from './domain';
 import { isHidden, type ShowcaseGroup } from './collection';
 
-export default function CollectionOverview({ groups, collection, decks, busy, navigate, openScope, toggle, only, onlyMany, enableAll, browsePrecons, addDemo, hide, remove }: {
+export default function CollectionOverview({ groups, collection, decks, busy, navigate, openScope, toggle, only, onlyMany, enableAll, addDemo, hide, remove }: {
   groups: ShowcaseGroup[]; collection: Collection; decks: Deck[]; busy: boolean;
   navigate: (key: string) => void; openScope: (key: string, name: string, keys: string[]) => void;
   toggle: (keys: string[], enabled: boolean, all?: boolean) => void; only: (key: string) => void;
   onlyMany: (keys: string[]) => void; enableAll: () => void;
   hide: (keys: string[], name: string) => void;
   remove: (keys: string[], name: string) => void;
-  browsePrecons: () => void; addDemo: () => void;
+  addDemo: () => void;
 }) {
   const [expanded, setExpanded] = useState(() => { try { return localStorage.getItem('deckshelf.expanded-collections') === 'true'; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem('deckshelf.expanded-collections', String(expanded)); } catch { /* Keep session state if storage is unavailable. */ } }, [expanded]);
@@ -73,10 +73,9 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
         </article>;
       })}
     </div>
-    <div className="overview-precon-actions">
-      <button className="text-button" disabled={busy} title="Choose single precons from Archidekt's full catalog" onClick={browsePrecons}><Library size={14} />Pick individual precons</button>
-      <a href="https://archidekt.com/commander-precons" target="_blank" rel="noreferrer">Precon list on Archidekt <ExternalLink size={12} /></a>
-      {!collection.demo && <button className="text-button" disabled={busy} onClick={addDemo}><Plus size={14} />Add official precons</button>}
-    </div>
+    {/* The precons are one collection: pick single decks inside it. Profiles without it can add it here. */}
+    {!collection.demo && <div className="overview-precon-actions">
+      <button className="text-button" disabled={busy} onClick={addDemo}><Plus size={14} />Add Official Commander precons</button>
+    </div>}
   </div>;
 }

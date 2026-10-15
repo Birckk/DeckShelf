@@ -51,6 +51,7 @@ import {
   removeSources,
   restoreSources,
   addDemo,
+  updateDemo,
   importFolderSelection,
 } from "./collection";
 import precons from "./data/precons.json";
@@ -436,25 +437,24 @@ export default function CollectionManager({
     navigate("overview");
     notify(`${name} removed.`, { label: "Undo", run: () => setCollection(c => restoreSources(c, result.removed)) });
   }
-  async function browsePrecons() {
-    const key = "account:archidekt_precons";
-    if (sources.some((s) => s.key === key)) {
-      navigate(key);
-      return;
-    }
-    const signal = begin("Loading Archidekt’s precon catalog…");
+  async function updatePrecons() {
+    const signal = begin("Checking Archidekt for new precons…");
     try {
-      if (sources.length >= 50)
-        throw new Error("You can link up to 50 sources.");
       const found = await loadSource("account", "Archidekt_Precons", signal);
-      signal.throwIfAborted();
-      setCollection(rememberSource(collection, { ...found, selectedIds: [] }));
-      navigate(key);
+      const known = new Set(collection.demo?.decks.map(d => d.id) || []);
+      const { loaded, errors } = await fetchDecks(found.entries.map(e => e.id).filter(id => !known.has(id)), signal, false);
+      setCollection(c => updateDemo(c, loaded, found.checkedAt));
+      setFailures(errors);
+      notify(loaded.length ? `${loaded.length} new ${loaded.length === 1 ? "precon" : "precons"} added.` : "Precons are up to date.");
     } catch (e) {
       report(e);
     } finally {
       setBusy("");
     }
+  }
+  function addPrecons() {
+    setCollection(c => addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
+    navigate("demo");
   }
   const headerKeys = scope ? scopedKeys : activeGroup || section === "demo" ? [section] : [];
   const headerName = scope?.name || activeGroup?.name || "Official Commander precons";
@@ -542,8 +542,7 @@ export default function CollectionManager({
                 enableAll={() =>
                   setCollection((c) => ({ ...c, pausedGroups: [], disabledGroups: [] }))
                 }
-                browsePrecons={browsePrecons}
-                addDemo={() => setCollection(c => addDemo(c, precons as { snapshotAt: string; decks: Deck[] }))}
+                addDemo={addPrecons}
                 hide={hide}
                 remove={remove}
               />
@@ -564,10 +563,10 @@ export default function CollectionManager({
                         : scope ? 'Includes connected subfolders' : 'Curated by Archidekt'}
                     </p>}
                   </div>
-                  {source && (
+                  {(source || section === "demo") && (
                     <a
                       className="icon-button"
-                      href={source.url}
+                      href={source?.url || "https://archidekt.com/commander-precons"}
                       target="_blank"
                       rel="noreferrer"
                       aria-label="Open source on Archidekt"
@@ -593,10 +592,11 @@ export default function CollectionManager({
                       </div>}
                   <div className="manager-toolbar-end">
                     {source && <button className="text-button" disabled={!!busy} onClick={refreshSource}><RefreshCw size={14} />Refresh</button>}
+                    {section === "demo" && !headerHidden && <button className="text-button" disabled={!!busy} title="Check Archidekt for precons released since this snapshot" onClick={updatePrecons}><RefreshCw size={14} />Refresh</button>}
                     <CollectionMenu name={headerName} busy={!!busy} items={menuItems} />
                   </div>
-                  {section === "starter" && <div className="manager-precon-link"><button className="text-button" disabled={!!busy} onClick={browsePrecons}>
-                    Browse Archidekt’s full precon catalog <ArrowLeft size={12} style={{ transform: "rotate(180deg)" }} /></button></div>}
+                  {section === "starter" && !collection.demo && <div className="manager-precon-link"><button className="text-button" disabled={!!busy} onClick={addPrecons}>
+                    <Plus size={14} />Add all Official Commander precons</button></div>}
                 </div>}
                 <div className="manager-search">
                   <label>
