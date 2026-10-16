@@ -1367,7 +1367,7 @@ option {
     0 0 60px #e0c9a009;
 }
 /* No filter on .helix-world: a filter flattens its 3D and makes the spiral jump. */
-.reveal-seat {
+.reveal-card-wrap {
   position: relative;
   display: grid;
   place-items: center;

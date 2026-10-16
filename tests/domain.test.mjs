@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { cardImage, descriptionParts, matchesDeck, randomIndex, parseCollection, validateDeck, EMPTY_FILTERS } from '../src/domain.ts';
+import { cardImage, descriptionParts, matchesDeck, randomIndex, drawDistinct, parseCollection, validateDeck, EMPTY_FILTERS } from '../src/domain.ts';
 import { normalizeDeck, descriptionText } from '../server/api.mjs';
 
 const decks = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)));
@@ -122,4 +122,20 @@ test('Archidekt card images map to the identical Scryfall files; other images ar
   assert.equal(cardImage(`https://card-images.archidekt.com/grid/back/0/b/${id}.webp`), `https://cards.scryfall.io/grid/back/0/b/${id}.webp`);
   for (const url of ['/images/x-art.webp', `https://card-images.archidekt.com/crop/front/0/b/${id}.webp`, `https://example.com/art/front/0/b/${id}.webp`])
     assert.equal(cardImage(url), url);
+});
+
+test('multi-deck picks are distinct, capped by the pool and fair for every deck', () => {
+  const decks = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+  assert.deepEqual(drawDistinct(decks, 0), []);
+  assert.equal(drawDistinct(decks.slice(0, 2), 4).length, 2);
+  for (let i = 0; i < 200; i++) {
+    const picked = drawDistinct(decks, 4);
+    assert.equal(new Set(picked).size, 4);
+    assert.ok(picked.every(d => decks.includes(d)));
+  }
+  // Each deck appears in about 4 of 7 picks.
+  const seen = Object.fromEntries(decks.map(d => [d, 0]));
+  const runs = 70000;
+  for (let i = 0; i < runs; i++) for (const d of drawDistinct(decks, 4)) seen[d]++;
+  for (const d of decks) assert.ok(Math.abs(seen[d] / runs - 4 / 7) < 0.01, `${d}: ${seen[d] / runs}`);
 });

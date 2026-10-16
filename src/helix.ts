@@ -53,6 +53,7 @@ export function landing(
   travel: number,
   turn: number,
   minimumTravel = 2,
+  turns = 1,
 ) {
   return {
     travel:
@@ -62,7 +63,7 @@ export function landing(
         0.5 - Math.floor(index / 2) / ROWS_PER_WINDOW - travel - minimumTravel,
         loopLength(slots),
       ),
-    turn: turn + TAU + modulo(-(index % 2) * Math.PI - turn, TAU),
+    turn: turn + TAU * turns + modulo(-(index % 2) * Math.PI - turn, TAU),
   };
 }
 export const flightEase = (p: number) =>
@@ -77,4 +78,49 @@ export function repeatDecks<T>(decks: readonly T[]): T[] {
     { length: rows * 2 },
     (_, i) => decks[(Math.floor(i / 2) + (i % 2)) % decks.length],
   );
+}
+
+// The closest copy of a deck ahead of the helix, at least minimumTravel away.
+export function nearestLanding(
+  ids: readonly string[],
+  id: string,
+  travel: number,
+  turn: number,
+  minimumTravel: number,
+  turns: number,
+) {
+  let best = { travel: Infinity, turn, slot: -1 };
+  for (let slot = 0; slot < ids.length; slot++) {
+    if (ids[slot] !== id) continue;
+    const target = landing(slot, ids.length, travel, turn, minimumTravel, turns);
+    if (target.travel < best.travel) best = { ...target, slot };
+  }
+  return best;
+}
+
+export type Stop = { travel: number; turn: number };
+// A multi-deck run passes each stop front-centre in order: turn follows travel
+// within each segment, so the helix is exactly aligned whenever it reaches one.
+export function routeTurn(from: Stop, stops: readonly Stop[], travel: number) {
+  let previous = from;
+  for (const stop of stops) {
+    if (travel <= stop.travel) {
+      const span = stop.travel - previous.travel;
+      return previous.turn + (stop.turn - previous.turn) * (span > 0 ? (travel - previous.travel) / span : 1);
+    }
+    previous = stop;
+  }
+  return previous.turn;
+}
+
+const clamp01 = (p: number) => Math.max(0, Math.min(1, p));
+// Travel over time for a pick: an eased spin to each stop in turn. A repeated
+// point holds still there. arrivals[i] is when points[i] is reached, in ms.
+export function stopTravel(from: number, points: readonly number[], arrivals: readonly number[]) {
+  return (ms: number) => {
+    const i = arrivals.findIndex(at => ms <= at);
+    if (i < 0) return points.at(-1)!;
+    const t0 = i ? arrivals[i - 1] : 0, p0 = i ? points[i - 1] : from;
+    return p0 + (points[i] - p0) * flightEase(clamp01((ms - t0) / (arrivals[i] - t0)));
+  };
 }

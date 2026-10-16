@@ -188,3 +188,32 @@ test("opening or refiltering any pool starts with a front-facing card at the cen
     );
   }
 });
+
+test('multi-deck runs reach every chosen deck front-centre, in order, without reversing', async () => {
+  const { nearestLanding, routeTurn, stopTravel, helixPose, repeatDecks } = await import('../src/helix.ts');
+  for (const count of [2, 7, 184]) {
+    const ids = repeatDecks(Array.from({ length: count }, (_, i) => String(i)));
+    const chosen = count === 2 ? ['1', '0'] : ['3', '0', '1', '2'].slice(0, Math.min(4, count));
+    const from = { travel: 0.37, turn: 0.2 };
+    const stops = [];
+    let at = from;
+    chosen.forEach((id, i) => { at = nearestLanding(ids, id, at.travel, at.turn, i ? 0.22 : 2, i ? 0 : 1); stops.push(at); });
+    for (const stop of stops) {
+      const pose = helixPose(stop.slot, ids.length, stop.travel, routeTurn(from, stops, stop.travel), 980, 600);
+      assert.ok(Math.abs(pose.x) < 1e-6 && Math.abs(pose.y) < 1e-6 && pose.depth > 0.9999, 'each stop is front-centre');
+      assert.equal(ids[stop.slot], chosen[stops.indexOf(stop)]);
+    }
+    const travels = stops.map(s => s.travel);
+    // Each stop is held for 700ms before the next turn begins.
+    const points = travels.flatMap(t => [t, t]), arrivals = [];
+    let at2 = 5200;
+    travels.forEach((_, i) => { if (i) at2 += 1700; arrivals.push(at2); at2 += 700; arrivals.push(at2); });
+    const run = stopTravel(from.travel, points, arrivals);
+    let previous = from.travel;
+    for (let ms = 0; ms <= arrivals.at(-1); ms += 10) { const t = run(ms); assert.ok(t >= previous - 1e-9, 'never runs backwards'); previous = t; }
+    travels.forEach((travel, i) => {
+      assert.ok(Math.abs(run(arrivals[2 * i]) - travel) < 1e-9, 'reaches each stop on time');
+      assert.ok(Math.abs(run(arrivals[2 * i] + 350) - travel) < 1e-9, 'holds at each stop');
+    });
+  }
+});

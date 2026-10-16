@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import {
   ArrowRight,
   ExternalLink,
@@ -9,36 +9,54 @@ import {
   RotateCcw,
   Dices,
 } from "lucide-react";
-import { randomIndex, type Deck } from "./domain";
+import { drawDistinct, randomIndex, type Deck } from "./domain";
 import { Artwork, Mana } from "./components";
 import {
   CENTERED_START,
   dragTravel,
-  flightEase,
   helixPose,
-  landing,
+  nearestLanding,
   repeatDecks,
+  routeTurn,
+  stopTravel,
+  type Stop,
 } from "./helix";
+import { PlayerCount, savePlayers, savedPlayers } from "./PlayerCount";
 
-type Flight = {
+// One spin passes every chosen deck front-centre in order, then reveals them.
+type Run = {
   started: number;
-  duration: number;
-  fromTravel: number;
-  fromTurn: number;
-  toTravel: number;
-  toTurn: number;
-  deck: Deck;
+  revealAt: number;
+  from: Stop;
+  stops: (Stop & { slot: number })[];
+  travelAt: (ms: number) => number;
+  picks: Deck[];
+  passed: number;
 };
 type Motion = {
   travel: number;
   turn: number;
   velocity: number;
-  flight: Flight | null;
+  run: Run | null;
   dragging: boolean;
   winner: string | null;
   // Spiral brightness eases toward its target so the reveal never cuts in one frame.
   dim: number;
+  // Spiral slots already chosen during this pick, with their player number.
+  lit: Map<number, number>;
 };
+
+const seatName = (index: number) => `Player ${index + 1}`;
+const HOLD = 700;
+const fresh = (): Motion => ({
+  ...CENTERED_START,
+  velocity: 0,
+  run: null,
+  dragging: false,
+  winner: null,
+  dim: 1,
+  lit: new Map(),
+});
 
 export default function HelixPicker({
   decks,
@@ -53,7 +71,10 @@ export default function HelixPicker({
   openDeck: (d: Deck) => void;
   onWinner: (deck: Deck | null) => void;
 }) {
-  const [winner, setWinner] = useState<Deck | null>(null);
+  const [picks, setPicks] = useState<Deck[]>([]);
+  const [chain, setChain] = useState<Deck[]>([]);
+  const [players, setPlayers] = useState(savedPlayers);
+  const winner = picks[0] ?? null;
   const [systemReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [paused, setPaused] = useState(systemReduced);
   const [instantPick, setInstantPick] = useState(
@@ -61,15 +82,9 @@ export default function HelixPicker({
   );
   const [dragging, setDragging] = useState(false);
   const stage = useRef<HTMLDivElement>(null);
+  const reveal = useRef<HTMLDivElement>(null);
   const nodes = useRef<(HTMLButtonElement | null)[]>([]);
-  const motion = useRef<Motion>({
-    ...CENTERED_START,
-    velocity: 0,
-    flight: null,
-    dragging: false,
-    winner: null,
-    dim: 1,
-  });
+  const motion = useRef<Motion>(fresh());
   const preferences = useRef({ paused, reduced: systemReduced });
   const pointer = useRef<{
     id: number;
@@ -80,6 +95,9 @@ export default function HelixPicker({
   } | null>(null);
   const suppressClick = useRef(false);
   const count = decks.length;
+  // One deck per player, limited to the eligible pool.
+  const seats = Math.max(1, Math.min(players, count));
+  const multi = picks.length > 1;
   const key = decks.map((d) => d.id).join(",");
   // Visual repetitions never enter the unique pool used by randomIndex.
   const items = useMemo(() => repeatDecks(decks), [decks]);
@@ -93,19 +111,25 @@ export default function HelixPicker({
     return () => onWinner(null);
   }, [winner, onWinner]);
   useEffect(() => {
-    motion.current = {
-      ...CENTERED_START,
-      velocity: 0,
-      flight: null,
-      dragging: false,
-      winner: null,
-      dim: 1,
-    };
-    setWinner(null);
+    motion.current = fresh();
+    setPicks([]);
+    setChain([]);
     setSpinning(false);
     setDragging(false);
     pointer.current = null;
   }, [key, setSpinning]);
+  // Seats arrive from the spiral's front card, where the last deck landed.
+  useLayoutEffect(() => {
+    const scene = stage.current, box = reveal.current;
+    if (!scene || !box || picks.length < 2) return;
+    const from = scene.getBoundingClientRect();
+    const cx = from.left + from.width / 2, cy = from.top + from.height / 2;
+    box.querySelectorAll<HTMLElement>(".reveal-seat").forEach(seat => {
+      const r = seat.getBoundingClientRect();
+      seat.style.setProperty("--dx", `${cx - (r.left + r.width / 2)}px`);
+      seat.style.setProperty("--dy", `${cy - (r.top + r.height / 2)}px`);
+    });
+  }, [picks]);
   useEffect(() => {
     const scene = stage.current!;
     let width = scene.clientWidth,
@@ -131,22 +155,28 @@ export default function HelixPicker({
       const m = motion.current;
       const { paused: hold, reduced: quiet } = preferences.current;
       if (!document.hidden && visible) {
-        if (m.flight) {
-          const flight = m.flight,
-            progress = Math.min(1, (now - flight.started) / flight.duration),
-            ease = flightEase(progress);
-          m.travel =
-            flight.fromTravel + (flight.toTravel - flight.fromTravel) * ease;
-          m.turn = flight.fromTurn + (flight.toTurn - flight.fromTurn) * ease;
+        if (m.run) {
+          const run = m.run,
+            elapsed = Math.min(now - run.started, run.revealAt);
+          m.travel = run.travelAt(elapsed);
+          m.turn = routeTurn(run.from, run.stops, m.travel);
           scene.style.setProperty(
             "--flight",
-            String(Math.sin(progress * Math.PI)),
+            String(Math.sin((elapsed / run.revealAt) * Math.PI)),
           );
-          if (progress === 1) {
-            m.winner = flight.deck.id;
-            m.flight = null;
+          let passed = false;
+          while (run.passed < run.stops.length && m.travel >= run.stops[run.passed].travel - 1e-9) {
+            if (run.picks.length > 1) m.lit.set(run.stops[run.passed].slot, run.passed + 1);
+            run.passed++;
+            passed = true;
+          }
+          if (passed && run.picks.length > 1) setChain(run.picks.slice(0, run.passed));
+          if (elapsed >= run.revealAt) {
+            m.winner = run.picks[0].id;
+            m.run = null;
             scene.style.setProperty("--flight", "0");
-            setWinner(flight.deck);
+            setPicks(run.picks);
+            setChain([]);
             setSpinning(false);
           }
         } else if (
@@ -172,6 +202,13 @@ export default function HelixPicker({
             width,
             height,
           );
+          // Chosen decks stay lit and labelled as the spiral turns on.
+          const seat = m.lit.get(index);
+          if (node.dataset.seat !== (seat ? String(seat) : undefined)) {
+            if (seat) node.dataset.seat = String(seat);
+            else delete node.dataset.seat;
+            node.classList.toggle("is-chosen", !!seat);
+          }
           if (p.opacity === 0) {
             if (node.style.visibility !== "hidden") {
               node.style.visibility = "hidden";
@@ -182,13 +219,13 @@ export default function HelixPicker({
           node.style.visibility = "visible";
           node.style.transform = `translate3d(${p.x}px,${p.y}px,${p.z}px) rotateY(${p.yaw}deg) rotateZ(${p.roll}deg)`;
           node.style.opacity = String(p.opacity * m.dim);
-          node.style.filter = `brightness(${p.brightness}) blur(${quiet ? 0 : p.blur}px)`;
+          node.style.filter = `brightness(${seat ? Math.max(0.8, p.brightness) : p.brightness}) blur(${quiet || seat ? 0 : p.blur}px)`;
           node.style.zIndex = String(Math.round(p.depth * 100));
           node.style.pointerEvents =
-            p.opacity < 0.2 || !!m.flight || !!m.winner ? "none" : "auto";
+            p.opacity < 0.2 || !!m.run || !!m.winner ? "none" : "auto";
           node.tabIndex =
             firstSlots[index] &&
-            !m.flight &&
+            !m.run &&
             !m.winner &&
             p.opacity > 0.3 &&
             Math.abs(p.y) < height * 0.35
@@ -207,7 +244,12 @@ export default function HelixPicker({
   }, [items, firstSlots, count, setSpinning]);
   function explore() {
     motion.current.winner = null;
-    setWinner(null);
+    motion.current.lit = new Map();
+    setPicks([]);
+  }
+  function choosePlayers(n: number) {
+    setPlayers(n);
+    savePlayers(n);
   }
   function spin() {
     if (spinning || !count) return;
@@ -215,31 +257,58 @@ export default function HelixPicker({
       block: "start",
       behavior: instantPick ? "instant" : "smooth",
     });
-    const deck = decks[randomIndex(count)];
+    const chosen = drawDistinct(decks, seats);
     explore();
     const m = motion.current;
     m.velocity = 0;
     if (instantPick || count === 1) {
-      m.winner = deck.id;
-      setWinner(deck);
+      m.winner = chosen[0].id;
+      setPicks(chosen);
       return;
     }
-    const target = landing(
-      items.findIndex((d) => d.id === deck.id),
-      items.length,
-      m.travel,
-      m.turn,
-      2 + randomIndex(151) / 100,
-    );
-    m.flight = {
+    // A long first spin to the first chosen deck, then on to whichever of the
+    // others comes up next on the spiral. Seats follow that order: Player 1
+    // is still uniformly random, and every deck is equally likely in each seat.
+    const ids = items.map(d => d.id);
+    const from = { travel: m.travel, turn: m.turn };
+    const stops: Run["stops"] = [];
+    const visit: Deck[] = [];
+    const left = [...chosen];
+    let at = nearestLanding(ids, left[0].id, from.travel, from.turn, 2 + randomIndex(151) / 100, 1);
+    for (;;) {
+      stops.push(at);
+      visit.push(left.shift()!);
+      if (!left.length) break;
+      const options = left.map(deck => nearestLanding(ids, deck.id, at.travel, at.turn, 0.22, 0));
+      const next = options.reduce((best, option, i) => option.travel < options[best].travel ? i : best, 0);
+      [left[0], left[next]] = [left[next], left[0]];
+      at = options[next];
+    }
+    chosen.splice(0, chosen.length, ...visit);
+    const travels = stops.map(s => s.travel);
+    // Stop on each deck and hold there briefly. Longer gaps get a little more time.
+    const points: number[] = [], arrivals: number[] = [];
+    let t = 5200 + randomIndex(2201);
+    travels.forEach((travel, i) => {
+      if (i) t += Math.min(3200, 1300 + 500 * (travel - travels[i - 1])) + randomIndex(301);
+      points.push(travel);
+      arrivals.push(t);
+      if (i < travels.length - 1) {
+        t += HOLD;
+        points.push(travel);
+        arrivals.push(t);
+      }
+    });
+    m.run = {
       started: performance.now(),
-      duration: 5200 + randomIndex(2201),
-      fromTravel: m.travel,
-      fromTurn: m.turn,
-      toTravel: target.travel,
-      toTurn: target.turn,
-      deck,
+      revealAt: t + (chosen.length > 1 ? HOLD : 0),
+      from,
+      stops,
+      travelAt: stopTravel(from.travel, points, arrivals),
+      picks: chosen,
+      passed: 0,
     };
+    setChain([]);
     setSpinning(true);
   }
   function startDrag(e: PointerEvent<HTMLDivElement>) {
@@ -314,17 +383,27 @@ export default function HelixPicker({
       Instant pick
     </label>
   </div>;
+  const playerCount = !!count && (
+    <PlayerCount
+      value={seats}
+      available={count}
+      disabled={spinning}
+      onChange={choosePlayers}
+    />
+  );
+  const fewer = players > count && count > 0;
+  const choosing = seats > 1 ? `Choosing ${seats} decks…` : "Choosing your deck…";
 
   return (
     <section
-      className={`helix-picker ${spinning ? "is-spinning" : ""} ${winner ? "has-winner" : ""} ${systemReduced ? "reduced-motion" : ""}`}
+      className={`helix-picker ${spinning ? "is-spinning" : ""} ${winner ? "has-winner" : ""} ${chain.length ? "is-chaining" : ""} ${systemReduced ? "reduced-motion" : ""}`}
       aria-label="Random deck picker"
     >
         <span className="sr-only" role="status">
           {spinning
-            ? "Picking a deck…"
+            ? seats > 1 ? `Picking ${seats} decks…` : "Picking a deck…"
             : winner
-              ? "Deck selected"
+              ? multi ? `${picks.length} decks selected` : "Deck selected"
               : paused
                 ? "Motion paused"
                 : "Deck picker"}
@@ -402,22 +481,60 @@ export default function HelixPicker({
             </button>
           ))}
         </div>
+        {chain.length > 0 && (
+          <ol className="chain-chips" aria-hidden="true">
+            {chain.map((deck, index) => (
+              <li key={deck.id}>
+                <span>{seatName(index)}</span>
+                {deck.name}
+              </li>
+            ))}
+          </ol>
+        )}
         {winner && (
-          <div className="helix-reveal" key={winner.id}>
-            <div className="reveal-seat">
-              <div className="reveal-glow" aria-hidden="true" />
-              <button
-                className="revealed-card"
-                aria-label={`View winning deck ${winner.name}`}
-                onClick={() => openDeck(winner)}
-              >
-                <Artwork
-                  src={winner.commanders[0].image}
-                  alt={winner.commanders[0].name}
-                  colors={winner.colors}
-                  eager
-                />
-              </button>
+          <div
+            ref={reveal}
+            className={`helix-reveal ${multi ? `is-multi seats-${picks.length}` : ""}`}
+            key={picks.map(d => d.id).join()}
+            style={{ "--seats": picks.length } as CSSProperties}
+          >
+            <div className="reveal-seats" role={multi ? "list" : undefined}>
+              {picks.map((deck, index) => {
+                return (
+                  <div
+                    key={deck.id}
+                    className="reveal-seat"
+                    role={multi ? "listitem" : undefined}
+                    data-seat={index + 1}
+                    style={{ "--i": index } as CSSProperties}
+                  >
+                    {multi && <span className="seat-label">{seatName(index)}</span>}
+                    <div className="reveal-card-wrap">
+                      <div className="reveal-glow" aria-hidden="true" />
+                      <button
+                        className="revealed-card"
+                        aria-label={multi ? `View ${seatName(index)}'s deck ${deck.name}` : `View winning deck ${deck.name}`}
+                        onClick={() => openDeck(deck)}
+                      >
+                        <Artwork
+                          src={deck.commanders[0].image}
+                          alt={deck.commanders[0].name}
+                          colors={deck.colors}
+                          eager
+                        />
+                      </button>
+                    </div>
+                    {multi && (
+                      <span className="seat-caption">
+                        <a href={deck.sourceUrl} target="_blank" rel="noreferrer" title={`Open on ${deck.sourceName}`}>
+                          {deck.name}
+                        </a>
+                        <Mana colors={deck.colors} size="mini" />
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -425,7 +542,7 @@ export default function HelixPicker({
           <div className="helix-gesture">
             <Hand size={13} />
             {spinning
-              ? "Picking from your filtered decks…"
+              ? seats > 1 ? `Picking ${seats} from your filtered decks…` : "Picking from your filtered decks…"
               : dragging
                 ? "Release to let it drift"
                 : "Drag to turn. Release to drift."}
@@ -438,13 +555,17 @@ export default function HelixPicker({
           </div>
         )}
       </div>
-      <div className={`helix-dock ${winner ? "with-result" : ""}`}>
+      <div className={`helix-dock ${winner ? "with-result" : ""} ${multi ? "with-seats" : ""}`}>
         <div
-          className={winner ? "helix-selection" : "sr-only"}
+          className={winner && !multi ? "helix-selection" : "sr-only"}
           aria-live="polite"
           aria-atomic="true"
         >
-          {winner ? (
+          {spinning ? (
+            choosing
+          ) : multi ? (
+            picks.map((deck, index) => `${seatName(index)}: ${deck.name}.`).join(" ")
+          ) : winner ? (
             <>
               <h3>
                 <a
@@ -459,12 +580,11 @@ export default function HelixPicker({
               </h3>
               <Mana colors={winner.colors} />
             </>
-          ) : spinning ? (
-            "Choosing your deck…"
           ) : (
             `${count} eligible ${count === 1 ? "deck" : "decks"}`
           )}
         </div>
+        {playerCount}
         <div className="helix-dock-actions">
           <button
             className="button button-gold spin-button"
@@ -472,7 +592,9 @@ export default function HelixPicker({
             disabled={spinning || !count}
             title={
               count
-                ? `Each eligible deck has a 1 in ${count} chance.`
+                ? seats > 1
+                  ? `Each eligible deck has a ${seats} in ${count} chance of being picked.`
+                  : `Each eligible deck has a 1 in ${count} chance.`
                 : "Try another filter."
             }
           >
@@ -484,10 +606,10 @@ export default function HelixPicker({
               <Dices size={17} />
             )}
             {spinning
-              ? "Choosing your deck…"
+              ? choosing
               : winner
                 ? "Pick again"
-                : "Pick a deck"}
+                : seats > 1 ? `Pick ${seats} decks` : "Pick a deck"}
             {!spinning && <ArrowRight size={15} />}
           </button>
           {winner && (
@@ -500,6 +622,11 @@ export default function HelixPicker({
             </button>
           )}
         </div>
+        {fewer && !winner && (
+          <p className="player-note">
+            Only {count} {count === 1 ? "deck matches" : "decks match"}, so this picks {count}.
+          </p>
+        )}
         {motionControls}
       </div>
     </section>

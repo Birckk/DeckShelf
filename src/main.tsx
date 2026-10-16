@@ -8,6 +8,7 @@ import "@fontsource/dm-sans/latin-600.css";
 import "./styles.css";
 import "./helix.css";
 import "./studio.css";
+import "./picker-players.css";
 import App from "./App";
 import { registerServiceWorker } from "./pwa";
 import { WindowBar } from "./WindowBar";

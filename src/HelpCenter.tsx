@@ -84,7 +84,7 @@ const topics: Partial<Record<HelpSection, Topic>> = {
       { title: "Collections that are on", text: "Hidden and switched-off collections are left out. A deck in two collections counts once." },
       { title: "Colors include; Exact matches", text: <>U and B shows every deck with both, Esper and Grixis too. Turn on <b>Exact colors</b> for Dimir only. Search needs every word to match.</> },
       { title: "Choose a few", text: <>Press <b>Choose a few</b>, click decks (Shift-click selects a range), then <b>Picker</b>. The numbers are just order. The shortlist lasts until you clear it or reload.</> },
-      { title: "Equal odds", text: "Every deck in the pool has the same chance. Small pools repeat around the spiral to fill it; repeats don’t change the odds." },
+      { title: "Equal odds", text: "Every deck in the pool has the same chance. Picking for 2–4 players gives each player a different deck, numbered in the order the spiral stops on them. Small pools repeat around the spiral; repeats don’t change the odds." },
     ],
     action: { label: "Open the picker", target: "picker" },
   },

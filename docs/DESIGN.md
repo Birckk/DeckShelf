@@ -83,6 +83,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Small pools repeat in deck order on each strand: A, B, C, D, then repeat. Do not group repetitions into runs of the same deck.
 - Visual repetitions never alter the unique eligible pool or its equal selection odds.
 - Variation belongs in the actual spin's distance and duration. Respect reduced-motion settings throughout.
+- The reveal has one soft glow centred on and sized by the card. Do not put a filter on the helix: it flattens the 3D and makes every card jump. Dim the spiral by easing card opacity instead, both into a result and back out.
 
 ## Before shipping a visual change
 
@@ -193,3 +194,12 @@ Layout, the same on overview boxes, source headers and phones:
 - The Windows app has no native title bar or menu bar. A slim 34px bar (#0e0f11, a shade darker than the header) sits above the unchanged DeckShelf header, drags the window and stays put while the page scrolls. Windows draws the minimize, maximize and close buttons on its right.
 - At its left, a ≡ button opens a fold-out menu like the Claude desktop app: File (Export backup, Exit), View (zoom, full screen), Go (the main views, Search and My collection) and Help (DeckShelf Help, About). Licence and notice files ship in the app folder; they get no menu items (owner decision). List only actions that mean something in DeckShelf; no Edit menu or Undo/Cut/Paste (text fields keep their usual shortcuts). Do not merge the window buttons into the DeckShelf header; the owner tried that and found it clunky.
 - Browsers and the installed web app never show the bar. Views that fill the screen size from `--app-height`, so the bar doesn't add a page scroll.
+
+### Picking for several players (October 16)
+
+Owner decisions for #34, after comparing variants in the app:
+
+- Seat icons above the Pick button set 1–4 players. The count is remembered and never exceeds the pool; larger counts are disabled with the reason stated. One player keeps the single-deck reveal.
+- Stop on each: one long spin to the first chosen deck, a short hold, then shorter turns on to the others in the order they come up on the spiral. Each chosen deck stays lit with its Player label and joins a list at the top. A slow crawl past each deck, lighting decks as one spin passes them, and dealing on top of the helix were tried and rejected.
+- Results show as a row of full cards labelled Player 1–4, with name and mana symbols under each; two by two on narrow stages. Fan and table layouts may come back as settings later.
+- Shuffle-and-deal belongs in its own presentation, not on the helix (#76).

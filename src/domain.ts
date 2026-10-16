@@ -107,6 +107,21 @@ export function randomIndex(
   } while (buffer[0] >= limit);
   return buffer[0] % length;
 }
+// Partial Fisher–Yates over randomIndex: every ordered set of distinct decks is
+// equally likely, so each deck keeps the same chance of being picked.
+export function drawDistinct<T>(
+  items: readonly T[],
+  count: number,
+  fill?: (a: Uint32Array<ArrayBuffer>) => Uint32Array<ArrayBuffer>,
+): T[] {
+  const pool = [...items];
+  const size = Math.max(0, Math.min(Math.floor(count), pool.length));
+  for (let i = 0; i < size; i++) {
+    const j = i + randomIndex(pool.length - i, fill);
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, size);
+}
 export type Collection = {
   version: 1;
   hidden: string[];
