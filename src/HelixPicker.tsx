@@ -36,6 +36,8 @@ type Motion = {
   flight: Flight | null;
   dragging: boolean;
   winner: string | null;
+  // Spiral brightness eases toward its target so the reveal never cuts in one frame.
+  dim: number;
 };
 
 export default function HelixPicker({
@@ -66,6 +68,7 @@ export default function HelixPicker({
     flight: null,
     dragging: false,
     winner: null,
+    dim: 1,
   });
   const preferences = useRef({ paused, reduced: systemReduced });
   const pointer = useRef<{
@@ -96,6 +99,7 @@ export default function HelixPicker({
       flight: null,
       dragging: false,
       winner: null,
+      dim: 1,
     };
     setWinner(null);
     setSpinning(false);
@@ -154,6 +158,10 @@ export default function HelixPicker({
           m.travel += ((hold ? 0 : 0.025) + (quiet && hold ? 0 : m.velocity)) * delta;
           m.velocity *= Math.exp(-3.4 * delta);
         }
+        const dimTarget = m.winner ? 0.1 : 1;
+        m.dim = quiet
+          ? dimTarget
+          : m.dim + (dimTarget - m.dim) * (1 - Math.exp(-7 * delta));
         nodes.current.forEach((node, index) => {
           if (!node || index >= items.length) return;
           const p = helixPose(
@@ -173,7 +181,7 @@ export default function HelixPicker({
           }
           node.style.visibility = "visible";
           node.style.transform = `translate3d(${p.x}px,${p.y}px,${p.z}px) rotateY(${p.yaw}deg) rotateZ(${p.roll}deg)`;
-          node.style.opacity = String(p.opacity * (m.winner ? 0.1 : 1));
+          node.style.opacity = String(p.opacity * m.dim);
           node.style.filter = `brightness(${p.brightness}) blur(${quiet ? 0 : p.blur}px)`;
           node.style.zIndex = String(Math.round(p.depth * 100));
           node.style.pointerEvents =
@@ -396,20 +404,21 @@ export default function HelixPicker({
         </div>
         {winner && (
           <div className="helix-reveal" key={winner.id}>
-            <div className="reveal-ring" aria-hidden="true" />
-            <div className="reveal-halo" />
-            <button
-              className="revealed-card"
-              aria-label={`View winning deck ${winner.name}`}
-              onClick={() => openDeck(winner)}
-            >
-              <Artwork
-                src={winner.commanders[0].image}
-                alt={winner.commanders[0].name}
-                colors={winner.colors}
-                eager
-              />
-            </button>
+            <div className="reveal-seat">
+              <div className="reveal-glow" aria-hidden="true" />
+              <button
+                className="revealed-card"
+                aria-label={`View winning deck ${winner.name}`}
+                onClick={() => openDeck(winner)}
+              >
+                <Artwork
+                  src={winner.commanders[0].image}
+                  alt={winner.commanders[0].name}
+                  colors={winner.colors}
+                  eager
+                />
+              </button>
+            </div>
           </div>
         )}
         {!winner && !!count && (

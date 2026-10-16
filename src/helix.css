@@ -75,9 +75,11 @@
   color: #9cac93;
   line-height: 1.7;
 }
+.helix-intro {
+  transition: opacity 0.5s;
+}
 .has-winner .helix-intro {
   opacity: 0;
-  transition: opacity 0.5s;
 }
 .helix-stage {
   position: relative;
@@ -360,7 +362,6 @@
     0 0 0 1px #d8be82aa,
     0 23px 50px #0008,
     0 0 80px #dcb76c16;
-  animation: helix-reveal 0.85s cubic-bezier(0.18, 0.8, 0.24, 1) both;
 }
 .revealed-card > img,
 .revealed-card > .art-fallback {
@@ -368,28 +369,6 @@
   height: 100%;
   object-fit: cover;
   border-radius: 13px;
-}
-.reveal-halo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 450px;
-  height: 450px;
-  border: 1px solid #d8be8225;
-  border-radius: 50%;
-  transform: translate(-50%, -53%) rotateX(12deg);
-  box-shadow:
-    0 0 0 22px #d8be8207,
-    0 0 0 75px #d8be8203;
-  background: radial-gradient(ellipse, #dfb76a13, transparent 65%);
-  animation: helix-halo 1.2s ease-out both;
-}
-.reveal-caption {
-  font-size: 8px;
-  letter-spacing: 3px;
-  color: #dbc794;
-  text-shadow: 0 1px 10px #000;
-  animation: helix-caption 0.8s 0.25s both;
 }
 .helix-empty {
   position: absolute;
@@ -406,36 +385,6 @@
   50% {
     opacity: 0.4;
     box-shadow: 0 0 3px #cbb17a22;
-  }
-}
-@keyframes helix-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(25px) rotateY(-30deg) rotateZ(-7deg) scale(0.72);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) rotateY(0) rotateZ(0) scale(1);
-  }
-}
-@keyframes helix-halo {
-  from {
-    opacity: 0;
-    scale: 0.55;
-  }
-  to {
-    opacity: 1;
-    scale: 1;
-  }
-}
-@keyframes helix-caption {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 @media (min-width: 1500px) {
@@ -631,30 +580,16 @@
   .revealed-card {
     width: 208px;
   }
-  .reveal-caption {
-    font-size: 7px;
-    letter-spacing: 2px;
-  }
   .helix-reveal {
     gap: 25px;
   }
-  .reveal-halo {
-    width: 330px;
-    height: 330px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .helix-live > span,
-  .revealed-card,
-  .reveal-halo,
-  .reveal-caption {
+  .helix-live > span {
     animation: none;
   }
 }
-.reduced-motion .helix-live > span,
-.reduced-motion .revealed-card,
-.reduced-motion .reveal-halo,
-.reduced-motion .reveal-caption {
+.reduced-motion .helix-live > span {
   animation: none;
 }
 .reduced-motion .helix-intro {

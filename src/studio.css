@@ -1366,27 +1366,23 @@ option {
     inset 0 0 100px #0005,
     0 0 60px #e0c9a009;
 }
-.has-winner .helix-world {
-  filter: blur(3px);
-  transition: filter 0.8s;
+/* No filter on .helix-world: a filter flattens its 3D and makes the spiral jump. */
+.reveal-seat {
+  position: relative;
+  display: grid;
+  place-items: center;
 }
-.reveal-ring {
+/* One soft glow, centred on and sized by the card, on the card's own timing. */
+.reveal-glow {
   position: absolute;
-  width: 350px;
-  aspect-ratio: 1;
-  border: 1px solid #efdeb86b;
+  inset: -24% -52%;
   border-radius: 50%;
-  box-shadow:
-    0 0 32px #ecd8b52b,
-    inset 0 0 32px #ecd8b514;
-  animation: reveal-ring 1100ms ease-out both;
+  background: radial-gradient(closest-side, #ead6a330, #ead6a310 58%, transparent);
   pointer-events: none;
+  animation: reveal-glow 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .helix-reveal .revealed-card {
   animation: winner-arrive 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.helix-reveal .reveal-halo {
-  background: radial-gradient(ellipse, #ead6a338, transparent 67%);
 }
 .collection-card {
   position: relative;
@@ -1444,17 +1440,14 @@ option {
     filter: brightness(1);
   }
 }
-@keyframes reveal-ring {
+@keyframes reveal-glow {
   from {
     opacity: 0;
-    transform: scale(0.6);
-  }
-  25% {
-    opacity: 0.8;
+    scale: 0.7;
   }
   to {
-    opacity: 0;
-    transform: scale(1.7);
+    opacity: 1;
+    scale: 1;
   }
 }
 @keyframes source-refresh {
@@ -1470,22 +1463,17 @@ option {
   .collection-card,
   .studio-card.is-current > img,
   .helix-reveal .revealed-card,
-  .has-winner .helix-world {
+  .reveal-glow {
     animation: none;
     transition: none;
     transform: none;
   }
-  .reveal-ring {
-    display: none;
-  }
 }
 .studio-theme:has(.reduced-motion) .atmosphere-layer,
-.studio-theme:has(.reduced-motion) .revealed-card {
+.studio-theme:has(.reduced-motion) .revealed-card,
+.reduced-motion .reveal-glow {
   animation: none;
   transition: none;
-}
-.reduced-motion .reveal-ring {
-  display: none;
 }
 
 /* Small, useful labels; let the card artwork supply the character. */
