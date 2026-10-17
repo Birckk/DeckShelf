@@ -61,6 +61,18 @@ Use **Export backup** in My collection before you clear browser data, switch
 browsers or move to another computer. **Restore backup** shows what the file
 contains and asks before it replaces the current collection.
 
+Backups keep the version-1 format: saved deck snapshots, precons, linked sources
+and collection choices, including hidden collections. Display preferences (such
+as layout and card size) and temporary shortlists are not included. Restore
+replaces rather than merges and leaves display preferences as they are. It saves
+the validated file before replacing the current shelf; a failed save keeps the
+current collection and preview so you can retry.
+
+If saving fails, export your session before closing or use **Retry saving** when
+storage is available. Damaged or unreadable saved data is protected from automatic
+overwrites. **Download recovery data** preserves damaged data for manual repair;
+**Export backup** exports the current session as a valid collection file.
+
 Adding or refreshing decks needs an internet connection. Deck details are saved
 locally, so browsing and picking work offline.
 
@@ -80,7 +92,7 @@ Once DeckShelf has loaded, it opens offline with your saved collection, filters
 and the picker. Artwork you have already seen is kept on the device (up to about
 800 images); artwork you haven't seen yet shows a dragon holding the deck's mana
 symbols, marked *Offline*. Adding and refreshing decks wait for a connection. Installing does not
-sync anything between devices; use backups for that.
+make a backup or sync anything between devices; keep an exported backup separately.
 
 When a new version is ready, DeckShelf says so above the collection. **Reload**
 switches to it; **Later** keeps the current page. Your collection is unaffected.

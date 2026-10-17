@@ -89,12 +89,12 @@ const topics: Partial<Record<HelpSection, Topic>> = {
     action: { label: "Open the picker", target: "picker" },
   },
   saving: {
-    lead: <>There’s no account. Your shelf is saved in this browser, for this site address.</>,
+    lead: <>There’s no account. Your shelf is saved in this browser, for this site address. Installing DeckShelf or using it offline does not make a backup or sync your choices.</>,
     Figure: SavingFigure,
     rules: [
-      { title: "Each place keeps its own shelf", text: "Another browser, your phone, the Windows app and a local copy each start separately." },
-      { title: "Export backup", text: <>At the bottom of My collection. The file holds your decks, sources, switches and hidden collections, but not layout, card size or a shortlist.</> },
-      { title: "Restore backup", text: "Shows what the file holds and asks before it replaces your current shelf. It doesn’t merge." },
+      { title: "Each place keeps its own shelf", text: "Another browser, your phone, the Windows app and a local copy each start separately. On iPhone and iPad, the installed web app also keeps a separate shelf from Safari." },
+      { title: "What a backup keeps", text: <>Export and restore are at the bottom of My collection. The version-1 file holds saved deck snapshots, precons, sources and collection choices, including hidden collections. Display preferences and temporary shortlists stay out. Keep a copy outside browser storage before clearing site data or moving devices.</> },
+      { title: "Restore replaces, not merges", text: "A valid version-1 file is previewed before confirmation. It replaces your decks, sources and collection choices only after saving succeeds. A failed save keeps your current shelf and the preview for retry. Display preferences stay as they are." },
     ],
     action: { label: "Open My collection", target: "collection" },
   },
@@ -115,6 +115,7 @@ const faq: { group: string; items: { q: string; a: ReactNode; see?: HelpSection 
     { q: "Why can’t I press Picker?", a: "Select at least one deck that’s visible with your current search and colors. Selected decks hidden by a filter can’t be picked." },
   ] },
   { group: "Devices and more", items: [
+    { q: "What if my collection cannot be saved or read?", a: "After a failed save, changes still work for this session: export them before closing, or retry saving when storage is available. Damaged or unreadable saved data is kept untouched until you confirm a valid restore. Download recovery data preserves the damaged file for manual repair; Export backup saves the current session instead.", see: "saving" },
     { q: "Can I use it on my phone and my computer?", a: "Yes, but each keeps its own shelf. Export a backup on one and restore it on the other. Sync between devices is on the roadmap.", see: "saving" },
     { q: "Does it work offline?", a: "Browsing and picking work once DeckShelf has loaded. Adding or refreshing decks needs a connection, and artwork may too unless your browser has cached it." },
     { q: "Moxfield, or formats other than Commander?", a: "Not yet. Archidekt and Commander only for now; both are on the roadmap.", see: "roadmap" },

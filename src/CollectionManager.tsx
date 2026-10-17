@@ -148,6 +148,8 @@ export default function CollectionManager({
   const [error, setError] = useState("");
   const [failures, setFailures] = useState<string[]>([]);
   const [restorePreview, setRestorePreview] = useState<Collection | null>(null);
+  const [restoreError, setRestoreError] = useState("");
+  const restoreRequest = useRef(0);
   const input = useRef<HTMLInputElement>(null);
   const restoreRegion = useRef<HTMLDivElement>(null);
   // The confirmation opens below the footer; on phones that is off-screen.
@@ -155,6 +157,9 @@ export default function CollectionManager({
     restoreRegion.current?.scrollIntoView({ block: "nearest" });
     restoreRegion.current?.focus({ preventScroll: true });
   }, [restorePreview]);
+  useEffect(() => {
+    if (restoreError) restoreRegion.current?.scrollIntoView({ block: "nearest" });
+  }, [restoreError]);
   const controller = useRef<AbortController | null>(null);
   const importedFolderKeys = useRef(new Set<string>());
   useEffect(() => () => controller.current?.abort(), []);
@@ -418,15 +423,20 @@ export default function CollectionManager({
   async function restore(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+    const request = ++restoreRequest.current;
+    setRestorePreview(null);
+    setRestoreError("");
+    event.target.value = "";
     try {
       if (file.size > 5_000_000)
         throw new Error("Choose a backup smaller than 5 MB.");
-      setRestorePreview(parseCollection(await file.text()));
+      const parsed = parseCollection(await file.text());
+      if (request !== restoreRequest.current) return;
+      setRestorePreview(parsed);
       setError("");
     } catch (e) {
-      report(e);
+      if (request === restoreRequest.current) report(e);
     }
-    event.target.value = "";
   }
   function hide(keys: string[]) {
     setCollection(c => hideGroups(c, keys, true));
@@ -744,19 +754,26 @@ export default function CollectionManager({
             <div>
               <strong>Replace this local collection?</strong>
               <p>
-                The backup has {restorePreview.added.length} imported decks and{" "}
-                {restorePreview.sources?.length || 0} linked sources. Export
-                your current backup first if you want to keep it.
+                The backup has {restorePreview.added.length} saved deck snapshots and{" "}
+                {restorePreview.sources?.length || 0} linked sources
+                {restorePreview.demo ? `, plus ${restorePreview.demo.decks.length} saved precons` : ""}.
+                {" "}It replaces your decks, sources and collection choices; it does not merge them.
+                Display preferences stay as they are. Export your current backup first if you want to keep it.
               </p>
+              {restoreError && <p className="inline-error" role="alert">{restoreError}</p>}
             </div>
             <button
               className="button button-gold"
               disabled={!!busy}
               onClick={() => {
-                onRestore(restorePreview);
-                setRestorePreview(null);
-                navigate("all");
-                notify("Collection restored from backup.");
+                try {
+                  onRestore(restorePreview);
+                  setRestoreError("");
+                  setRestorePreview(null);
+                  navigate("all");
+                  setError("");
+                  notify("Collection restored and saved in this browser.");
+                } catch (e) { setRestoreError((e as Error).message); }
               }}
             >
               Restore this backup
@@ -764,7 +781,7 @@ export default function CollectionManager({
             <button
               className="icon-button"
               aria-label="Cancel restore"
-              onClick={() => setRestorePreview(null)}
+              onClick={() => { setRestorePreview(null); setRestoreError(""); }}
             >
               <X size={16} />
             </button>

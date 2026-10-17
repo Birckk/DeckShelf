@@ -1,0 +1,4 @@
+/* Recovery feedback stays readable without expanding normal collection controls. */
+.storage-warning { flex-wrap: wrap; }
+.storage-warning > span { flex: 1 1 460px; }
+.storage-warning > button { flex: 0 0 auto; white-space: nowrap; }

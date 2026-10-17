@@ -1,4 +1,5 @@
 import QuickChoiceControls from './QuickChoiceControls';
+import './recovery.css';
 import {
   useEffect,
   useMemo,
@@ -83,7 +84,9 @@ function readSaved(): { collection: Collection; error: string; raw?: string | nu
       collection: { ...EMPTY_COLLECTION },
       raw,
       error:
-        "Your saved collection could not be read. The starter collection is shown temporarily; the saved data has not been overwritten. Export it for recovery, or restore a valid backup to resume saving.",
+        raw !== null
+          ? "Saved collection data is damaged. It has not been overwritten. Download it for recovery before restoring a backup. Changes here are temporary."
+          : "Browser storage could not be read. Existing saved data has not been overwritten. Changes here are temporary; export them before closing.",
     };
   }
 }
@@ -297,18 +300,37 @@ function App() {
       setRefreshing(false);
     }
   }
-  function backup() {
+  function retrySaving() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collection));
+      setStorageError("");
+      setNotice("Collection saved in this browser.");
+    } catch {
+      setStorageError("This browser still could not save your collection. Export a backup before closing this page.");
+    }
+  }
+  function restoreCollection(value: Collection) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+    } catch {
+      throw new Error("The backup could not be saved. Your current collection is unchanged. Free browser storage or allow storage access, then try again.");
+    }
+    setCollection(value);
+    setStorageLocked(false);
+    setStorageError("");
+  }
+  function backup(recovery = false) {
     const url = URL.createObjectURL(
-      new Blob([storageLocked && loaded.raw !== null && loaded.raw !== undefined ? loaded.raw : JSON.stringify(collection, null, 2)], {
+      new Blob([recovery && loaded.raw != null ? loaded.raw : JSON.stringify(collection, null, 2)], {
         type: "application/json",
       }),
     );
     const link = document.createElement("a");
     link.href = url;
-    link.download = "deckshelf-collection.json";
+    link.download = recovery ? "deckshelf-recovery-data.json" : "deckshelf-collection.json";
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setNotice("Collection backup downloaded.");
+    setNotice(recovery ? "Recovery data downloaded. This file may need repair before it can be restored." : "Collection backup downloaded. Display preferences are not included.");
   }
   const colorControls = (<div
             className="studio-color-controls"
@@ -424,8 +446,10 @@ function App() {
       </header>
       {storageError && (
         <div className="storage-warning" role="alert">
-          {storageError}{" "}
-          <button className="text-button" onClick={backup}>
+          <span>{storageError}</span>
+          {!storageLocked && <button className="text-button" onClick={retrySaving}>Retry saving</button>}
+          {storageLocked && loaded.raw != null && <button className="text-button" onClick={() => backup(true)}>Download recovery data</button>}
+          <button className="text-button" onClick={() => backup()}>
             Export backup
           </button>
         </div>
@@ -904,9 +928,9 @@ function App() {
           initialSection={collectionSection}
           initialScope={collectionScope}
           onLocationChange={(section, scope) => { setCollectionSection(section); setCollectionScope(scope); }}
-          onRestore={(value) => { setStorageLocked(false); setCollection(value); }}
+          onRestore={restoreCollection}
           onClose={() => { setShowCollection(false); requestAnimationFrame(() => collectionTrigger.current?.focus()); }}
-          backup={backup}
+          backup={() => backup()}
           notify={setNotice}
         />
       )}
