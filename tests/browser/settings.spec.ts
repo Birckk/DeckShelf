@@ -52,7 +52,7 @@ test('Settings in Help supports keyboard selection, reload, history and v1 backu
   await expect(wedges).toBeChecked();
   await page.getByRole('button', { name: 'Back to collection' }).click();
   await expect(page.getByRole('button', { name: 'Help', exact: true })).toBeFocused();
-  await expect(page.getByRole('button', { name: 'Settings', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toHaveCount(0);
   await expect(page.locator('.collection-card [data-card-back="wedges"]').first()).toBeVisible();
   await page.getByRole('button', { name: 'My collection', exact: true }).click();
   const download = page.waitForEvent('download');
@@ -148,6 +148,17 @@ for (const width of [1920, 390]) {
     await expect(tile.locator('[data-card-back="nest"]')).toBeVisible();
   });
 }
+
+test('The header cog opens Settings and takes focus back on leaving', async ({ page }) => {
+  await page.goto('/');
+  const cog = page.getByRole('button', { name: 'Settings', exact: true });
+  await cog.click();
+  await expect(page).toHaveURL(/\/help\/settings$/);
+  await expect(cog).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('button', { name: 'Help', exact: true })).not.toHaveAttribute('aria-current', 'page');
+  await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
+  await expect(cog).toBeFocused();
+});
 
 test('Help, including Settings, returns to the previous browsing view', async ({ page }) => {
   await page.goto('/');

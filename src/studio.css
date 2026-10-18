@@ -1763,3 +1763,11 @@ body:has(.studio-workspace) { min-width:320px; }
   .manager-search { flex-wrap: wrap; }
   .manager-search > label:not(.format-select) { flex-basis: 100%; }
 }
+
+/* Settings and Help are a pair of icons, closer to each other than to the other header controls. */
+.header-icons { display: inline-flex; align-items: center; }
+.studio-header .header-icons > .header-icon { width: 34px; padding: 0; color: #d9d6de; }
+.studio-header .header-icons > .header-icon:hover:not(:disabled), .studio-header .header-icons > .header-icon[aria-current="page"] { color: #ead5a5; }
+@media (max-width: 700px) {
+  .studio-header .header-icons > .header-icon { width: 32px; min-height: 32px; border-color: transparent; background: none; }
+}

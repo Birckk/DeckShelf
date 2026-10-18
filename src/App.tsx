@@ -38,6 +38,7 @@ import {
   Tag,
   RefreshCw,
   X,
+  Settings,
 } from "lucide-react";
 import seed from "./data/decks.json";
 import precons from "./data/precons.json";
@@ -222,6 +223,9 @@ function App() {
     if (help) setTourOpen(false);
   }, [help]);
   const helpTrigger = useRef<HTMLButtonElement>(null);
+  const settingsTrigger = useRef<HTMLButtonElement>(null);
+  // Leaving Help returns focus to whichever header icon opened it.
+  const helpOpener = useRef<"help" | "settings">("help");
   function startTour() { setFirstVisit(false); setTourOpen(true); }
   function dismissTour() { setFirstVisit(false); helpTrigger.current?.focus(); }
   const closeTour = useCallback((returnFocus: boolean) => {
@@ -430,7 +434,7 @@ function App() {
   menuCommand.current = (command) => {
     if (spinning) return;
     if (command === "backup") backup();
-    else if (command === "help") { setShowCollection(false); setHelp("start"); }
+    else if (command === "help") { helpOpener.current = "help"; setShowCollection(false); setHelp("start"); }
     else if (["grid", "cards", "picker", "search", "collection"].includes(command)) goToFeature(command as FeatureTarget);
   };
   useEffect(() => onMenuCommand((command) => menuCommand.current(command)), []);
@@ -695,16 +699,30 @@ function App() {
             onPrecons={() => { setTourOpen(false); openPrecons(); }}
             onClose={closeTour}
           />}
-          <button
-            className="button button-outline help-trigger"
-            ref={helpTrigger}
-            disabled={spinning}
-            aria-current={help ? "page" : undefined}
-            onClick={() => { setShowCollection(false); setHelp("start"); }}
-          >
-            <CircleHelp size={16} />
-            <span>Help</span>
-          </button>
+          <span className="header-icons">
+            <button
+              className="button button-outline header-icon"
+              ref={settingsTrigger}
+              disabled={spinning}
+              aria-label="Settings"
+              title="Settings"
+              aria-current={help === "settings" ? "page" : undefined}
+              onClick={() => { helpOpener.current = "settings"; setShowCollection(false); setHelp("settings"); }}
+            >
+              <Settings size={18} />
+            </button>
+            <button
+              className="button button-outline header-icon help-trigger"
+              ref={helpTrigger}
+              disabled={spinning}
+              aria-label="Help"
+              title="Help"
+              aria-current={help && help !== "settings" ? "page" : undefined}
+              onClick={() => { helpOpener.current = "help"; setShowCollection(false); setHelp("start"); }}
+            >
+              <CircleHelp size={18} />
+            </button>
+          </span>
           <button
             className="button button-outline"
             disabled={spinning}
@@ -1027,7 +1045,7 @@ function App() {
       {help && !showCollection && <HelpCenter
         section={help}
         onSection={setHelp}
-        onClose={() => { setHelp(null); requestAnimationFrame(() => helpTrigger.current?.focus()); }}
+        onClose={() => { setHelp(null); requestAnimationFrame(() => (helpOpener.current === "settings" ? settingsTrigger : helpTrigger).current?.focus()); }}
         onGo={goToFeature}
         precons={{ present: !!collection.demo && !collection.demo.removed, open: openPrecons }}
         settings={{
