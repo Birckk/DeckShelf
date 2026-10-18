@@ -4,6 +4,7 @@ import './recovery.css';
 import FormatSelect from './FormatSelect';
 import TagFilter from './TagFilter';
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -13,7 +14,6 @@ import {
 import {
   ArrowDownUp,
   ArrowRight,
-  Check,
   ChevronDown,
   ExternalLink,
   Eye,
@@ -53,6 +53,7 @@ import CardStudio from "./CardStudio";
 import HelpCenter, { helpSectionFromPath, type FeatureTarget, type HelpSection } from "./HelpCenter";
 import { CardBackContext } from "./placeholders/CardBackArt";
 import CollectionManager from "./CollectionManager";
+import { Notices, notify } from "./Notices";
 import { showcaseDecks, collectionDecks, freshCollection, addDemo } from "./collection";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 
@@ -173,7 +174,13 @@ function App() {
     };
   }, [showFilters]);
   const [spinning, setSpinning] = useState(false);
-  const [notice, setNotice] = useState("");
+  // Undo restores the collection from before an action, but only while nothing has changed since.
+  const latestCollection = useRef(collection);
+  latestCollection.current = collection;
+  const undoTo = useCallback((before: Collection, after: Collection) => () => {
+    if (latestCollection.current !== after) { notify("Undo isn’t available: your collection has changed since."); return; }
+    setCollection(before);
+  }, []);
   const online = useOnline();
   const updateReady = useUpdateReady();
   const [updateLater, setUpdateLater] = useState(false);
@@ -188,11 +195,6 @@ function App() {
       );
     }
   }, [collection, storageLocked]);
-  useEffect(() => {
-    if (!notice) return;
-    const timer = setTimeout(() => setNotice(""), 5500);
-    return () => clearTimeout(timer);
-  }, [notice]);
   const allDecks = useMemo(
     () => collectionDecks(collection, catalog),
     [collection],
@@ -324,7 +326,7 @@ function App() {
         added: [...c.added.filter((d) => d.id !== deck.id), updated],
       }));
       setDetail((current) => (current?.id === deck.id ? updated : current));
-      setNotice(`${updated.name} refreshed from Archidekt.`);
+      notify(`${updated.name} refreshed from Archidekt.`);
     } catch (error) {
       setRefreshError({ id: deck.id, message: `${(error as Error).message} Your saved deck is unchanged.` });
     } finally {
@@ -335,7 +337,7 @@ function App() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(collection));
       setStorageError("");
-      setNotice("Collection saved in this browser.");
+      notify("Collection saved in this browser.");
     } catch {
       setStorageError("This browser still could not save your collection. Export a backup before closing this page.");
     }
@@ -361,7 +363,7 @@ function App() {
     link.download = recovery ? "deckshelf-recovery-data.json" : "deckshelf-collection.json";
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setNotice(recovery ? "Recovery data downloaded. This file may need repair before it can be restored." : "Collection backup downloaded. Display preferences are not included.");
+    notify(recovery ? "Recovery data downloaded. This file may need repair before it can be restored." : "Collection backup downloaded. Display preferences are not included.");
   }
   const colorControls = (<div
             className="studio-color-controls"
@@ -805,12 +807,7 @@ function App() {
         </main>}
       </div>
       }
-      {notice && (
-        <div className="toast" role="status">
-          <Check size={15} />
-          {notice}
-        </div>
-      )}
+      <Notices />
       {help && !showCollection && <HelpCenter
         section={help}
         onSection={setHelp}
@@ -938,7 +935,8 @@ function App() {
           onRestore={restoreCollection}
           onClose={() => { setShowCollection(false); requestAnimationFrame(() => collectionTrigger.current?.focus()); }}
           backup={() => backup()}
-          notify={setNotice}
+          notify={notify}
+          undoTo={undoTo}
         />
       )}
     </div>

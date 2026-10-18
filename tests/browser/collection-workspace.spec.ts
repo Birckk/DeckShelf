@@ -62,8 +62,7 @@ test('failed refresh retains snapshots and hierarchy; Remove keeps decks other c
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
   expect(saved.sources).toEqual(sources);
   expect(saved.added).toEqual(fixture.added);
-  await menu(page, 'Mono-color', 'Remove…');
-  await page.getByRole('button', { name: 'Remove', exact: true }).click();
+  await menu(page, 'Mono-color', 'Remove');
   // Deck 0 is also in Multicolor and stays; decks 1 and 2 only came from Mono-color.
   const after = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
   expect(after.sources.map((s: { key: string }) => s.key)).toEqual(['folder:43']);
@@ -86,6 +85,11 @@ test('new source entries stay staged until added and can be retried after failur
   await page.route(`**/api/decks/${decks[5].id}`, route => route.fulfill({ status: 503, json: { error: 'Try again.' } }));
   await page.getByRole('button', { name: 'Add selected decks', exact: true }).click();
   await expect(page.locator('.manager-failures')).toContainText('Try again.');
+  // The failure is also a notice that stays until dismissed, pointing to the list.
+  const problem = page.locator('[data-sonner-toast]').filter({ hasText: '1 deck could not be loaded.' });
+  await expect(problem.getByRole('alert')).toBeVisible();
+  await problem.getByRole('button', { name: 'Show', exact: true }).click();
+  await expect(page.locator('.manager-failures summary')).toBeFocused();
   await page.unroute(`**/api/decks/${decks[5].id}`);
   await page.getByRole('button', { name: 'Add selected decks', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText('6 on display');
@@ -354,13 +358,18 @@ test('shortlist numbers follow displayed order after reverse selection and sorti
 });
 
 
-for (const width of [1440, 390]) test(`remove an imported collection asks first and removes its decks at ${width}px`, async ({ page }) => {
+for (const width of [1440, 390]) test(`remove an imported collection acts at once, Undo brings it back, at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 });
-  const box = page.locator('.collection-box').filter({ has: page.getByRole('button', { name: 'Open Birckk', exact: true }) });
-  await menu(page, 'Birckk', 'Remove…');
-  await expect(page.getByRole('dialog', { name: 'Remove…' })).toContainText('Remove Birckk and its 5 saved decks?');
+  const before = await page.evaluate(key => localStorage.getItem(key), key);
+  await menu(page, 'Birckk', 'Remove');
+  await expect(page.getByRole('button', { name: 'Open Birckk', exact: true })).toHaveCount(0);
+  const notice = page.getByRole('region', { name: 'Notifications' });
+  await expect(notice).toContainText('Removed Birckk and its 5 saved decks.');
   await page.screenshot({ path: `qa/collection/remove-collection-${width}.png`, fullPage: true });
-  await page.getByRole('button', { name: 'Remove', exact: true }).click();
+  await notice.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Open Birckk', exact: true })).toHaveCount(1);
+  expect(await page.evaluate(key => localStorage.getItem(key), key)).toBe(before);
+  await menu(page, 'Birckk', 'Remove');
   await expect(page.getByRole('button', { name: 'Open Birckk', exact: true })).toHaveCount(0);
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
   expect(saved.sources).toEqual([]);

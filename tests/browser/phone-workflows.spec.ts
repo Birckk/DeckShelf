@@ -392,7 +392,7 @@ for (const viewport of reviewSizes) test.describe(`owner phone pre-pass ${viewpo
     await chooseBackup();
     const region = page.getByRole('region', { name: 'Restore collection backup' });
     await expect(region).toBeFocused();
-    await expect(page.locator('.toast')).toHaveCount(0);
+    await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Restore this backup', exact: true })).toBeInViewport({ ratio: 1 });
     await target(page.getByRole('button', { name: 'Cancel restore' }));
     await shot(page, 'backup-confirmation');

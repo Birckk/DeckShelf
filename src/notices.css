@@ -1,0 +1,34 @@
+/* Sonner notices in DeckShelf colours. While they show, the page gets room below
+   its last controls (set from Notices.tsx). */
+body { padding-bottom: var(--notice-space, 0px); }
+.notice[data-sonner-toast] {
+  --normal-bg: #222823;
+  --normal-border: #cfb37e40;
+  --normal-text: var(--ink);
+  font: 13px "DM Sans", sans-serif;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px #0007;
+}
+.notice [data-icon] { color: var(--gold); }
+.notice .notice-action {
+  background: #cfb37e14 !important;
+  border: 1px solid #cfb37e66 !important;
+  color: var(--gold) !important;
+  font: 600 12px var(--display) !important;
+  height: 28px !important;
+  padding: 0 12px !important;
+}
+.notice .notice-action:hover, .notice .notice-action:focus-visible { background: #cfb37e2e !important; border-color: var(--gold) !important; }
+.notice .notice-close {
+  background: #222823 !important;
+  border-color: #cfb37e40 !important;
+  color: var(--muted) !important;
+}
+/* Problems stay until dismissed and read warmer than results. */
+.notice.notice-problem[data-sonner-toast] {
+  --normal-bg: #3b2a22;
+  --normal-border: #c8815f77;
+  --normal-text: #f0cdb6;
+}
+.notice-problem [data-icon] { color: #e5a27f; }
+.notice.notice-problem .notice-close { background: #3b2a22 !important; border-color: #c8815f77 !important; }

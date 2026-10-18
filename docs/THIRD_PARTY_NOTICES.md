@@ -35,7 +35,7 @@ to their respective owners, including Wizards of the Coast and the credited arti
 
 The release build copies installed dependency license/notice texts into
 `resources/notices/`, with exact versions in `dependencies.json`. This includes
-React, React DOM, Scheduler (MIT), Lucide React (ISC), and the Outfit and DM Sans
+React, React DOM, Scheduler, Sonner (MIT), Lucide React (ISC), and the Outfit and DM Sans
 font packages (SIL Open Font License). Refer to the included texts for the actual
 terms and copyright holders. The inventory is regenerated from the lockfile.
 

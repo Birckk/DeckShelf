@@ -36,7 +36,7 @@ export function ShowingFigure() {
     <div className="hf-colls">
       {box("Your decks", [3, 4, 10, 11], "on", <div className="hf-coll-foot"><span>Only this</span><N n={2} /><MoreHorizontal size={14} /></div>)}
       {box("Precons", [0, 1, 2, 6], "off", <div className="hf-coll-foot"><span>Switched off</span></div>, 1)}
-      {box("League", [12, 13, 14, 15], "some", <div className="hf-menu"><span>Hide <N n={3} /></span><span className="hf-danger">Remove… <N n={4} /></span></div>)}
+      {box("League", [12, 13, 14, 15], "some", <div className="hf-menu"><span>Hide <N n={3} /></span><span className="hf-danger">Remove <N n={4} /></span></div>)}
     </div>
     <div className="hf-hidden"><EyeOff size={14} /><span>Hidden</span><small>Old pods · Show</small></div>
   </figure>;

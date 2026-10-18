@@ -120,6 +120,19 @@ test('late refresh failure stays with its deck and preserves saved choices', asy
   expect(saved.added).toEqual([first, second]);
 });
 
+test('a refresh notice shows above the open deck details dialog', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.route(`**/api/decks/${first.id}?refresh=1`, route => route.fulfill({ json: first }));
+  await page.getByRole('button', { name: `View ${first.name}`, exact: true }).click();
+  await page.getByRole('button', { name: 'Refresh snapshot' }).click();
+  const notice = page.locator('dialog[open] [data-sonner-toast]');
+  await expect(notice).toContainText(`${first.name} refreshed from Archidekt.`);
+  // A modal dialog covers everything outside it, so the notice must render inside.
+  await expect(notice).toHaveAttribute('data-mounted', 'true');
+  const box = (await notice.boundingBox())!;
+  expect(await page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('[data-sonner-toast]'), { x: box.x + box.width / 2, y: box.y + box.height / 2 })).toBe(true);
+});
+
 test('failed refresh reports recovery without replacing the saved deck', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.route(`**/api/decks/${first.id}?refresh=1`, route => route.fulfill({

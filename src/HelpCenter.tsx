@@ -67,7 +67,7 @@ const topics: Partial<Record<HelpSection, Topic>> = {
       { title: "Pill: on, off or some", text: "A quick switch for tonight. On a folder it remembers which subfolders were on; Ctrl-click (Cmd-click) turns them all on, or all off. Enable all turns every pill back on." },
       { title: "Only this", text: "Shows one collection and switches the others off. Enable all undoes it." },
       { title: "Hide", text: "In ⋯ More, for something you don’t want to look at. It moves to the Hidden list at the bottom of the sidebar, and Enable all skips it. Show brings it back with its deck choices." },
-      { title: "Remove", text: "In ⋯ More, imported sources only. Deletes the source and the saved decks only it had. There is no undo; adding the source again brings its decks back." },
+      { title: "Remove", text: "In ⋯ More, imported sources only. Deletes the source and the saved decks only it had, straight away. Undo in the notice brings them back while nothing else has changed; after that, adding the source again does." },
     ],
   },
   updates: {

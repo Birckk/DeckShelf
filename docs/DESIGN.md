@@ -175,15 +175,24 @@ Owner decision (#56): the pill, Disable, Remove precons and Disconnect overlappe
 
 - **Pill (On/Off/Some)**: a quick show/hide that Enable all undoes. Always visible.
 - **Hide**: for something you don't want to look at. It is switched off, leaves the sidebar tree and the overview grid, and waits in a folded Hidden section at the bottom of the sidebar. That section mirrors the sidebar tree (same columns, indentation, folds and counts), with an eye Show button where the pill would be. Never flatten folders into long path labels or let the sidebar scroll sideways. Enable all skips it. Show (in the list, or on its own page) brings it back on with its deck choices intact. Works the same for imported sources, folders, Individual decks and precons. Precons can only be hidden, never removed (they keep the v1 `demo.removed` flag).
-- **Remove**: for something you don't want at all, such as a mistyped username. It asks once, then removes the source and the saved decks only it had; decks another source or Individual decks still has stay. Imported sources only.
-- No toast or Undo after Hide or Remove (owner, October 16). Whether local actions get Undo or a change history at all is open in #57.
+- **Remove**: for something you don't want at all, such as a mistyped username. It removes the source and the saved decks only it had straight away, without asking; decks another source or Individual decks still has stay. A notice names what went ("Removed birckk and its 33 saved decks.") with Undo for 9 seconds. Undo restores the collection exactly as it was, and only while nothing else has changed since. Imported sources only.
+- Hide and the pill stay silent: their result is visible where you clicked (owner, October 16). Remove is the only local action with Undo (owner, October 18, #57).
 
 Layout, the same on overview boxes, source headers and phones:
 
 - Box: title and pill on top; then the active count, Only this and a ⋯ More menu on one row.
 - Header: pill and Only this on the left; Refresh (sources only) and ⋯ More at the far edge. A hidden collection shows Hidden · Show in place of the pill.
-- More holds the rarer actions in a fixed order: All folders on / All folders off (folder scopes), Hide, Remove…. Remove confirms inside the menu with focus on Cancel. The menu supports arrow keys and Escape and returns focus to its button.
+- More holds the rarer actions in a fixed order: All folders on / All folders off (folder scopes), Hide, Remove. The menu supports arrow keys and Escape and returns focus to its button.
 - Do not reintroduce Disable/Disconnect/Remove precons synonyms, a phone-only Actions toggle, or a restore banner.
+
+### Notices (October 18)
+
+- Notices use [Sonner](https://sonner.emilkowal.ski/), styled in DeckShelf colours: dark green panel, faint gold border, gold icon and gold-outlined action button. The owner compared it in the app with a restyled hand-made stack and preferred Sonner (#57).
+- They sit at the bottom centre, at most three at a time, stacking and expanding on hover. Timers pause on hover or focus, and reduced motion turns the animation off.
+- Use them for results the user can't see where they clicked (deck added, backup downloaded, refresh done) and for Undo after Remove. Toggles and Hide don't notify.
+- Errors from collection actions that finish away from their button (adding folders or selected decks, refreshing a source, updating precons, reading a backup file) are problem notices: warm brown, a warning icon, `role="alert"`, and they stay until dismissed. When some decks failed to load, the notice says how many and its Show button jumps to the failures list, which keeps the detail. Errors in the Add decks form, deck refresh errors in deck details, and backup-restore errors stay inline beside their controls.
+- While a modal dialog is open, notices render inside it so they show above its backdrop.
+- While notices show, the page gets matching room at the bottom so the last controls (Export backup, Restore backup, Done on a phone) can scroll clear of them. Keep this when changing notices.
 
 ### Offline artwork (October 15)
 

@@ -33,6 +33,7 @@ import {
   type Deck,
   type SourceEntry,
 } from "./domain";
+import { clearResults, type Notify } from "./Notices";
 import {
   parseSourceInput,
   rememberSource,
@@ -70,7 +71,8 @@ type Props = {
   setCollection: (update: Collection | ((c: Collection) => Collection)) => void;
   onClose: () => void;
   backup: () => void;
-  notify: (message: string) => void;
+  notify: Notify;
+  undoTo: (before: Collection, after: Collection) => () => void;
   startPersonal?: boolean;
   initialSection?: string;
   initialScope?: { name: string; keys: string[] } | null;
@@ -134,6 +136,7 @@ export default function CollectionManager({
   onClose,
   backup,
   notify,
+  undoTo,
   startPersonal = false,
   initialSection = "overview",
   initialScope = null,
@@ -165,6 +168,7 @@ export default function CollectionManager({
   const restoreRequest = useRef(0);
   const input = useRef<HTMLInputElement>(null);
   const restoreRegion = useRef<HTMLDivElement>(null);
+  const failuresRegion = useRef<HTMLDetailsElement>(null);
   // The confirmation opens below the footer; on phones that is off-screen.
   useEffect(() => {
     restoreRegion.current?.scrollIntoView({ block: "nearest" });
@@ -266,13 +270,24 @@ export default function CollectionManager({
     setFailures([]);
     return c.signal;
   }
-  function report(error: unknown) {
-    if ((error as Error).name !== "AbortError")
-      setError(
-        (error as Error).message === "Failed to fetch"
-          ? "Could not reach Archidekt. Your saved decks are still available."
-          : (error as Error).message,
-      );
+  // Errors from the Add decks form stay beside it; the rest can finish far from
+  // where they started, so they become notices that stay until dismissed.
+  function report(error: unknown, inline = false) {
+    if ((error as Error).name === "AbortError") return;
+    const message = (error as Error).message === "Failed to fetch"
+      ? "Could not reach Archidekt. Your saved decks are still available."
+      : (error as Error).message;
+    if (inline) setError(message);
+    else notify(message, { tone: "problem" });
+  }
+  // The failures list below keeps the detail; the notice points to it.
+  function finish(message: string, errors: string[]) {
+    setFailures(errors);
+    if (!errors.length) return notify(message);
+    notify(`${message} ${errors.length} ${errors.length === 1 ? "deck" : "decks"} could not be loaded.`, {
+      tone: "problem",
+      action: { label: "Show", run: () => { failuresRegion.current?.scrollIntoView({ block: "nearest" }); failuresRegion.current?.querySelector("summary")?.focus(); } },
+    });
   }
   async function connect(event: React.FormEvent) {
     event.preventDefault();
@@ -306,7 +321,7 @@ export default function CollectionManager({
         importedFolderKeys.current.clear();
       }
     } catch (e) {
-      report(e);
+      report(e, true);
     } finally {
       setBusy("");
     }
@@ -324,7 +339,7 @@ export default function CollectionManager({
       setDiscovery(found);
       setDiscoveryScope('all');
       setFormatScope(format);
-    } catch (e) { report(e); }
+    } catch (e) { report(e, true); }
     finally { setBusy(''); }
   }
   function resetSourceForm() {
@@ -355,14 +370,9 @@ export default function CollectionManager({
       const next = importFolderSelection(collection, chosen, accepted, decks, onlyFolders && !errors.length ? groups.map(g => g.key).filter(key => !importedFolderKeys.current.has(key)) : []);
       setCollection(next);
       chosen.filter(s => s.entries.some(e => accepted.some(d => d.id === e.id))).forEach(s => importedFolderKeys.current.add(s.key));
-      if (errors.length) {
-        setSelected(ids => ids.filter(id => !accepted.some(d => d.id === id)));
-        setFailures(errors);
-        notify(`${accepted.length} decks added. The remaining decks can be retried.`);
-      } else {
-        notify(`${accepted.length} ${accepted.length === 1 ? 'deck' : 'decks'} added to your collection.`);
-        navigate("overview");
-      }
+      finish(`${accepted.length} ${accepted.length === 1 ? 'deck' : 'decks'} added to your collection.`, errors);
+      if (errors.length) setSelected(ids => ids.filter(id => !accepted.some(d => d.id === id)));
+      else navigate("overview");
     } catch (e) { report(e); }
     finally { setBusy(''); }
   }
@@ -430,9 +440,9 @@ export default function CollectionManager({
       setSelected((ids) =>
         ids.filter((id) => !accepted.some((d) => d.id === id)),
       );
-      setFailures(errors);
-      notify(
+      finish(
         `${accepted.length} ${accepted.length === 1 ? "deck" : "decks"} selected${activeGroup?.enabled === false ? ". Enable this collection to show them." : "."}`,
+        errors,
       );
     } catch (e) {
       report(e);
@@ -452,9 +462,9 @@ export default function CollectionManager({
       );
       setCollection(saveSnapshots(rememberSource(collection, found), loaded));
       setSelected([]);
-      setFailures(errors);
-      notify(
+      finish(
         `Source checked. ${loaded.length} saved decks refreshed; new decks are ready to review.`,
+        errors,
       );
     } catch (e) {
       report(e);
@@ -475,8 +485,8 @@ export default function CollectionManager({
       const parsed = parseCollection(await file.text());
       if (request !== restoreRequest.current) return;
       setRestorePreview(parsed);
-      // A recent export toast can cover the confirmation actions on a phone.
-      notify("");
+      // A recent export notice can cover the confirmation actions on a phone.
+      clearResults();
       setError("");
     } catch (e) {
       if (request === restoreRequest.current) report(e);
@@ -485,9 +495,12 @@ export default function CollectionManager({
   function hide(keys: string[]) {
     setCollection(c => hideGroups(c, keys, true));
   }
-  function remove(keys: string[]) {
-    setCollection(c => removeSources(c, keys));
+  // Remove acts at once and offers Undo instead of asking first (#57).
+  function remove(keys: string[], name: string, count: number) {
+    const after = removeSources(collection, keys);
+    setCollection(after);
     navigate("overview");
+    notify(`Removed ${name}${count ? ` and its ${count} saved ${count === 1 ? "deck" : "decks"}` : ""}.`, { action: { label: "Undo", run: undoTo(collection, after) } });
   }
   async function updatePrecons() {
     const signal = begin("Checking Archidekt for new precons…");
@@ -496,8 +509,7 @@ export default function CollectionManager({
       const known = new Set(collection.demo?.decks.map(d => d.id) || []);
       const { loaded, errors } = await fetchDecks(found.entries.map(e => e.id).filter(id => !known.has(id)), signal, false);
       setCollection(c => updateDemo(c, loaded, found.checkedAt));
-      setFailures(errors);
-      notify(loaded.length ? `${loaded.length} new ${loaded.length === 1 ? "precon" : "precons"} added.` : "Precons are up to date.");
+      finish(loaded.length ? `${loaded.length} new ${loaded.length === 1 ? "precon" : "precons"} added.` : "Precons are up to date.", errors);
     } catch (e) {
       report(e);
     } finally {
@@ -518,8 +530,7 @@ export default function CollectionManager({
       { label: "All folders off", icon: <PowerOff size={14} />, run: () => setCollection(c => enableGroups(c, scopedKeys, false, true)) },
     ] : []),
     ...(!headerHidden && headerKeys.length ? [{ label: section === "demo" ? "Hide precons" : "Hide", icon: <EyeOff size={14} />, run: () => hide(headerKeys) }] : []),
-    ...(scopedSources.length ? [{ label: "Remove…", icon: <Trash2 size={14} />, run: () => remove(scopedKeys),
-      confirm: { text: `Remove ${headerName} and its ${sourceIds.size} saved ${sourceIds.size === 1 ? "deck" : "decks"}? Decks that are also in another collection stay.`, action: "Remove" } }] : []),
+    ...(scopedSources.length ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(scopedKeys, headerName, sourceIds.size) }] : []),
   ];
   return (
     <main className="collection-workspace" aria-label="My collection">
@@ -559,7 +570,7 @@ export default function CollectionManager({
               </p>
             )}
             {!!failures.length && (
-              <details className="manager-failures" open>
+              <details ref={failuresRegion} className="manager-failures" open>
                 <summary>
                   {failures.length} decks could not be loaded. Existing copies
                   were kept.

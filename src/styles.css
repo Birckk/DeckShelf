@@ -740,24 +740,6 @@ main {
   gap: 8px;
   color: var(--gold);
 }
-.toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 13px 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #2f3b2a;
-  border: 1px solid #bda26f77;
-  border-radius: 5px;
-  color: #e3d6b7;
-  z-index: 100;
-  font-size: 11px;
-  box-shadow: 0 8px 35px #0005;
-  max-width: 90vw;
-}
 .storage-warning {
   background: #614a2b;
   color: #f5dfb8;
@@ -870,10 +852,6 @@ main {
   }
   .about-copy {
     padding: 25px;
-  }
-  .toast {
-    width: max-content;
-    font-size: 10px;
   }
   .storage-warning {
     padding: 10px 18px;
