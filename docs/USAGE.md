@@ -106,15 +106,17 @@ locally, so browsing and picking work offline.
 
 ## Installing and offline use
 
-The hosted site can be installed as an app; it is optional, and the normal web
-address keeps working.
+On phones and tablets the hosted site can be installed as an app; it is optional,
+and the normal web address keeps working. DeckShelf doesn't pop up an install
+banner; install it from the browser when you want to.
 
-- **Chrome, Edge (desktop and Android):** use the install icon in the address bar
-  or *Install app* / *Add to Home screen* in the browser menu.
+- **Chrome, Edge and other Android browsers:** *Install app* / *Add to Home
+  screen* in the browser menu.
 - **Safari on iPhone and iPad:** Share → *Add to Home Screen*. The installed app
   keeps its **own** storage, separate from Safari: export a backup in Safari and
   restore it in the installed app to bring your collection across.
-- **Firefox (desktop):** no install option; offline use still works in the tab.
+- **Desktop browsers:** no install option; offline use still works in the tab.
+  For an app on Windows, use the [Windows app](DESKTOP.md).
 
 Once DeckShelf has loaded, it opens offline with your saved collection, filters
 and the picker. Artwork you have already seen is kept on the device (up to about

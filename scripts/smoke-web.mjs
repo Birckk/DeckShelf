@@ -16,13 +16,16 @@ const errors = [];
 await mkdir('qa/web', { recursive: true });
 try {
   for (const viewport of [{ width: 1440, height: 960 }, { width: 390, height: 844 }]) {
-    const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
+    const phone = viewport.width < 768;
+    const context = await browser.newContext({ viewport, hasTouch: phone, reducedMotion: 'reduce' });
     const page = await context.newPage();
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(base);
     await expect(page).toHaveTitle('DeckShelf');
     await expect(page.getByRole('link', { name: 'DeckShelf home' })).toBeVisible();
     await expect(page.getByRole('button', { name: /^My collection/ })).toBeVisible();
+    // Only phones and tablets can install the site; desktop browsers don't offer it.
+    await expect(page.locator('link[rel="manifest"]')).toHaveCount(phone ? 1 : 0);
     await page.goto(new URL('/help/about', base).href);
     await expect(page.getByText('Your decks, ready for game night.', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Back to collection' }).click();
@@ -47,11 +50,13 @@ async function offlineSmoke(browser) {
   const { display, icons } = await manifest.json();
   expect(display).toBe('standalone');
   for (const { src } of icons) expect((await fetch(base + src)).status, src).toBe(200);
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion: 'reduce' });
   const page = await context.newPage();
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(base);
   await page.evaluate(() => navigator.serviceWorker.ready);
+  // Chrome's install banner stays away; installing is left to the browser menu.
+  expect(await page.evaluate(() => !dispatchEvent(new Event('beforeinstallprompt', { cancelable: true })))).toBe(true);
   await page.reload();
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
   const loadedArt = () => page.locator('img[src^="https://cards.scryfall.io/"]').evaluateAll(images => images.filter(i => i.complete && i.naturalWidth > 0).length);

@@ -10,6 +10,13 @@ const announce = (worker: ServiceWorker | null) => {
 };
 
 export function registerServiceWorker() {
+  // No install banner on opening (owner decision): the browser menu still offers Install / Add to Home screen.
+  window.addEventListener("beforeinstallprompt", (event) => event.preventDefault());
+  // Desktop browsers get no manifest, so they don't offer an install in the address bar; the Windows app
+  // covers desktop. Touch devices and already-installed apps keep it.
+  if (matchMedia("(pointer: coarse), (display-mode: standalone)").matches) {
+    document.head.append(Object.assign(document.createElement("link"), { rel: "manifest", href: "/manifest.webmanifest" }));
+  }
   if (!import.meta.env.PROD || !("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;
   window.addEventListener("load", async () => {
     const registration = await navigator.serviceWorker.register("/sw.js").catch(() => null);
