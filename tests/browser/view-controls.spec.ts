@@ -95,6 +95,15 @@ for (const [width, height] of [[1920, 1080], [1500, 900], [390, 844], [320, 844]
       }
       if (width <= 700) {
         await controls.getByRole('button', { name: 'Size and sort' }).click();
+        // The fold is one row: the longest field and its order still end inside it.
+        await sort.selectOption('collection');
+        const fold = (await controls.locator('.display-tools').boundingBox())!;
+        for (const part of [slider, sort, controls.locator('.sort-direction')]) {
+          const box = (await part.boundingBox())!;
+          expect(box.x + box.width).toBeLessThanOrEqual(fold.x + fold.width);
+          expect(box.y + box.height).toBeLessThanOrEqual(fold.y + fold.height);
+        }
+        await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
         await page.screenshot({ path: `.codex-shots/${surface}-options-${width}.png` });
       }
     }

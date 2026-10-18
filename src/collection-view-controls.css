@@ -19,9 +19,12 @@
   .shared-view-controls .display-options-toggle[aria-expanded=true] { color:#e8d3a5; border-color:#8e7e59; }
   .shared-view-controls .display-tools { display:none; }
   .shared-view-controls.options-open .display-tools { display:flex; grid-column:1 / -1; justify-content:space-between; align-items:center; gap:8px; padding:3px 5px; background:#171719; border-radius:4px; }
+  /* One row with room for the longest field and order; the S/M/L value and the slider's own name say what it sets. */
   .shared-view-controls .collection-size-control { gap:5px; min-height:32px; }
+  .shared-view-controls .collection-size-control > span:first-child { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
   .shared-view-controls .collection-size-control input { width:56px; }
   .shared-view-controls .sort-label { min-height:32px; }
+  .shared-view-controls .sort-label > svg:first-child { display:none; }
   .shared-view-controls .sort-label select { max-width:140px; }
 }
 
