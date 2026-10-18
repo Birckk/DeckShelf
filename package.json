@@ -11,6 +11,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "start": "node server/index.mjs",
+    "mcp": "node --experimental-strip-types --disable-warning=ExperimentalWarning server/mcp.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "test:dialogs": "playwright test",
@@ -31,6 +32,7 @@
     "sonner": "2.0.8"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@playwright/test": "1.64.1",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
@@ -39,7 +41,8 @@
     "electron": "44.7.2",
     "electron-builder": "26.15.3",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "zod": "^4.6.7"
   },
   "engines": {
     "node": ">=22.12.0"

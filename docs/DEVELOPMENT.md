@@ -39,6 +39,70 @@ errors leave the saved collection usable. The desktop app runs the same adapter 
 its main process. See Archidekt's [API discussion](https://archidekt.com/forum/thread/21858972)
 for the public/private distinction.
 
+## Agent access (MCP)
+
+`server/mcp.mjs` is a local, read-only [MCP](https://modelcontextprotocol.io) server
+over stdio. It reuses the source adapter and the app's filter and picker rules, so
+an agent such as Claude can list a public Archidekt library and pick a deck with the
+same odds as the app. It never sees or changes a saved DeckShelf collection.
+
+| Tool | Input | Returns |
+| --- | --- | --- |
+| `find_collection` | username, profile/folder/deck link, or `precons`; optional `includeSubfolders` | source name and each deck's id, name, commander and colours; unavailable decks with reasons |
+| `pick_deck` | source, optional `includeSubfolders`, `colors`, `exact`, `colorless`, `query`, `count` (1–4) | the picks with Archidekt links and how many decks were eligible; unavailable decks with reasons |
+| `deck_details` | deck link or ID | commanders and artists, set, tags, description and card count |
+
+A folder link reads only its direct decks by default. Set `includeSubfolders: true`
+to include descendants explicitly (on either collection tool); when subfolders are
+left out, the result's `note` says how many so the agent can offer them. This option has no
+effect on usernames, deck links or precons. An unknown username is an error
+("Archidekt has no user named …"); an account without public Commander decks returns
+no decks and a `note`. Links pasted without `https://` are accepted. Picks are distinct; if fewer decks are
+eligible than `count`, every eligible deck is returned once. An empty pick pool is
+a tool error containing `error`, `total` (successfully loaded decks) and `unavailable`
+with each failed deck's reason, in both structured content and JSON text. If all
+deck loads fail, the error says so instead of claiming the filters matched nothing.
+
+Deck metadata is cached in memory for an hour, as in the web server; a large
+library takes a while on the first call because decks are read two at a time.
+Cancellation propagates through source discovery and active deck requests and
+stops subsequent batches, even when the client did not request progress.
+
+Timeouts belong to the client. The installed TypeScript SDK defaults to 60 seconds;
+requesting progress alone does not extend that deadline. SDK clients can pass
+`onprogress` and `resetTimeoutOnProgress: true` to `client.callTool`'s third argument,
+plus a suitable `timeout` and optionally `maxTotalTimeout`. Mocked SDK regressions
+cover the default timeout, progress with and without extension, and a total limit;
+they simulate a library taking over five minutes without calling Archidekt.
+These checks do not establish Claude Code or Claude Desktop's timeout policy.
+Before claiming support for large libraries in either app, verify its timeout and
+cancellation behavior with mocked slow responses; do not assume progress extends
+its deadline. A server cannot change the client's timeout settings.
+
+Run `npm ci` first (the SDK is a dev dependency), then register it with an absolute
+path. Call `node` directly: `npm run mcp` prints a banner on stdout, which breaks
+the protocol, so use `npm run -s mcp` when starting it by hand.
+
+Claude Code:
+
+```sh
+claude mcp add --scope user deckshelf -- node --experimental-strip-types --disable-warning=ExperimentalWarning C:\path\to\deckshelf\server\mcp.mjs
+```
+
+Claude Desktop: add this to `%APPDATA%\Claude\claude_desktop_config.json` and restart it.
+
+```json
+{
+  "mcpServers": {
+    "deckshelf": {
+      "command": "node",
+      "args": ["--experimental-strip-types", "--disable-warning=ExperimentalWarning",
+        "C:\\path\\to\\deckshelf\\server\\mcp.mjs"]
+    }
+  }
+}
+```
+
 ## Data
 
 - `src/data/precons.json`: the precon demo snapshot. Update with

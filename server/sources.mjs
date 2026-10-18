@@ -36,13 +36,14 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
   )
     throw new Error("Use an Archidekt username or folder ID.");
   const entries = new Map();
-  const signal = outerSignal || AbortSignal.timeout(45000);
+  const signal = outerSignal ? AbortSignal.any([outerSignal, AbortSignal.timeout(45000)]) : AbortSignal.timeout(45000);
   const pages = new Set();
   let name = value;
   let complete = false;
   let expectedCount;
   const seen = new Set();
   for (let page = 1; page <= 50; page++) {
+    signal.throwIfAborted();
     // Construct pagination ourselves; never fetch a URL supplied by upstream data.
     const path =
       kind === "account"
@@ -143,13 +144,29 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
   };
 }
 
+// The first page of a folder, which also lists its subfolders; pass it to discoverSource as firstPage.
+export function readFolderPage(id, signal) {
+  if (!idPattern.test(id)) throw new Error("Use an Archidekt folder ID.");
+  return read(`/api/decks/folders/${id}/?page=1`, signal);
+}
+
+// Tells a misspelled username apart from an account with no public Commander decks.
+export async function accountExists(username, signal) {
+  const response = await fetch(`${ORIGIN}/u/${encodeURIComponent(username)}`, {
+    headers: { Accept: "text/html", "User-Agent": "DeckShelf/1.0 (personal deck showcase)" },
+    signal: AbortSignal.any([signal, AbortSignal.timeout(20000)]), redirect: "manual",
+  });
+  return response.status !== 404;
+}
+
 // Discovery is a preview. It never changes a visitor's saved source selections.
-export async function discoverFolders(kind, value, { formatScope = 'commander' } = {}) {
+export async function discoverFolders(kind, value, { signal: outerSignal, formatScope = 'commander' } = {}) {
   if (!['commander', 'all'].includes(formatScope)) throw new Error('Choose Commander or All formats.');
   if (!['account', 'folder'].includes(kind) ||
       !(kind === 'folder' ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(value))
     throw new Error('Enter an Archidekt username, profile or folder link.');
-  const signal = AbortSignal.timeout(45000);
+  const signal = outerSignal ? AbortSignal.any([outerSignal, AbortSignal.timeout(45000)]) : AbortSignal.timeout(45000);
+  signal.throwIfAborted();
   let root = value;
   if (kind === 'account') {
     const response = await fetch(`${ORIGIN}/u/${encodeURIComponent(value)}`, {
@@ -170,6 +187,7 @@ export async function discoverFolders(kind, value, { formatScope = 'commander' }
   const folders = [];
   const ids = new Set();
   while (queue.length) {
+    signal.throwIfAborted();
     const batch = queue.splice(0, 4);
     const results = await Promise.all(batch.map(async item => {
       const data = await read(`/api/decks/folders/${item.id}/?page=1`, signal);

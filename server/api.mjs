@@ -43,6 +43,28 @@ export function normalizeDeck(data) {
   };
 }
 
+// Deck metadata is cached for an hour; callers with larger collections can pass their own bounded store.
+export async function fetchDeck(id, { refresh = false, store = cache, limit = 100, signal } = {}) {
+  signal?.throwIfAborted();
+  if (!/^\d{1,12}$/.test(id)) throw new Error('Use a public Archidekt deck link or its numeric ID.');
+  let cached = store.get(id);
+  if (refresh || !cached || Date.now() - cached.time > 3600000) {
+    const response = await fetch(`https://archidekt.com/api/decks/${id}/`, {
+      headers:{ 'User-Agent':'DeckShelf/1.0 (personal deck showcase)', Accept:'application/json' },
+      signal:signal ? AbortSignal.any([signal, AbortSignal.timeout(20000)]) : AbortSignal.timeout(20000),
+    });
+    if (!response.ok) throw new Error(response.status === 404 ? 'Deck not found. Check the link and make sure the deck is public.' : 'Archidekt is unavailable right now. Please try again later.');
+    const data = await response.json();
+    signal?.throwIfAborted();
+    if (String(data.id) !== id) throw new Error('The source returned an unexpected deck.');
+    cached = { time:Date.now(), deck:normalizeDeck(data) };
+    store.delete(id);
+    if (store.size >= limit) store.delete(store.keys().next().value);
+    store.set(id, cached);
+  }
+  return cached.deck;
+}
+
 export async function handleApi(req, res, next = () => { res.writeHead(404); res.end('Not found'); }) {
   const url = new URL(req.url || '/', 'http://localhost');
   if (!url.pathname.startsWith('/api/')) return next();
@@ -64,21 +86,7 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
     res.writeHead(404); res.end(JSON.stringify({ error:'Unknown source request.' })); return;
   }
   try {
-    const id = match[1];
-    let cached = cache.get(id);
-    if (url.searchParams.get('refresh') === '1' || !cached || Date.now() - cached.time > 3600000) {
-      const response = await fetch(`https://archidekt.com/api/decks/${id}/`, {
-        headers:{ 'User-Agent':'DeckShelf/1.0 (personal deck showcase)', Accept:'application/json' },
-        signal:AbortSignal.timeout(20000),
-      });
-      if (!response.ok) throw new Error(response.status === 404 ? 'Deck not found. Check the link and make sure the deck is public.' : 'Archidekt is unavailable right now. Please try again later.');
-      const data = await response.json();
-      if (String(data.id) !== id) throw new Error('The source returned an unexpected deck.');
-      cached = { time:Date.now(), deck:normalizeDeck(data) };
-      if (cache.size >= 100) cache.delete(cache.keys().next().value);
-      cache.set(id, cached);
-    }
-    res.end(JSON.stringify(cached.deck));
+    res.end(JSON.stringify(await fetchDeck(match[1], { refresh:url.searchParams.get('refresh') === '1' })));
   } catch (error) {
     res.writeHead(502);
     res.end(JSON.stringify({error:error.name === 'TimeoutError' ? 'Archidekt took too long to respond. Your saved collection is still available.' : error.message || 'Could not fetch this deck.'}));
