@@ -56,6 +56,8 @@ import CollectionManager from "./CollectionManager";
 import { Notices, notify } from "./Notices";
 import { showcaseDecks, collectionDecks, freshCollection, addDemo } from "./collection";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
+import FirstVisitHint, { TourPopover } from "./FirstVisitHint";
+import { ENABLE_FIRST_VISIT_IN_PRODUCTION, isFreshProfile, markFirstVisit } from "./firstVisit";
 
 const catalog = seed as Deck[];
 const STORAGE_KEY = "commander-archive.collection.v1";
@@ -63,13 +65,14 @@ const STORAGE_KEY = "commander-archive.collection.v1";
 const CHIPS_FOLDED = 2;
 type View = "cards" | "grid" | "picker";
 const HOME_VIEW: View = "grid";
-function readSaved(): { collection: Collection; error: string; raw?: string | null } {
+function readSaved(): { collection: Collection; error: string; raw?: string | null; fresh?: boolean } {
   let raw: string | null = null;
   try {
     raw = localStorage.getItem(STORAGE_KEY);
     return {
       collection: raw !== null ? parseCollection(raw) : freshCollection(precons as { snapshotAt: string; decks: Deck[] }),
       error: "",
+      fresh: isFreshProfile(localStorage),
     };
   } catch {
     return {
@@ -85,6 +88,14 @@ function readSaved(): { collection: Collection; error: string; raw?: string | nu
 
 function App() {
   const [loaded] = useState(readSaved);
+  const [firstVisit, setFirstVisit] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
+  const firstVisitClaimed = useRef(false);
+  useEffect(() => {
+    if (!(import.meta.env.DEV || ENABLE_FIRST_VISIT_IN_PRODUCTION) || !loaded.fresh || firstVisitClaimed.current) return;
+    firstVisitClaimed.current = true;
+    try { setFirstVisit(markFirstVisit(localStorage)); } catch { /* Fail closed when storage itself is blocked. */ }
+  }, [loaded]);
   const [collection, setCollection] = useState<Collection>(loaded.collection);
   const [storageError, setStorageError] = useState(loaded.error);
   const [storageLocked, setStorageLocked] = useState(!!loaded.error);
@@ -104,7 +115,17 @@ function App() {
   const [collectionScope, setCollectionScope] = useState<{ name: string; keys: string[] } | null>(null);
   const [collectionVisit, setCollectionVisit] = useState(0);
   const [help, setHelp] = useState<HelpSection | null>(() => helpSectionFromPath(location.pathname));
+  useEffect(() => {
+    if (help === "start") setFirstVisit(false);
+    if (help) setTourOpen(false);
+  }, [help]);
   const helpTrigger = useRef<HTMLButtonElement>(null);
+  function startTour() { setFirstVisit(false); setTourOpen(true); }
+  function dismissTour() { setFirstVisit(false); helpTrigger.current?.focus(); }
+  const closeTour = useCallback((returnFocus: boolean) => {
+    setTourOpen(false);
+    if (returnFocus) helpTrigger.current?.focus();
+  }, []);
   // Help is the only addressable page; every other view keeps the plain root URL.
   useEffect(() => {
     const path = help ? `/help/${help}` : "/";
@@ -316,6 +337,7 @@ function App() {
       throw new Error("The backup could not be saved. Your current collection is unchanged. Free browser storage or allow storage access, then try again.");
     }
     setCollection(value);
+    setFirstVisit(false);
     setStorageLocked(false);
     setStorageError("");
   }
@@ -434,6 +456,16 @@ function App() {
           ))}
         </div>
         <div className="header-actions">
+          {firstVisit && !help && <FirstVisitHint
+            disabled={spinning}
+            onStart={startTour}
+            onDismiss={dismissTour}
+          />}
+          {tourOpen && <TourPopover
+            present={!!collection.demo && !collection.demo.removed}
+            onPrecons={() => { setTourOpen(false); openPrecons(); }}
+            onClose={closeTour}
+          />}
           <button
             className="button button-outline help-trigger"
             ref={helpTrigger}

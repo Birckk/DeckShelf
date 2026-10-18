@@ -1,0 +1,72 @@
+/* First-visit offer (#54): "New? ✕" beside Help, and the tour popover New? opens. */
+/* The tour hangs from the header's right gutter. The header's backdrop blur makes it its own layer,
+   so lift that layer above the page while the tour is open. */
+.studio-header:has(.first-visit-tour) { position: relative; z-index: 25; }
+/* Plain gold text like the other header buttons, with a quieter ✕. */
+.first-visit-new {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: #f2ddb0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  animation: first-visit-in 0.3s ease-out both;
+}
+.first-visit-new button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  padding: 6px 2px 6px 4px;
+  color: inherit;
+}
+/* Taller hit areas than the text draws, without growing the header. */
+.first-visit-new button::after { content: ""; position: absolute; inset: -8px 0; }
+.first-visit-new .first-visit-dismiss { padding: 6px 4px; color: #f2ddb08c; }
+.first-visit-new button:hover:not(:disabled) { color: #fff6e0; }
+.first-visit-new button:disabled { opacity: 0.45; }
+/* The smallest phones have only a sliver between the logo and Help. */
+@media (max-width: 380px) {
+  .first-visit-new { font-size: 11px; }
+  .first-visit-new button { padding-inline: 0 1px; }
+  .first-visit-new .first-visit-dismiss { padding-inline: 2px; }
+}
+
+.first-visit-tour {
+  position: absolute;
+  z-index: 25;
+  top: calc(100% + 8px);
+  right: var(--gutter);
+  width: min(380px, calc(100% - 2 * var(--gutter)));
+  max-height: calc(var(--app-height) - 90px);
+  overflow-y: auto;
+  border: 1px solid #ffffff1f;
+  border-radius: 10px;
+  background: #18191c;
+  box-shadow: 0 18px 50px #000a;
+  text-align: center;
+  animation: first-visit-in 0.18s ease-out both;
+}
+.first-visit-tour:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.first-visit-tour-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 0 16px; color: #a9a7b0; font-size: 12px; }
+.first-visit-tour-head button { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; color: #c9c6cf; }
+.first-visit-tour-head button:hover { background: #ffffff0d; color: #fff; }
+/* The Help page's guide, scaled down to fit a popover. */
+.first-visit-tour .collection-guide { width: auto; padding: 0 16px 16px; }
+.first-visit-tour .guide-picture { height: 190px; }
+.first-visit-tour .guide-art-card { height: 100px; }
+.first-visit-tour .guide-picture-2 .guide-art-card { height: 130px; }
+.first-visit-tour .guide-input { padding: 9px 10px; margin-bottom: 14px; }
+.first-visit-tour .guide-dice { margin-top: 12px; padding: 8px 16px; }
+.first-visit-tour .collection-guide h3 { font-size: 19px; margin: 6px 0 4px; }
+.first-visit-tour .collection-guide p { min-height: 2.8em; font-size: 13px; }
+.first-visit-tour .guide-progress { margin-top: 10px; }
+.first-visit-tour .guide-actions { margin-top: 12px; }
+/* Undo the header's borderless button style for the guide's own buttons. */
+.first-visit-tour .guide-actions .button { min-height: 36px; padding: 8px 14px; font-size: 12px; }
+.first-visit-tour .guide-actions .button-outline { border-color: #65695666; background: #ffffff02; }
+.first-visit-tour .guide-actions .button-gold { border-color: #e3c998; background: #cfb37e; }
+.first-visit-tour .guide-actions .button-gold:hover:not(:disabled) { background: #dec18b; }
+@keyframes first-visit-in { from { opacity: 0; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .first-visit-new, .first-visit-tour { animation: none; } }
