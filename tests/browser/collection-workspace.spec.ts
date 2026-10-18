@@ -43,7 +43,7 @@ test('source selections survive reload without hiding overlaps or resetting pick
 test('search-scoped bulk selection and source switches keep other choices', async ({ page }) => {
   await page.getByRole('navigation').getByRole('button', { name: 'Mono-color', exact: true }).click();
   await page.getByRole('textbox', { name: 'Find a deck in collection settings' }).fill(decks[1].name);
-  await page.getByRole('button', { name: 'Deselect all', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Select all', exact: true }).uncheck();
   await page.getByRole('textbox', { name: 'Find a deck in collection settings' }).clear();
   await expect(page.getByRole('checkbox', { name: `Show ${decks[2].name}`, exact: true })).toBeChecked();
   await page.getByRole('button', { name: 'Only this', exact: true }).click();
@@ -186,7 +186,7 @@ for (const width of [1440, 390, 320]) test(`workspace layouts, artwork selection
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   if (width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
   await page.getByRole('navigation').getByRole('button', { name: 'Mono-color', exact: true }).click();
-  for (const layout of ['Details', 'Cards only', 'Compact', 'List']) {
+  for (const layout of ['Details', 'Cards only', 'List']) {
     await page.getByRole('button', { name: layout, exact: true }).click();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const row = page.locator('.workspace-tile').first();

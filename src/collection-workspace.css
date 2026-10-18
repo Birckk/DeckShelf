@@ -38,11 +38,10 @@ body:has(.collection-workspace) { min-width:320px; }
 .overview-precon-actions a { display:flex; align-items:center; gap:6px; }
 .overview-provenance { margin:8px 0 0 28px; font-size:11px; color:#aaa6a0; }
 .collection-workspace .overview-expand { margin-bottom:10px; }
-.workspace-view-controls { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:15px; }
-.workspace-view-controls > label { display:flex; align-items:center; gap:8px; font-size:12px; color:#aaa6a0; }
-.workspace-view-controls input { width:90px; accent-color:#d8c08d; }
 .collection-workspace .workspace-decks { max-height:none; overflow:visible; }
 .workspace-decks:not(.layout-list) { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(var(--manager-card-size),100%),1fr)); gap:24px 18px; align-items:start; }
+/* Compact keeps at least two squares per row on the narrowest phones. */
+.workspace-decks.layout-compact { grid-template-columns:repeat(auto-fill,minmax(min(var(--manager-card-size),calc(50% - 9px)),1fr)); }
 .collection-workspace .manager-footer { border-top:1px solid #ffffff18; }
 .collection-workspace .manager-empty { grid-column:1/-1; }
 .workspace-tile { position:relative; min-width:0; cursor:pointer; }
@@ -61,14 +60,13 @@ body:has(.collection-workspace) { min-width:320px; }
 .layout-art .workspace-tile-title h4, .layout-compact .workspace-tile-title h4, .layout-art .workspace-tile-note, .layout-compact .workspace-tile-note { display:none; }
 .layout-art .workspace-tile-title, .layout-compact .workspace-tile-title { position:absolute; right:3px; bottom:5px; margin:0; }
 .layout-art .workspace-tile-art .mana-row { display:none; }
-.layout-list .workspace-tile { display:grid; grid-template-columns:64px minmax(0,1fr); gap:5px 14px; align-items:center; padding:12px 0; border-bottom:1px solid #ffffff12; }
+.layout-list .workspace-tile { display:grid; grid-template-columns:var(--manager-thumbnail) minmax(0,1fr); gap:5px 14px; align-items:center; padding:12px 0; border-bottom:1px solid #ffffff12; }
 .layout-list .workspace-tile-art { grid-row:1/3; }
 .layout-list .workspace-tile-title { margin:0; }
 .layout-list .workspace-tile-note { grid-column:2; margin:0; }
 .layout-list .workspace-tile-art .mana-row { position:static; padding:3px 0 0; background:none; }
 .collection-workspace .manager-selection { position:sticky; bottom:8px; z-index:2; background:#24252a; padding:12px; border:1px solid #ffffff24; border-radius:6px; }
 .collection-workspace .manager-restore { flex-wrap:wrap; padding:20px 0; }
-@media(max-width:550px) { .workspace-view-controls .collection-layout-switch { flex-basis:100%; } }
 @media(max-width:700px) {
   .collection-workspace { padding-bottom:28px; }
   .workspace-heading { flex-wrap:wrap; gap:12px; }
@@ -84,8 +82,7 @@ body:has(.collection-workspace) { min-width:320px; }
   .collection-workspace .manager-content { padding:12px 0; }
   .collection-workspace .overview-groups { grid-template-columns:1fr; }
   .collection-workspace .is-expanded .overview-groups { max-height:245px; }
-  .workspace-decks:not(.layout-list) { grid-template-columns:repeat(auto-fill,minmax(min(var(--manager-card-size),calc(50% - 7px)),1fr)); gap:20px 13px; }
-  .workspace-view-controls .collection-layout-switch { flex-wrap:wrap; }
+  .workspace-decks:not(.layout-list) { gap:20px 13px; }
   .collection-workspace .manager-footer { padding:15px 0; }
   .collection-workspace .manager-footer > div { flex-wrap:wrap; }
 }
@@ -101,7 +98,6 @@ body:has(.collection-workspace) { min-width:320px; }
 .collection-workspace .workspace-scope-note { font-size:11px; line-height:1.4; }
 .collection-workspace .manager-toolbar { padding:4px 0; gap:6px 16px; }
 .collection-workspace .manager-toolbar:empty { display:none; }
-.workspace-view-controls { margin-top:10px; }
 .collection-workspace .collection-overview { border:0; margin:0; padding:0; }
 .collection-workspace .overview-groups { max-height:min(60vh,560px); align-items:start; }
 .collection-workspace .is-expanded .overview-groups { max-height:min(70vh,700px); }
@@ -149,14 +145,9 @@ body:has(.collection-workspace) { min-width:320px; }
 .collection-workspace .collection-box.is-paused .collection-box-art { opacity:.4; filter:saturate(.3); }
 .collection-workspace .collection-box.is-paused { background:#16171a; }
 .collection-workspace .button { border-radius:3px; }
-.collection-workspace .collection-layout-switch { border:0; border-radius:0; padding:0; background:none; gap:12px; justify-content:flex-start; }
-.collection-workspace .collection-layout-switch button { border-radius:0; background:none; padding:7px 2px; border-bottom:2px solid transparent; }
-.collection-workspace .collection-layout-switch button[aria-pressed="true"] { border-bottom-color:#d3bd91; color:#f2e5c9; }
-.collection-workspace .collection-layout-switch button:hover { color:#f2e5c9; }
 @media(max-width:700px) {
   .collection-workspace .overview-groups { gap:12px; }
   .collection-box-art, .collection-box-empty { height:130px; }
-  .collection-workspace .collection-layout-switch { gap:10px; flex-wrap:wrap; }
 }
 
 /* Shared columns keep source labels, counts and original pill switches aligned. */
@@ -198,46 +189,39 @@ body:has(.collection-workspace) { min-width:320px; }
 .workspace-tile-title { gap:5px; }
 .layout-art .workspace-tile-title, .layout-compact .workspace-tile-title { bottom:6px; right:6px; padding:3px; gap:4px; align-items:center; border-radius:4px; background:#17181bea; }
 .layout-art .workspace-deck-link, .layout-compact .workspace-deck-link { margin:0; }
-@media(max-width:550px) { .layout-list .workspace-tile { grid-template-columns:44px minmax(0,1fr); gap:6px 10px; } }
+@media(max-width:550px) { .layout-list .workspace-tile { gap:6px 10px; } }
 
 /* Narrow tiles keep readable captions; the two existing actions share the artwork. */
 .workspace-tile { container-type:inline-size; }
 .workspace-tile-controls { display:flex; align-items:center; gap:5px; flex-shrink:0; }
 .workspace-tile-controls .workspace-select { min-width:26px; min-height:26px; align-items:center; justify-content:center; }
-@container (max-width:180px) {
-  .layout-grid .workspace-tile-controls { position:absolute; right:6px; top:calc(100cqw / 1.15 - 38px); padding:3px; gap:4px; border-radius:4px; background:#17181bea; }
-  .layout-grid .workspace-tile-controls .workspace-deck-link { margin:0; }
-  .layout-grid .workspace-tile-title h4 { min-width:100%; }
-}
+/* Details captions keep the full tile width at every size. */
+.layout-grid .workspace-tile-controls { position:absolute; right:6px; top:calc(100cqw / 1.15 - 38px); padding:3px; gap:4px; border-radius:4px; background:#17181bea; }
+.layout-grid .workspace-tile-controls .workspace-deck-link { margin:0; }
+.layout-grid .workspace-tile-title h4 { width:100%; }
+.layout-list .workspace-tile-title { flex-wrap:wrap; }
+.layout-list .workspace-tile-title h4 { flex-basis:100%; }
 
 /* Folder actions must wrap at the available content width, including beside the sidebar. */
 .collection-workspace .manager-group-control { flex-wrap:wrap; min-width:0; gap:6px 10px; }
 .collection-workspace .manager-group-control > .text-button { white-space:nowrap; }
 .collection-workspace .manager-group-control > .overview-switch { flex-shrink:0; }
 
-.bulk-short { display:none; }
+/* One row like the shelf: count and Select all on the left, the shared view controls on the right. */
+.workspace-display-controls { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 18px; margin:10px 0 12px; }
+.workspace-display-controls .manager-bulk { gap:14px; margin:0; min-height:34px; flex-wrap:nowrap; }
+.workspace-display-controls .manager-bulk > span { margin:0; white-space:nowrap; }
+.manager-select-all { display:inline-flex; align-items:center; gap:7px; height:30px; padding:0 10px 0 8px; border:1px solid #37363a; border-radius:5px; background:#171719; color:#c3bdaf; font-size:12px; white-space:nowrap; cursor:pointer; box-sizing:border-box; }
+.manager-select-all:hover:not(:has(input:disabled)) { background:#2a2a2d; color:#f2e5c9; }
+.manager-select-all input { width:15px; height:15px; margin:0; accent-color:#d8c08d; cursor:pointer; }
+.manager-select-all:has(input:disabled) { color:#6c6a66; cursor:default; }
+.manager-select-all:has(input:focus-visible) { outline:2px solid #d3bd91; outline-offset:1px; }
+.manager-select-all input:focus-visible { outline:none; }
 @media(max-width:700px) {
-  .workspace-display-controls { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:5px 8px; margin:10px 0 12px; align-items:center; border-block:1px solid #ffffff12; padding:6px 0; }
-  .workspace-display-controls .workspace-view-controls, .workspace-display-controls .manager-bulk { display:contents; }
-  .workspace-display-controls .collection-layout-switch { grid-column:1 / -1; grid-row:1; width:100%; justify-content:space-between; flex-wrap:nowrap; gap:4px; }
-  .collection-workspace .workspace-display-controls .collection-layout-switch button { padding:5px 3px; min-height:34px; }
-  .workspace-display-controls .workspace-view-controls > label { grid-column:1; grid-row:2; margin:0; }
-  .workspace-display-controls .workspace-view-controls input { width:70px; }
-  .workspace-display-controls .manager-bulk > span { grid-column:1; grid-row:3; margin:0; font-size:11px; }
-  .workspace-display-controls .manager-bulk > button { grid-row:3; min-height:32px; padding:5px 8px; }
-  .workspace-display-controls .manager-bulk > button:nth-of-type(1) { grid-column:2; }
-  .workspace-display-controls .manager-bulk > button:nth-of-type(2) { grid-column:3; }
-  .bulk-long { display:none; } .bulk-short { display:inline; }
-}
-
-@media(max-width:700px) {
- .workspace-display-controls { grid-template-columns:minmax(0,1fr) auto auto auto; gap:5px 6px; }
- .workspace-display-controls .manager-bulk > span { grid-column:2; grid-row:2; }
- .workspace-display-controls .manager-bulk > button { grid-row:2; padding-inline:6px; }
- .workspace-display-controls .manager-bulk > button:nth-of-type(1) { grid-column:3; }
- .workspace-display-controls .manager-bulk > button:nth-of-type(2) { grid-column:4; }
- .workspace-display-controls .workspace-view-controls > label { font-size:11px; gap:5px; }
- .workspace-display-controls .workspace-view-controls input { width:60px; }
+  .workspace-display-controls { gap:6px; }
+  .workspace-display-controls .manager-bulk { width:100%; justify-content:space-between; }
+  .workspace-display-controls .manager-bulk > span { font-size:11px; }
+  .manager-select-all { height:34px; }
 }
 
 /* One action order everywhere: pill, Only this, then Refresh and More at the far edge. */

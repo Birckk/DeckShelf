@@ -73,7 +73,10 @@ export function Artwork({
       {!online && artwork && <small>Offline</small>}
     </div>
   ) : (
+    // A new element per picture: browsers keep painting the old picture until a changed src
+    // loads, which shows the wrong artwork in the new layout's shape.
     <img
+      key={src}
       className={className}
       src={cardImage(src)}
       crossOrigin={cardImage(src) === src ? undefined : "anonymous"}

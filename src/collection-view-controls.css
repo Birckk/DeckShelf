@@ -1,0 +1,32 @@
+.shared-view-controls.collection-display-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:18px; min-width:0; }
+.shared-view-controls .display-tools { display:contents; }
+.shared-view-controls .display-options-toggle { display:none; }
+.shared-view-controls .collection-layout-switch { border:1px solid #37363a; border-radius:5px; padding:2px; gap:2px; background:#171719; }
+.shared-view-controls .collection-layout-switch button { min-height:28px; padding:3px 8px; font-size:11px; border-radius:3px; white-space:nowrap; }
+.shared-view-controls .collection-size-control { display:flex; align-items:center; gap:8px; font-size:11px; color:#a8a8b0; }
+.shared-view-controls .collection-size-control input { width:72px; accent-color:#d3bd8e; cursor:pointer; }
+.shared-view-controls .size-value { width:10px; }
+.shared-view-controls .sort-label { margin:0; }
+.shared-view-controls .sort-label select { font-size:11px; max-width:150px; }
+.shared-view-controls button:focus-visible, .shared-view-controls input:focus-visible, .shared-view-controls select:focus-visible { outline:2px solid #d3bd91; outline-offset:3px; }
+
+@media(max-width:700px) {
+  .shared-view-controls.collection-display-toolbar { display:grid; grid-template-columns:minmax(0,1fr) 39px; width:100%; gap:5px; padding-top:5px; }
+  .shared-view-controls .collection-layout-switch { grid-column:1; width:100%; flex-wrap:nowrap; }
+  .shared-view-controls .collection-layout-switch button { flex:1 1 auto; justify-content:center; min-height:33px; padding-inline:5px; }
+  /* Same height as the layout switch beside it. */
+  .shared-view-controls .display-options-toggle { display:flex; align-items:center; justify-content:center; align-self:stretch; height:auto; padding:0; color:#c3bdaf; background:#202023; border:1px solid #37363a; border-radius:5px; }
+  .shared-view-controls .display-options-toggle[aria-expanded=true] { color:#e8d3a5; border-color:#8e7e59; }
+  .shared-view-controls .display-tools { display:none; }
+  .shared-view-controls.options-open .display-tools { display:flex; grid-column:1 / -1; justify-content:space-between; align-items:center; gap:8px; padding:3px 5px; background:#171719; border-radius:4px; }
+  .shared-view-controls .collection-size-control { gap:5px; min-height:32px; }
+  .shared-view-controls .collection-size-control input { width:56px; }
+  .shared-view-controls .sort-label { min-height:32px; }
+  .shared-view-controls .sort-label select { max-width:140px; }
+}
+
+/* Below ~380px the four labels no longer fit; every layout becomes an equal icon button. */
+@media(max-width:380px) {
+  .shared-view-controls .collection-layout-switch button { flex:1 1 0; padding-inline:0; }
+  .shared-view-controls .collection-layout-switch button > span { display:none; }
+}

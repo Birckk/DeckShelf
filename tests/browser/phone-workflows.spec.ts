@@ -278,8 +278,11 @@ for (const viewport of reviewSizes) test.describe(`owner phone pre-pass ${viewpo
     await page.keyboard.press('Tab');
     await expect(dialog.getByRole('button', { name: 'Refresh snapshot' })).toBeFocused();
     await page.keyboard.press('Shift+Tab');
-    // WebKit's default keyboard navigation skips links, but they remain programmatically focusable.
-    await expect(browserName === 'webkit' ? dialog.getByRole('button', { name: 'Close dialog' }) : link).toBeFocused();
+    // WebKit skips links and returns to the last tag button (or Close when there are no tags).
+    const previousButton = long.tags.length
+      ? dialog.getByRole('group', { name: 'Tags', exact: true }).getByRole('button').last()
+      : dialog.getByRole('button', { name: 'Close dialog' });
+    await expect(browserName === 'webkit' ? previousButton : link).toBeFocused();
     await trigger.focus();
     await expect(trigger).not.toBeFocused();
     await dialog.getByRole('button', { name: 'Close dialog' }).click();

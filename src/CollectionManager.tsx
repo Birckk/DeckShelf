@@ -7,10 +7,8 @@ import {
   Power,
   PowerOff,
   Focus,
-  ListChecks,
   Eye,
   EyeOff,
-  Square,
   FolderTree,
   Trash2,
   Check,
@@ -57,7 +55,7 @@ import {
 } from "./collection";
 import precons from "./data/precons.json";
 import CollectionNavigator from "./CollectionNavigator";
-import { CollectionLayoutSwitch } from "./CollectionLayoutSwitch";
+import CollectionViewControls, { collectionTileSize, compareCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
 import "./collection-workspace.css";
 import CollectionOverview from "./CollectionOverview";
 import SourceSetup, { type FolderDiscovery } from "./SourceSetup";
@@ -144,8 +142,9 @@ export default function CollectionManager({
   onRestore,
 }: Props) {
   const heading = useRef<HTMLHeadingElement>(null);
-  const [layout, setLayout] = useState<'grid' | 'art' | 'compact' | 'list'>('grid');
-  const [size, setSize] = useState(175);
+  const [display, setDisplay] = useCollectionDisplay("commander-archive.manager-display.v1", "grid");
+  const { layout, size } = display;
+  const [sort, setSort] = useState("collection");
   const [scope, setScope] = useState<{ name: string; keys: string[] } | null>(initialScope);
   const [mobileNav, setMobileNav] = useState(false);
   useEffect(() => { heading.current?.focus(); }, []);
@@ -231,6 +230,15 @@ export default function CollectionManager({
         (status === "hidden" && isSavedHere(row.id) && !display) ||
         (status === "new" && !isSavedHere(row.id)))
     );
+  }).sort((a, b) => compareCollectionDecks(sort, saved.get(a.id) || a, saved.get(b.id) || b));
+  const rowChecked = (id: string) => isSavedHere(id)
+    ? !collection.hidden.includes(id) && (!scopedSources.length || sourceIds.has(id))
+    : selected.includes(id);
+  const checkedCount = shown.filter(row => rowChecked(row.id)).length;
+  const allChecked = !!shown.length && checkedCount === shown.length;
+  const selectAllBox = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (selectAllBox.current) selectAllBox.current.indeterminate = checkedCount > 0 && !allChecked;
   });
   function selectAll(select: boolean) {
     if (scopedSources.length) {
@@ -685,45 +693,32 @@ export default function CollectionManager({
                   </select>
                 </div>
                 <div className="workspace-display-controls">
-                <div className="workspace-view-controls">
-                  <CollectionLayoutSwitch compact value={layout} onChange={setLayout} />
-                  <label>Size <input aria-label="Deck size" type="range" min="130" max="250" step="10" value={size} onChange={e => setSize(Number(e.target.value))} /></label>
-                </div>
                 <div className="manager-bulk">
                   <span>
                     {shown.length} {shown.length === 1 ? "deck" : "decks"}
                   </span>
-                  <button
-                    className="text-button"
-                    disabled={!!busy || !shown.length}
-                    aria-label="Select all" title="Select every deck in the current results. New decks wait for Add selected decks."
-                    onClick={() => selectAll(true)}
-                  >
-                    <ListChecks size={14} /><span className="bulk-long">Select all</span><span className="bulk-short">All</span>
-                  </button>
-                  <button
-                    className="text-button"
-                    disabled={!!busy || !shown.length}
-                    aria-label="Deselect all" title="Deselect every deck in the current results"
-                    onClick={() => selectAll(false)}
-                  >
-                    <Square size={14} /><span className="bulk-long">Deselect all</span><span className="bulk-short">None</span>
-                  </button>
+                  <label className="manager-select-all" title={allChecked ? "Deselect every deck in the current results" : "Select every deck in the current results. New decks wait for Add selected decks."}>
+                    <input ref={selectAllBox} type="checkbox" checked={allChecked} disabled={!!busy || !shown.length}
+                      onChange={() => selectAll(!allChecked)} />
+                    <span>Select all</span>
+                  </label>
                 </div>
+                <CollectionViewControls display={display} onChange={setDisplay} sort={sort} onSort={setSort} />
                 </div>
-                <div className={`manager-list workspace-decks layout-${layout}`} style={{ "--manager-card-size": `${size}px` } as CSSProperties}>
+                <div className={`manager-list workspace-decks layout-${layout}`} style={{
+                  "--manager-card-size": `${collectionTileSize(layout, size)}px`,
+                  "--manager-thumbnail": `${[48, 66, 86][size]}px`,
+                } as CSSProperties}>
 
                   {shown.map((row) => {
                     const deck = saved.get(row.id);
-                    const displaying =
-                      isSavedHere(row.id) &&
-                      !collection.hidden.includes(row.id) && (!scopedSources.length || sourceIds.has(row.id));
                     const member = isSavedHere(row.id);
+                    const checked = rowChecked(row.id);
+                    const displaying = member && checked;
                     const missing =
                       !!source &&
                       !!deck &&
                       !source.entries.some((e) => e.id === row.id);
-                    const checked = member ? displaying : selected.includes(row.id);
                     const toggle = (on: boolean) => member
                       ? setCollection(c => scopedSources.length ? setSourceSelection(c, scopedKeys, [row.id], on, decks) : setShown(c, [row.id], on))
                       : setSelected(ids => on ? [...new Set([...ids, row.id])] : ids.filter(id => id !== row.id));

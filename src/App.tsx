@@ -12,7 +12,6 @@ import {
   type CSSProperties,
 } from "react";
 import {
-  ArrowDownUp,
   ArrowRight,
   ChevronDown,
   ExternalLink,
@@ -46,7 +45,7 @@ import {
 import { Artwork, ArtworkContext, Mana, ManaSymbol, Modal } from "./components";
 import { applyUpdate, useOnline, useUpdateReady } from "./pwa";
 import { onMenuCommand } from "./WindowBar";
-import { CollectionLayoutSwitch } from "./CollectionLayoutSwitch";
+import CollectionViewControls, { collectionTileSize, compareCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
 import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
 import CardStudio from "./CardStudio";
@@ -63,24 +62,6 @@ const STORAGE_KEY = "commander-archive.collection.v1";
 const CHIPS_FOLDED = 2;
 type View = "cards" | "grid" | "picker";
 const HOME_VIEW: View = "grid";
-type CollectionLayout = "grid" | "art" | "list";
-const DISPLAY_KEY = "commander-archive.display.v1";
-function readDisplay(): { layout: CollectionLayout; size: number } {
-  try {
-    const saved = JSON.parse(localStorage.getItem(DISPLAY_KEY) || "null");
-    return {
-      layout: ["grid", "art", "list"].includes(saved?.layout)
-        ? saved.layout
-        : "art",
-      size:
-        Number.isInteger(saved?.size) && saved.size >= 0 && saved.size <= 2
-          ? saved.size
-          : 1,
-    };
-  } catch {
-    return { layout: "art", size: 1 };
-  }
-}
 function readSaved(): { collection: Collection; error: string; raw?: string | null } {
   let raw: string | null = null;
   try {
@@ -108,14 +89,7 @@ function App() {
   const [storageLocked, setStorageLocked] = useState(!!loaded.error);
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
   const [view, setView] = useState<View>(HOME_VIEW);
-  const [display, setDisplay] = useState(readDisplay);
-  useEffect(() => {
-    try {
-      localStorage.setItem(DISPLAY_KEY, JSON.stringify(display));
-    } catch {
-      /* Session controls still work when storage is unavailable. */
-    }
-  }, [display]);
+  const [display, setDisplay] = useCollectionDisplay("commander-archive.display.v1");
   const [pickerWinner, setPickerWinner] = useState<Deck | null>(null);
   const revealed = !!pickerWinner;
   const [refreshing, setRefreshing] = useState(false);
@@ -144,7 +118,6 @@ function App() {
     return () => removeEventListener("popstate", sync);
   }, []);
   const [showFilters, setShowFilters] = useState(false);
-  const [showDisplayOptions, setShowDisplayOptions] = useState(false);
   const filterDropdownRef = useRef<HTMLDivElement>(null);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -205,14 +178,7 @@ function App() {
   );
   const visible = useMemo(() => {
     const decks = owned.filter((d) => matchesDeck(d, filters));
-    if (sort === "name") decks.sort((a, b) => a.name.localeCompare(b.name));
-    if (sort === "release")
-      decks.sort((a, b) => b.releasedAt.localeCompare(a.releasedAt));
-    if (sort === "colors")
-      decks.sort(
-        (a, b) =>
-          a.colors.length - b.colors.length || a.name.localeCompare(b.name),
-      );
+    decks.sort((a, b) => compareCollectionDecks(sort, a, b));
     return decks;
   }, [owned, filters, sort]);
   useEffect(() => setRefreshError(null), [detail?.id]);
@@ -676,52 +642,7 @@ function App() {
                 clear={() => { setShortlist([]); setSelecting(false); selectionAnchor.current = null; }}
                 toggleAll={() => setShortlist(current => visible.every(d => current.includes(d.id)) ? current.filter(id => !visible.some(d => d.id === id)) : [...new Set([...current, ...visible.map(d => d.id)])])} />
               {view === "grid" && (
-                <div className={`collection-view-controls collection-display-toolbar ${showDisplayOptions ? "options-open" : ""}`}>
-                  <CollectionLayoutSwitch value={display.layout} onChange={(layout) => {
-                    if (layout !== "compact") setDisplay((d) => ({ ...d, layout }));
-                  }} />
-                  <button className="display-options-toggle" aria-label="Size and sort" title="Size and sort" aria-expanded={showDisplayOptions} aria-controls="display-tools" onClick={() => setShowDisplayOptions(v => !v)}><SlidersHorizontal size={15} /></button>
-                  <div className="display-tools" id="display-tools">
-                  <label className="collection-size-control">
-                    <span>Size</span>
-                    <input
-                      type="range"
-                      aria-label="Collection item size"
-                      aria-valuetext={
-                        ["Small", "Medium", "Large"][display.size]
-                      }
-                      min="0"
-                      max="2"
-                      step="1"
-                      value={display.size}
-                      onChange={(e) =>
-                        setDisplay((d) => ({
-                          ...d,
-                          size: Number(e.target.value),
-                        }))
-                      }
-                    />
-                    <span className="size-value">
-                      {["S", "M", "L"][display.size]}
-                    </span>
-                  </label>
-                  <label className="sort-label">
-                    <ArrowDownUp size={13} />
-                    <span className="sr-only">Sort decks</span>
-                    <select
-                      aria-label="Sort decks"
-                      value={sort}
-                      onChange={(e) => setSort(e.target.value)}
-                    >
-                      <option value="collection">Collection order</option>
-                      <option value="name">Name: A–Z</option>
-                      <option value="release">Newest releases</option>
-                      <option value="colors">Number of colors</option>
-                    </select>
-                    <ChevronDown size={12} />
-                  </label>
-                  </div>
-                </div>
+                <CollectionViewControls display={display} onChange={setDisplay} sort={sort} onSort={setSort} />
               )}
             </div>
             {activeFilterChips.length > 0 && (
@@ -760,7 +681,7 @@ function App() {
                   className={`collection-grid collection-layout-${display.layout} collection-size-${display.size}`}
                   style={
                     {
-                      "--collection-card-min": `${[150, 210, 280][display.size]}px`,
+                      "--collection-card-min": `${collectionTileSize(display.layout, display.size)}px`,
                       "--collection-thumbnail": `${[48, 66, 86][display.size]}px`,
                     } as CSSProperties
                   }
@@ -770,6 +691,7 @@ function App() {
                       key={deck.id}
                       deck={deck}
                       index={index}
+                      compact={display.layout === "compact"}
                       selecting={selecting}
                       selected={shortlistNumbers.get(deck.id) || 0}
                       activeTags={filters.tags}
@@ -948,6 +870,7 @@ function App() {
 function DeckTile({
   deck,
   index,
+  compact,
   selecting,
   selected,
   activeTags,
@@ -957,6 +880,7 @@ function DeckTile({
 }: {
   deck: Deck;
   index: number;
+  compact: boolean;
   selecting: boolean;
   selected: number;
   activeTags: string[];
@@ -976,10 +900,11 @@ function DeckTile({
         onClick={e => selecting ? onSelect(e.shiftKey) : onOpen()}
         aria-pressed={selecting ? !!selected : undefined}
         aria-label={`${selecting ? "Select" : "View"} ${deck.name}`}
+        title={compact ? deck.name : undefined}
       >
         {selected > 0 && <span className="shortlist-mark" aria-hidden="true">{String(selected).padStart(2, "0")}</span>}
         <Artwork
-          src={coverOf(deck).image}
+          src={(compact && coverOf(deck).art) || coverOf(deck).image}
           alt={coverOf(deck).name}
           colors={deck.colors}
           eager={index < 8}

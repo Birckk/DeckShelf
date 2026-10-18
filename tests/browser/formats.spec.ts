@@ -103,6 +103,20 @@ test('folder selection filters actual formats, imports mixed decks and round tri
   await expect(page.locator('.collection-tile')).toHaveCount(5);
 });
 
+test('Compact uses featured artwork for decks without commanders on both collection pages', async ({ page }) => {
+  await init(page);
+  await browse(page, 'all');
+  await page.getByRole('button', { name: 'Compact', exact: true }).click();
+  const modern = page.getByRole('button', { name: 'View Modern deck', exact: true });
+  await expect(modern.locator('img')).toHaveAttribute('src', decks[1].cover!.art);
+  await expect(page.getByRole('button', { name: 'View Unknown (99) deck', exact: true }).getByRole('img')).toBeVisible();
+  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Collection sources' }).getByRole('button', { name: /All saved decks/ }).click();
+  await page.getByRole('button', { name: 'Compact', exact: true }).click();
+  const tile = page.locator('.workspace-tile').filter({ has: page.getByRole('checkbox', { name: 'Show Modern deck', exact: true }) });
+  await expect(tile.locator('.workspace-tile-art > img')).toHaveAttribute('src', decks[1].cover!.art);
+});
+
 for (const viewport of [{ width: 1920, height: 1080 }, { width: 1500, height: 900 }, { width: 390, height: 844 }]) {
   test(`format views fit at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);

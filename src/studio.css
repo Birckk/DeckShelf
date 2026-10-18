@@ -1164,6 +1164,25 @@ option {
 .collection-layout-art .collection-card {
   box-shadow: 0 5px 12px #0005;
 }
+/* Compact: square commander artwork only, so more decks fit on screen. */
+.collection-layout-compact .collection-tile {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.collection-layout-compact .collection-caption {
+  display: none;
+}
+.collection-layout-compact .collection-card {
+  aspect-ratio: 1;
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow: 0 5px 12px #0005;
+}
+.collection-layout-compact .collection-card > img,
+.collection-layout-compact .collection-card > .art-fallback {
+  object-fit: cover;
+}
 .collection-layout-list {
   grid-template-columns: 1fr;
   gap: 6px;
@@ -1610,12 +1629,7 @@ html { scrollbar-gutter: stable; }
 @media(max-width:700px) {
   .studio-workspace .results-toolbar.view-grid { grid-template-columns:minmax(0,1fr) auto; gap:8px 10px; padding:8px 0; }
   .results-toolbar.view-grid > div:first-child { grid-column:1; grid-row:1; }
-  .results-toolbar.view-grid .collection-display-toolbar { grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; width:100%; padding:4px 0 0; border-top:1px solid #ffffff12; }
-  .collection-display-toolbar .collection-layout-switch { grid-column:1 / -1; width:100%; justify-content:flex-start; gap:4px; }
-  .collection-display-toolbar .collection-layout-switch button { flex:1; justify-content:center; min-height:36px; }
-  .collection-display-toolbar .collection-size-control { grid-column:1; justify-self:start; min-height:32px; margin:0; }
-  .collection-display-toolbar .sort-label { grid-column:2; justify-self:end; min-height:32px; width:auto; margin:0; }
-  .collection-display-toolbar .sort-label select { max-width:150px; }
+  .results-toolbar.view-grid .collection-display-toolbar { grid-column:1 / -1; width:100%; border-top:1px solid #ffffff12; }
 }
 
 @media(max-width:700px) {
@@ -1650,13 +1664,6 @@ body:has(.studio-workspace) { min-width:320px; }
   .studio-toolbar .filters-trigger { height: 36px; min-height: 36px; }
   .studio-workspace .results-toolbar.view-grid { gap: 4px 8px; padding: 6px 0; }
   .studio-workspace .results-toolbar.view-grid > div:first-child { min-height: 32px; }
-  .studio-workspace .results-toolbar.view-grid .collection-display-toolbar { display: grid; grid-template-columns: minmax(0,1fr) 32px; gap: 5px; padding-top: 5px; }
-  .studio-workspace .collection-display-toolbar .collection-layout-switch { grid-column: 1; }
-  .studio-workspace .collection-display-toolbar .collection-layout-switch button { flex: 1 1 auto; padding-inline: 5px; }
-  .display-options-toggle { display: flex; align-items: center; justify-content: center; height: 34px; padding: 0; color: #c3bdaF; background: #202023; border: 1px solid #37363a; border-radius: 5px; }
-  .display-options-toggle[aria-expanded=true] { color: #e8d3a5; border-color: #8e7e59; }
-  .collection-display-toolbar .display-tools { display: none; }
-  .collection-display-toolbar.options-open .display-tools { display: flex; grid-column: 1 / -1; justify-content: space-between; align-items: center; padding: 3px 5px; background: #171719; border-radius: 4px; }
   .studio-workspace .results-toolbar.view-picker { min-height: 36px; padding: 2px 0; gap: 4px; }
 }
 
@@ -1749,6 +1756,14 @@ body:has(.studio-workspace) { min-width:320px; }
 .window-bar-menu { -webkit-app-region: no-drag; display: grid; place-items: center; width: 36px; height: 28px; border-radius: 5px; color: #b5b3ae; transition: background-color 0.15s, color 0.15s; }
 .window-bar-menu:hover { background: #ffffff12; color: #f3f1ec; }
 .window-bar-shown { --app-height: calc(100svh - 34px); }
+
+/* Compact keeps at least two squares per row on the narrowest phones. */
+.collection-grid.collection-layout-compact {
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(var(--collection-card-min), calc(50% - 6px)), 1fr)
+  );
+}
 .format-select {
   display: inline-flex;
   align-items: center;

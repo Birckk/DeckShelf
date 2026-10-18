@@ -40,7 +40,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Use one compact row below search: count left, view-specific controls right, wrapping on phones. Give the controls a little breathing room below search.
 - Open Collection on each visit, refresh, or logo click; use the same home-view definition for these entry points so the displayed view and active navigation stay in sync; the Cards and picker views remain available from navigation.
 - Filters drop down beside their trigger; they do not open a modal.
-- Collection offers Details, Cards only, and List with adjustable size. Cards only at Medium size is the default; remember a user's explicit choice.
+- Collection and My collection share Details, Cards only, Compact (square artwork, no captions) and List, S/M/L size steps, and sorting. Cards only at Medium size is the shelf default and Details at Medium the My collection default, so deck names and status show on a first visit; remember each page's layout and size independently. On phones, fold size and sort together beside the layout switch; the Size and sort button matches the switch height. Below about 380px every layout becomes an equal icon button; the active one does not widen.
 - Details has compact information below the card, without reserved blank title space. Keep names, releases, mana symbols, and picker inclusion easy to locate.
 - The pick button floats over the spiral. Do not restore a large footer console that consumes carousel space.
 - Picker motion controls sit beside the shared deck count. Do not restore a separate status/control strip above the picker scene.
@@ -49,7 +49,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 ## Collection management
 
 - Owner direction for the next prototype: give My collection its own workspace, entered from the existing My collection control. Preserve the main Collection, Cards, picker, shared search, Guide and About. Management uses its own source/folder search and a clear return to the gallery; do not repurpose the Collection gallery tab. Explore a folder navigator with adjustable card/list views, separate source switches, and individual deck imports. Combining sources preserves their identity and selections; a unique display union is not a single flattened saved collection. The isolated collection-corner prototype is exploratory, not a shipped navigation change.
-- Reuse the main collection's layout controls and mana components in the management workspace. Cards only shows full card faces; square artwork without captions is a separate Compact option. Keep the overview's compact source switches, with optional folder expansion inside a bounded scroll area so long source lists do not consume the page.
+- Reuse the main collection's layout controls and mana components in the management workspace. Cards only shows full card faces; Details pairs artwork with full-width captions. Keep selection and Archidekt controls together over the artwork so they do not squeeze deck names. Keep the deck count and one Select all checkbox on the same row as the view controls; the checkbox shows checked, mixed or empty for the current results, so there is no separate Deselect button. Keep the overview's compact source switches, with optional folder expansion inside a bounded scroll area so long source lists do not consume the page.
 
 
 - Dialog titles use readable normal-case text, not tiny letter-spaced labels. Keep the whole guide card fan visible. All three guide pages share a stable height and navigation position at each viewport size. About uses short purpose/benefit bullets rather than paragraphs.
@@ -140,7 +140,7 @@ The concrete rules above reflect this project's owner feedback; the references s
 - Verify selected-count wording, dimensions, font metrics and desktop position across all views together to avoid per-view styling drift.
 
 
-- Individual decks have one show/hide selection control only; no separate Disable state or button. Keep the Archidekt link beside the selection control, without an extra footer row. Card-only/Compact layouts use one small overlay control group. Avoid growing per-card button clusters.
+- Individual decks have one show/hide selection control only; no separate Disable state or button. Keep the Archidekt link beside the selection control, without an extra footer row. Cards only and Compact use one small overlay control group. Avoid growing per-card button clusters.
 
 ### Phone control grouping revision
 
