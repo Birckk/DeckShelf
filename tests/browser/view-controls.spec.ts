@@ -95,8 +95,10 @@ for (const [width, height] of [[1920, 1080], [1500, 900], [390, 844], [320, 844]
       }
       if (width <= 700) {
         await controls.getByRole('button', { name: 'Size and sort' }).click();
-        // The fold is one row: the longest field and its order still end inside it.
+        // The fold is one row: S and L mark the slider's ends, and the longest field and its order still end inside it.
+        await expect(controls.locator('.size-end')).toHaveText(['S', 'L']);
         await sort.selectOption('collection');
+        await expect(controls.locator('.sort-value')).toHaveText('Collection order');
         const fold = (await controls.locator('.display-tools').boundingBox())!;
         for (const part of [slider, sort, controls.locator('.sort-direction')]) {
           const box = (await part.boundingBox())!;

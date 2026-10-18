@@ -97,10 +97,13 @@ export default function CollectionViewControls({ display, onChange, sort, onSort
       aria-expanded={expanded} aria-controls={toolsId} onClick={() => setExpanded(value => !value)}><SlidersHorizontal size={15} /></button>
     <div className="display-tools" id={toolsId}>
       <label className="collection-size-control">
-        <span>Size</span>
+        <span className="size-word">Size</span>
+        {/* Phones drop the word and mark the slider's ends instead. */}
+        <span className="size-end" aria-hidden="true">S</span>
         <input type="range" aria-label="Collection item size" aria-valuetext={["Small", "Medium", "Large"][display.size]}
           min="0" max="2" step="1" value={display.size} onChange={e => onChange({ ...display, size: Number(e.target.value) })} />
         <span className="size-value">{["S", "M", "L"][display.size]}</span>
+        <span className="size-end" aria-hidden="true">L</span>
       </label>
       <SortControl sort={sort} onSort={onSort} />
     </div>
@@ -115,7 +118,8 @@ function SortControl({ sort, onSort }: { sort: string; onSort: (sort: string) =>
   return <span className="sort-field">
     <label className="sort-label">
       <ArrowDownUp size={13} />
-      <span className="sr-only">Sort decks</span>
+      {/* Phones show the field's name and lay the menu invisibly over it. */}
+      <span className="sort-value" aria-hidden="true">{field.label}</span>
       <select aria-label="Sort decks" value={field.field} onChange={e => onSort(SORT_FIELDS.find(f => f.field === e.target.value)!.orders[0][0])}>
         {SORT_FIELDS.map(f => <option key={f.field} value={f.field}>{f.label}</option>)}
       </select>

@@ -6,8 +6,10 @@
 .shared-view-controls .collection-size-control { display:flex; align-items:center; gap:8px; font-size:11px; color:#a8a8b0; }
 .shared-view-controls .collection-size-control input { width:72px; accent-color:#d3bd8e; cursor:pointer; }
 .shared-view-controls .size-value { width:10px; }
+.shared-view-controls .size-end { display:none; }
 .shared-view-controls .sort-label { margin:0; }
 .shared-view-controls .sort-label select { font-size:11px; max-width:150px; }
+.shared-view-controls .sort-value { display:none; }
 .shared-view-controls button:focus-visible, .shared-view-controls input:focus-visible, .shared-view-controls select:focus-visible { outline:2px solid #d3bd91; outline-offset:3px; }
 
 @media(max-width:700px) {
@@ -18,14 +20,21 @@
   .shared-view-controls .display-options-toggle { display:flex; align-items:center; justify-content:center; align-self:stretch; height:auto; padding:0; color:#c3bdaf; background:#202023; border:1px solid #37363a; border-radius:5px; }
   .shared-view-controls .display-options-toggle[aria-expanded=true] { color:#e8d3a5; border-color:#8e7e59; }
   .shared-view-controls .display-tools { display:none; }
-  .shared-view-controls.options-open .display-tools { display:flex; grid-column:1 / -1; justify-content:space-between; align-items:center; gap:8px; padding:3px 5px; background:#171719; border-radius:4px; }
-  /* One row with room for the longest field and order; the S/M/L value and the slider's own name say what it sets. */
-  .shared-view-controls .collection-size-control { gap:5px; min-height:32px; }
-  .shared-view-controls .collection-size-control > span:first-child { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+  .shared-view-controls.options-open .display-tools { display:flex; grid-column:1 / -1; align-items:center; gap:8px; padding:3px 5px; background:#171719; border-radius:4px; }
+  /* One row with room for the longest field and order: S and L mark the slider's ends in place of the Size word,
+     and the sort field with its order holds the right edge. */
+  .shared-view-controls .collection-size-control { gap:5px; min-height:32px; padding-left:3px; }
+  .shared-view-controls .size-word, .shared-view-controls .size-value { display:none; }
+  .shared-view-controls .size-end { display:inline; }
+  .shared-view-controls .sort-field { margin-left:auto; }
   .shared-view-controls .collection-size-control input { width:56px; }
-  .shared-view-controls .sort-label { min-height:32px; }
+  /* The menu lies invisibly over its field's name. The label keeps the longest name's width, so switching
+     fields doesn't move the row; the name starts at the left and the chevron holds the right. */
+  .shared-view-controls .sort-label { position:relative; justify-content:space-between; min-width:98px; min-height:32px; cursor:pointer; }
   .shared-view-controls .sort-label > svg:first-child { display:none; }
-  .shared-view-controls .sort-label select { max-width:140px; }
+  .shared-view-controls .sort-value { display:inline; font-size:11px; color:#c3bdaf; white-space:nowrap; }
+  .shared-view-controls .sort-label select { position:absolute; inset:0; width:100%; max-width:none; opacity:0; cursor:pointer; }
+  .shared-view-controls .sort-label:has(select:focus-visible) { outline:2px solid #d3bd91; outline-offset:3px; border-radius:3px; }
 }
 
 /* Below ~380px the four labels no longer fit; every layout becomes an equal icon button. */
