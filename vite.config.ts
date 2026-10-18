@@ -1,8 +1,9 @@
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, normalizePath, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { createHash } from 'node:crypto';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 // Both local development and the production server use the same small importer.
 // @ts-expect-error The Node server is plain JavaScript.
 import { handleApi } from './server/api.mjs';
@@ -31,8 +32,9 @@ function serviceWorker(): Plugin {
 
 export default defineConfig({
   plugins: [react(), serviceWorker(), { name: 'archidekt-import', configureServer(server) { server.middlewares.use(handleApi); } }],
-  // Agent worktrees live under .claude/; watching or scanning them reloads this checkout's dev server.
-  server: { port: 4317, strictPort: true, watch: { ignored: ['**/.claude/**'] } },
+  // Agent worktrees live under .claude/; watching them reloads this checkout's dev server. Ignore only
+  // this checkout's own folder, so a server started inside a worktree still watches its files.
+  server: { port: 4317, strictPort: true, watch: { ignored: [normalizePath(fileURLToPath(new URL('./.claude', import.meta.url))) + '/**'] } },
   optimizeDeps: { entries: ['index.html'] },
   preview: { port: 4318, strictPort: true },
 });
