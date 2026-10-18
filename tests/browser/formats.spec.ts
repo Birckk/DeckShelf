@@ -154,7 +154,7 @@ for (const viewport of [{ width: 1920, height: 1080 }, { width: 1500, height: 90
       await page.goto(`/help/${section}`);
       if (section === 'faq') {
         await page.getByText('Why is one of my decks missing?', { exact: true }).click();
-        await page.getByText('Moxfield, or formats other than Commander?', { exact: true }).click();
+        await page.getByText('Can I add formats other than Commander?', { exact: true }).click();
       }
       await shot(`help-${section}`);
     }

@@ -64,7 +64,6 @@ to project 4. Do not store a personal Projects token in a repository workflow.
 - [PWA installation and offline use](https://github.com/Bircck/DeckShelf/issues/4).
 - [Local saving and backup recovery](https://github.com/Bircck/DeckShelf/issues/5).
 - [Cross-device sync decision](https://github.com/Bircck/DeckShelf/issues/6).
-- [Moxfield import investigation](https://github.com/Bircck/DeckShelf/issues/7).
 - [Desktop branding compatibility](https://github.com/Bircck/DeckShelf/issues/8).
 - [Licensing and public download decisions](https://github.com/Bircck/DeckShelf/issues/9).
 - [Public-release history, automation and artifact audit](https://github.com/Bircck/DeckShelf/issues/13).
