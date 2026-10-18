@@ -2,7 +2,7 @@ import { coverOf, formatOf } from './domain';
 import CollectionMenu, { type MenuItem } from './CollectionMenu';
 import CollectionDeckTile, { DeckLink, ShownCheckbox } from "./CollectionDeckTile";
 import { DeckTable, tableDeck, tableEntry } from "./DeckTable";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ChangeEvent, type ReactNode } from "react";
 import {
   ArrowLeft,
   Power,
@@ -73,6 +73,10 @@ type Props = {
   backup: () => void;
   notify: Notify;
   undoTo: (before: Collection, after: Collection) => () => void;
+  onShare: () => void;
+  overviewExtra?: ReactNode;
+  /** A shared shelf shown read-only: its folders and decks, with the shelf's own actions. */
+  readOnly?: { name: string; actions: ReactNode };
   startPersonal?: boolean;
   initialSection?: string;
   initialScope?: { name: string; keys: string[] } | null;
@@ -136,6 +140,9 @@ export default function CollectionManager({
   onClose,
   backup,
   notify,
+  onShare,
+  overviewExtra,
+  readOnly,
   undoTo,
   startPersonal = false,
   initialSection = "overview",
@@ -508,7 +515,7 @@ export default function CollectionManager({
   }
   // Remove acts at once and offers Undo instead of asking first (#57).
   function remove(keys: string[], name: string, count: number) {
-    const after = removeSources(collection, keys);
+    const after = removeSources(collection, keys, catalog);
     setCollection(after);
     navigate("overview");
     notify(`Removed ${name}${count ? ` and its ${count} saved ${count === 1 ? "deck" : "decks"}` : ""}.`, { action: { label: "Undo", run: undoTo(collection, after) } });
@@ -551,36 +558,43 @@ export default function CollectionManager({
       !!source &&
       !!deck &&
       !source.entries.some((e) => e.id === row.id);
-    const toggle = (on: boolean) => member
+    const toggle = (on: boolean) => readOnly ? undefined : member
       ? setCollection(c => scopedSources.length ? setSourceSelection(c, scopedKeys, [row.id], on, decks) : setShown(c, [row.id], on))
       : setSelected(ids => on ? [...new Set([...ids, row.id])] : ids.filter(id => id !== row.id));
     const status = missing ? 'No longer listed · saved copy kept' : !member ? 'Not added' : !displayedHere(row.id) && checked ? (headerHidden ? 'Hidden · selection kept' : 'Collection off · selection kept') : '';
-    return { row, deck, member, checked, toggle, status, busy: !!busy };
+    return { row, deck, member, checked, toggle, status, busy: !!busy, selectable: !readOnly };
   });
   const deckViews = layout === "list" && deckRows.length
-    ? <DeckTable label="Decks in this collection" sort={sort} onSort={setSort} size={size} lead="Shown" trail="Archidekt"
+    ? <DeckTable label="Decks in this collection" sort={sort} onSort={setSort} size={size} lead={readOnly ? undefined : "Shown"} trail="Archidekt"
         rows={deckRows.map(item => ({
           deck: item.deck ? tableDeck(item.deck, collectionNames.get(item.row.id)) : tableEntry(item.row),
           className: `workspace-tile ${item.checked ? "" : "is-hidden"}`,
           onActivate: () => { if (!busy) item.toggle(!item.checked); },
           title: <h4>{item.deck?.name || item.row.name}</h4>,
           note: item.status || undefined,
-          lead: <ShownCheckbox {...item} />,
+          lead: readOnly ? undefined : <ShownCheckbox {...item} />,
           trail: <span className="workspace-tile-controls"><DeckLink {...item} /></span>,
         }))} />
     : deckRows.map(item => <CollectionDeckTile key={item.row.id} layout={layout} {...item} />);
   return (
-    <main className="collection-workspace" aria-label="My collection">
-      <header className="workspace-heading">
+    <main className={`collection-workspace ${readOnly ? "is-read-only" : ""}`} aria-label={readOnly ? `${readOnly.name} folders` : "My collection"}>
+      {readOnly
+        ? <header className="workspace-heading">
+            <div><h1 ref={heading} tabIndex={-1}>{readOnly.name}</h1><p>{decks.length} public {decks.length === 1 ? "deck" : "decks"} · Read-only</p></div>
+            <button className="text-button workspace-back" aria-label="Back to collection" title="Back to collection" onClick={onClose}><ArrowLeft size={15} /><span>Back to collection</span></button>
+            <div className="workspace-shelf-actions">{readOnly.actions}</div>
+          </header>
+        : <header className="workspace-heading">
         <div><h1 ref={heading} tabIndex={-1}>My collection</h1><p>{onDisplay} on display</p></div>
+        <button className="button button-outline" onClick={onShare}>Share</button>
         <button className="text-button workspace-back" aria-label="Back to collection" title="Back to collection" onClick={onClose}><ArrowLeft size={15} /><span>Back to collection</span></button>
         <button className="button button-gold" disabled={!!busy} onClick={() => { setConnecting(true); resetSourceForm(); }}><Plus size={16} /> Add decks</button>
-      </header>
+      </header>}
       <div className="collection-manager">
         <div className="manager-body">
-          <button className="workspace-mobile-toggle button button-outline" aria-expanded={mobileNav} onClick={() => setMobileNav(v => !v)}><FolderTree size={15} />Sources and folders</button>
+          <button className="workspace-mobile-toggle button button-outline" aria-expanded={mobileNav} onClick={() => setMobileNav(v => !v)}><FolderTree size={15} />{readOnly ? "Folders" : "Sources and folders"}</button>
           <div className={mobileNav ? 'workspace-navigation is-open' : 'workspace-navigation'}>
-            <CollectionNavigator collection={collection} decks={decks} groups={groups} section={connecting ? '' : section} busy={!!busy} navigate={navigate}
+            <CollectionNavigator readOnly={!!readOnly} collection={collection} decks={decks} groups={groups} section={connecting ? '' : section} busy={!!busy} navigate={navigate}
               openScope={(key, name, keys) => { navigate(key); setScope({ name, keys }); }}
               toggle={(keys, enabled, all) => setCollection(c => enableGroups(c, keys, enabled, all))}
               show={keys => setCollection(c => hideGroups(c, keys, false))} />
@@ -629,6 +643,7 @@ export default function CollectionManager({
               <>
               {section === "overview" && (
               <CollectionOverview
+                readOnly={!!readOnly}
                 groups={groups}
                 collection={collection}
                 decks={decks}
@@ -648,6 +663,7 @@ export default function CollectionManager({
                 remove={remove}
               />
               )}
+              {section === "overview" && overviewExtra}
               {section !== "overview" && <>
                 <div className="manager-section-heading">
                   <div>
@@ -657,7 +673,7 @@ export default function CollectionManager({
                           ? "Included precons"
                           : section === "manual"
                             ? "Individual decks"
-                            : "All saved decks")}
+                            : readOnly ? "All decks" : "All saved decks")}
                     </h3>
                     {(source || scope || section === "demo") && <p className="workspace-scope-note">
                       {source ? source.folderPath ? source.folderPath + ' · Direct decks' : 'Archidekt source'
@@ -676,7 +692,7 @@ export default function CollectionManager({
                     </a>
                   )}
                 </div>
-                {headerKeys.length > 0 && <div className="manager-toolbar">
+                {!readOnly && headerKeys.length > 0 && <div className="manager-toolbar">
                   {headerHidden
                     ? <div className="collection-hidden-state"><EyeOff size={14} /><span>Hidden</span>
                         <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => hideGroups(c, headerKeys, false))}><Eye size={14} />Show</button></div>
@@ -710,7 +726,7 @@ export default function CollectionManager({
                     />
                   </label>
                   <FormatSelect label="Collection format" value={browseFormat} onChange={setBrowseFormat} items={rows} all disabled={!!busy} />
-                  <select
+                  {!readOnly && <select
                     aria-label="Deck display status"
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
@@ -719,18 +735,18 @@ export default function CollectionManager({
                     <option value="shown">On display</option>
                     <option value="hidden">Hidden</option>
                     {scopedSources.length > 0 && <option value="new">Not added</option>}
-                  </select>
+                  </select>}
                 </div>
                 <div className="workspace-display-controls">
                 <div className="manager-bulk">
                   <span>
                     {shown.length} {shown.length === 1 ? "deck" : "decks"}
                   </span>
-                  <label className="manager-select-all" title={allChecked ? "Deselect every deck in the current results" : "Select every deck in the current results. New decks wait for Add selected decks."}>
+                  {!readOnly && <label className="manager-select-all" title={allChecked ? "Deselect every deck in the current results" : "Select every deck in the current results. New decks wait for Add selected decks."}>
                     <input ref={selectAllBox} type="checkbox" checked={allChecked} disabled={!!busy || !shown.length}
                       onChange={() => selectAll(!allChecked)} />
                     <span>Select all</span>
-                  </label>
+                  </label>}
                 </div>
                 <CollectionViewControls display={display} onChange={setDisplay} sort={sort} onSort={setSort} />
                 </div>
@@ -785,7 +801,7 @@ export default function CollectionManager({
           </section>
         </div>
         <footer className="manager-footer">
-          <div>
+          {readOnly ? <div /> : <div>
             <button className="text-button" onClick={backup}>
               <Download size={14} /> Export backup
             </button>
@@ -803,7 +819,7 @@ export default function CollectionManager({
               accept=".json,application/json"
               onChange={restore}
             />
-          </div>
+          </div>}
           <button className="button button-outline" onClick={onClose}>
             <Check size={15} /> Done
           </button>

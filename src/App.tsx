@@ -1,3 +1,9 @@
+import { saveSharedCollectionWithLock } from './shared-collection-storage';
+import ShareCollection from './ShareCollection';
+import { readSharedLocation, useSharedCollection } from './useSharedCollection';
+import { buildSharePath, type SharedSource } from './share-links';
+import { addRecent, keepShelf, readKept, readRecent, shelfId, shelfRef, writeKept, writeRecent, type KeptShelf, type ShelfRef } from './shelves';
+import { RecentShelves, ShelfSwitcher } from './SharedShelves';
 import { coverOf, formatOf, formatName } from './domain';
 import QuickChoiceControls from './QuickChoiceControls';
 import './recovery.css';
@@ -12,7 +18,14 @@ import {
   type CSSProperties,
 } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
+  BookmarkCheck,
+  BookmarkPlus,
+  ChevronUp,
+  Plus,
+  Share2,
+  Check,
   ChevronDown,
   ExternalLink,
   Eye,
@@ -64,6 +77,9 @@ import FirstVisitHint, { TourPopover } from "./FirstVisitHint";
 import { ENABLE_FIRST_VISIT_IN_PRODUCTION, isFreshProfile, markFirstVisit } from "./firstVisit";
 
 const catalog = seed as Deck[];
+// Blocked storage throws on access; shelf lists then live in memory only.
+const BAR_HIDDEN_KEY = "deckshelf.shelf-bar-hidden";
+const shelfStorage = () => { try { return localStorage; } catch { return undefined; } };
 const STORAGE_KEY = "commander-archive.collection.v1";
 // More chips than this fold behind a "+N more" button.
 const CHIPS_FOLDED = 2;
@@ -91,7 +107,79 @@ function readSaved(): { collection: Collection; error: string; raw?: string | nu
 }
 
 function App() {
-  const [loaded] = useState(readSaved);
+  const [sharedRoute, setSharedRoute] = useState(readSharedLocation);
+  const [kept, setKept] = useState<KeptShelf[]>(() => readKept(shelfStorage()));
+  const [recent, setRecent] = useState<ShelfRef[]>(() => readRecent(shelfStorage()));
+  const shared = useSharedCollection(sharedRoute, {
+    // Kept snapshots open offline; other shelves are fetched on first view in each tab.
+    lookup: id => kept.find(shelf => shelfId(shelf.source) === id),
+    onLoad: ({ source, decks }) => {
+      setRecent(list => addRecent(list, shelfRef({ source, decks })));
+    },
+  });
+  useEffect(() => { writeRecent(shelfStorage(), recent); }, [recent]);
+  function changeKept(next: KeptShelf[]) {
+    if (!writeKept(shelfStorage(), next)) notify("This browser couldn't keep that collection. It stays here until you close this tab.");
+    setKept(next);
+  }
+  // Every way back to a shared shelf goes through its address, so browser Back keeps working.
+  function openSharedShelf(source: SharedSource) {
+    if (spinning) return;
+    history.pushState(null, '', buildSharePath(source));
+    setSharedRoute(readSharedLocation());
+    setShowCollection(false);
+    setHelp(null);
+  }
+  function openPersonalShelf() {
+    if (isShared) leaveShared();
+    setShowCollection(false);
+  }
+  const isShared = !!sharedRoute.source || !!sharedRoute.error;
+  const sharedIdentity = sharedRoute.source
+    ? sharedRoute.source.kind + ':' + sharedRoute.source.value.toLowerCase()
+    : sharedRoute.error ? 'invalid-shared-link' : '';
+  const [showShare, setShowShare] = useState(false);
+  const [barHidden, setBarHidden] = useState(() => { try { return localStorage.getItem(BAR_HIDDEN_KEY) === "true"; } catch { return false; } });
+  function changeBarHidden(hidden: boolean) {
+    setBarHidden(hidden);
+    try { localStorage.setItem(BAR_HIDDEN_KEY, String(hidden)); } catch { /* Stays hidden for this tab. */ }
+  }
+  const [sharedSaved, setSharedSaved] = useState(false);
+  const [sharedSaving, setSharedSaving] = useState(false);
+  const activeSharedIdentity = useRef(sharedIdentity);
+  activeSharedIdentity.current = sharedIdentity;
+  function openMyCollection() {
+    if (isShared && !sharedShelf) leaveShared();
+    setHelp(null);
+    setPersonalStart(false);
+    if (showCollection) {
+      setCollectionSection("overview");
+      setCollectionScope(null);
+      setCollectionVisit(v => v + 1);
+    }
+    setShowCollection(true);
+  }
+  function leaveShared() {
+    activeSharedIdentity.current = '';
+    history.pushState(null, '', '/');
+    setSharedRoute(readSharedLocation());
+    setHelp(null);
+  }
+  // Each shelf keeps its own search, filters, sort and shortlist while this tab is open.
+  const browseState = useRef(new Map<string, { filters: Filters; shortlist: string[]; sort: string }>());
+  const lastIdentity = useRef(sharedIdentity);
+  useEffect(() => {
+    browseState.current.set(lastIdentity.current, browseNow.current);
+    lastIdentity.current = sharedIdentity;
+    const saved = browseState.current.get(sharedIdentity);
+    setSharedSaved(false);
+    setShortlist(saved?.shortlist ?? []);
+    setFilters(saved?.filters ?? { ...EMPTY_FILTERS });
+    if (saved) setSort(saved.sort);
+    setDetail(null);
+    setPickerWinner(null);
+  }, [sharedIdentity]);
+  const [loaded, setLoaded] = useState(readSaved);
   const [firstVisit, setFirstVisit] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const firstVisitClaimed = useRef(false);
@@ -103,6 +191,8 @@ function App() {
   const [collection, setCollection] = useState<Collection>(loaded.collection);
   const [storageError, setStorageError] = useState(loaded.error);
   const [storageLocked, setStorageLocked] = useState(!!loaded.error);
+  const persistedCollection = useRef<Collection | null>(null);
+  const wasShared = useRef(isShared);
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
   const [view, setView] = useState<View>(HOME_VIEW);
   // Helix or shuffle-and-deal (#76), remembered like the player count.
@@ -132,16 +222,20 @@ function App() {
     setTourOpen(false);
     if (returnFocus) helpTrigger.current?.focus();
   }, []);
-  // Help is the only addressable page; every other view keeps the plain root URL.
+  // Personal browsing keeps its URL; Help and shared sources are addressable.
   useEffect(() => {
+    const current = helpSectionFromPath(location.pathname);
+    // Personal browsing and shared sources keep their address until Help opens.
+    if (!help && !current) return;
     const path = help ? `/help/${help}` : "/";
     if (location.pathname === path) return;
-    // Equivalent addresses (/help, the older /settings) are tidied in place rather than added to history.
-    if (helpSectionFromPath(location.pathname) === help) history.replaceState(null, "", path);
+    // Keep main's equivalent Help/Settings addresses out of the history stack.
+    if (current === help) history.replaceState(null, "", path);
     else history.pushState(null, "", path);
+    setSharedRoute(readSharedLocation());
   }, [help]);
   useEffect(() => {
-    const sync = () => { setShowCollection(false); setHelp(helpSectionFromPath(location.pathname)); };
+    const sync = () => { setShowCollection(false); setHelp(helpSectionFromPath(location.pathname)); setSharedRoute(readSharedLocation()); };
     addEventListener("popstate", sync);
     return () => removeEventListener("popstate", sync);
   }, []);
@@ -186,23 +280,37 @@ function App() {
   const updateReady = useUpdateReady();
   const [updateLater, setUpdateLater] = useState(false);
   useEffect(() => {
-    if (storageLocked) return;
+    if (isShared) { wasShared.current = true; return; }
+    if (wasShared.current) {
+      // Returning from a read-only shelf reads the current personal collection.
+      // Neither the transition nor its state update may persist the old tab state.
+      wasShared.current = false;
+      const latest = readSaved();
+      persistedCollection.current = latest.collection;
+      setLoaded(latest);
+      setCollection(latest.collection);
+      setStorageError(latest.error);
+      setStorageLocked(!!latest.error);
+      return;
+    }
+    if (storageLocked || collection === persistedCollection.current) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(collection));
+      persistedCollection.current = collection;
       setStorageError("");
     } catch {
       setStorageError(
         "This browser could not save your collection. Export a backup before closing this page.",
       );
     }
-  }, [collection, storageLocked]);
+  }, [collection, storageLocked, isShared]);
   const allDecks = useMemo(
     () => collectionDecks(collection, catalog),
     [collection],
   );
   const owned = useMemo(
-    () => showcaseDecks(collection, catalog, allDecks),
-    [allDecks, collection],
+    () => isShared ? shared.decks : showcaseDecks(collection, catalog, allDecks),
+    [allDecks, collection, isShared, shared.decks],
   );
   const tableSettings = useMemo(() => listSettings(collection), [collection.list]);
   // The List table's Collection column and the Collection name sort use these.
@@ -216,6 +324,8 @@ function App() {
   const [shortlist, setShortlist] = useState<string[]>([]);
   const [pickerFormat, setPickerFormat] = useState('commander');
   const selectionAnchor = useRef<string | null>(null);
+  const browseNow = useRef({ filters, shortlist, sort });
+  browseNow.current = { filters, shortlist, sort };
   function selectDeck(id: string, range: boolean) {
     const end = visible.findIndex(deck => deck.id === id);
     const start = range ? visible.findIndex(deck => deck.id === selectionAnchor.current) : -1;
@@ -261,6 +371,7 @@ function App() {
     changeFilters(f => ({ ...f, tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag] }));
   }
   function openPrecons() {
+    if (isShared) leaveShared();
     setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
     setHelp(null);
     setPersonalStart(false);
@@ -280,6 +391,7 @@ function App() {
   function goToFeature(target: FeatureTarget) {
     setHelp(null);
     if (target === "collection" || target === "precons") {
+      if (isShared) leaveShared();
       const present = !!collection.demo && !collection.demo.removed;
       setPersonalStart(false);
       setCollectionSection(target === "precons" && present ? "demo" : "overview");
@@ -407,6 +519,48 @@ function App() {
               Exact colors
             </label>
           </div>);
+  const sharedName = shared.source?.name || sharedRoute.source?.value || 'Shared collection';
+  const isKept = !!shared.source && kept.some(shelf => shelfId(shelf.source) === sharedIdentity);
+  const canKeep = !!shared.source && shared.decks.length > 0 && !isKept;
+  const canSave = !!shared.source && shared.decks.length > 0 && !sharedSaved && !sharedSaving && !storageLocked;
+  function keepCurrent() {
+    if (canKeep) changeKept(keepShelf(kept, { source: shared.source!, decks: shared.decks, folders: shared.folders }));
+  }
+  async function saveShared() {
+    if (!canSave) return;
+    setSharedSaving(true);
+    const identity = sharedIdentity;
+    try {
+      const next = await saveSharedCollectionWithLock(localStorage, STORAGE_KEY, shared.source!, shared.decks, catalog,
+        () => freshCollection(precons as { snapshotAt: string; decks: Deck[] }), undefined, shared.folders);
+      // A queued Save may finish after the visitor has left this shelf.
+      if (activeSharedIdentity.current !== identity) return;
+      persistedCollection.current = next;
+      setCollection(next);
+      setSharedSaved(true);
+    } catch (error) { notify((error as Error).message); }
+    finally { setSharedSaving(false); }
+  }
+  // A loaded shared shelf: the header button, bar and read-only workspace follow it.
+  const sharedShelf = isShared && !!shared.source && !shared.loading && !shared.error && shared.decks.length > 0;
+  const shelfButtons = <>
+    <button className="button button-outline" disabled={!canKeep} aria-label={isKept ? 'Kept' : 'Keep as a collection'}
+      title="Keep this shelf as its own collection beside yours. Your collection is not changed." onClick={keepCurrent}>
+      {isKept ? <BookmarkCheck size={15} /> : <BookmarkPlus size={15} />}<span>{isKept ? 'Kept' : 'Keep'}</span></button>
+    <button className="button button-outline" onClick={() => setShowShare(true)}><Share2 size={15} /><span>Share</span></button>
+    <button className="button button-gold" disabled={!canSave} aria-label={sharedSaved ? 'Saved to my collection' : 'Save to my collection'}
+      title="Add these decks to your own collection" onClick={saveShared}>{sharedSaved ? <Check size={15} /> : <Plus size={15} />}<span>{sharedSaved ? 'Saved' : 'Save to mine'}</span></button>
+  </>;
+  // The shared shelf as a collection of its folders, for the read-only workspace. Never saved.
+  const sharedWorkspace = useMemo<Collection | null>(() => {
+    if (!shared.source) return null;
+    const source = shared.source;
+    const folders = shared.folders?.filter(folder => folder.source.entries.length) || [];
+    const sources = folders.length
+      ? folders.map(folder => ({ ...folder.source, folderPath: folder.path, connectionKey: source.key, connectionName: source.name, selectedIds: folder.source.knownIds }))
+      : [{ ...source, selectedIds: source.knownIds }];
+    return { version: 1, starter: false, hidden: [], excluded: [], added: shared.decks, manualIds: [], sources };
+  }, [shared.source, shared.decks, shared.folders]);
   const activeFilterChips = [
     view !== 'picker' && filters.format !== 'commander' && <button key="format" disabled={spinning} onClick={() => updateFilter('format', 'commander')}>{filters.format === 'all' ? 'All formats' : formatName(filters.format || 'commander')}<X size={12} /></button>,
     filters.query && <button key="query" disabled={spinning} onClick={() => updateFilter("query", "")}>“{filters.query}” <X size={12} /></button>,
@@ -427,6 +581,7 @@ function App() {
     >
       <Atmosphere deck={pickerWinner} revealed={revealed} />
       <header className="studio-header">
+        <div className="brand-cell">
         <a
           className="brand"
           href="#"
@@ -445,6 +600,20 @@ function App() {
             Deck<span className="brand-sub">Shelf</span>
           </span>
         </a>
+        {(kept.length > 0 || recent.length > 0 || isShared) && <ShelfSwitcher
+          current={isShared ? { id: sharedIdentity, name: shared.source?.name || sharedRoute.source?.value || "Shared" } : null}
+          viewing={isShared && shared.source ? { source: shared.source, count: shared.decks.length } : null}
+          kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length} disabled={spinning}
+          onPersonal={openPersonalShelf} onOpen={openSharedShelf}
+          onForget={id => changeKept(kept.filter(shelf => shelfId(shelf.source) !== id))}
+          onForgetRecent={id => setRecent(list => list.filter(ref => shelfId(ref) !== id))}
+          actions={isShared && shared.source && shared.decks.length > 0 ? <>
+            <button type="button" disabled={!canKeep} onClick={keepCurrent}>{isKept ? <BookmarkCheck size={15} /> : <BookmarkPlus size={15} />}{isKept ? 'Kept' : 'Keep'}</button>
+            <button type="button" onClick={() => setShowShare(true)}><Share2 size={15} />Share</button>
+            <button type="button" disabled={!canSave} onClick={saveShared}>{sharedSaved ? <Check size={15} /> : <Plus size={15} />}{sharedSaved ? 'Saved' : 'Save to mine'}</button>
+            {barHidden && <button type="button" onClick={() => changeBarHidden(false)}><ChevronDown size={15} />Show bar</button>}
+          </> : undefined} />}
+        </div>
         <div className="studio-nav" role="group" aria-label="Collection view">
           {(
             [
@@ -490,19 +659,30 @@ function App() {
             className="button button-outline"
             disabled={spinning}
             ref={collectionTrigger}
-            aria-label="My collection"
-            onClick={() => { setHelp(null); setPersonalStart(false); if (showCollection) { setCollectionSection("overview"); setCollectionScope(null); setCollectionVisit(v => v + 1); } setShowCollection(true); }}
+            aria-label={sharedShelf ? `${sharedName} folders` : "My collection"}
+            onClick={openMyCollection}
           >
             <Library size={16} />
-            <span>My collection</span>
-            <span className="count-badge">{owned.length}</span>
+            <span>{sharedShelf ? sharedName : "My collection"}</span>
+            <span className="count-badge">{sharedShelf ? shared.decks.length : isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length}</span>
           </button>
         </div>
       </header>
+      {isShared && !sharedShelf && <section className="shared-collection-bar shared-bar-slim" aria-label="Shared collection">
+        <button className="icon-button" aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={17} /></button>
+        <p><strong>{sharedName}</strong><small role={shared.error ? "alert" : undefined}>{shared.loading ? 'Loading public decks…' : shared.error || 'No public decks found. The source may be empty, unavailable or private.'}</small></p>
+      </section>}
+      {sharedShelf && !showCollection && !barHidden && <section className="shared-collection-bar shared-bar-slim" aria-label="Shared collection">
+        <button className="icon-button" aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={17} /></button>
+        <p><strong>{sharedName}</strong><small role={sharedSaved ? "status" : undefined}>{sharedSaved ? 'Saved to your collection. Refresh it in My collection.' : `Read-only · ${shared.decks.length} public ${shared.decks.length === 1 ? 'deck' : 'decks'}`}</small></p>
+        <div className="shared-bar-actions">{shelfButtons}</div>
+        <button className="icon-button" aria-label="Hide this bar" title="Hide this bar. Its actions stay in the menu by the logo." onClick={() => changeBarHidden(true)}><ChevronUp size={17} /></button>
+      </section>}
+      {showShare && <ShareCollection sources={isShared ? (shared.source ? [shared.source] : []) : collection.sources || []} onClose={() => setShowShare(false)} />}
       {storageError && (
         <div className="storage-warning" role="alert">
           <span>{storageError}</span>
-          {!storageLocked && <button className="text-button" onClick={retrySaving}>Retry saving</button>}
+          {!storageLocked && !isShared && <button className="text-button" onClick={retrySaving}>Retry saving</button>}
           {storageLocked && loaded.raw != null && <button className="text-button" onClick={() => backup(true)}>Download recovery data</button>}
           <button className="text-button" onClick={() => backup()}>
             Export backup
@@ -668,7 +848,7 @@ function App() {
                 ? "Deck picker"
                 : view === "cards"
                   ? "Deck cards"
-                  : "Your collection"}
+                  : isShared ? "Shared collection" : "Your collection"}
             </h1>
             <div className={`results-toolbar ${`view-${view}`}`}>
               <div>
@@ -782,7 +962,7 @@ function App() {
                   onClick={() =>
                     owned.length
                       ? changeFilters({ ...EMPTY_FILTERS })
-                      : setShowCollection(true)
+                      : openMyCollection()
                   }
                 >
                   {owned.length ? "Clear all filters" : "Choose decks"}
@@ -873,7 +1053,7 @@ function App() {
               </a>
               <button
                 className="button button-outline refresh-source"
-                disabled={refreshing || !online}
+                disabled={refreshing || !online || isShared}
                 onClick={() => refreshDeck(detail)}
               >
                 <RefreshCw size={15} className={refreshing ? "refreshing" : ""} />
@@ -909,7 +1089,25 @@ function App() {
           </div>
         </Modal>
       )}
-      {showCollection && (
+      {showCollection && sharedShelf && sharedWorkspace && (
+        <CollectionManager
+          key={`${sharedIdentity}:${collectionVisit}`}
+          readOnly={{ name: sharedName, actions: shelfButtons }}
+          catalog={[]}
+          decks={shared.decks}
+          collection={sharedWorkspace}
+          setCollection={() => {}}
+          initialSection="overview"
+          onLocationChange={() => {}}
+          onRestore={() => {}}
+          onClose={() => { setShowCollection(false); requestAnimationFrame(() => collectionTrigger.current?.focus()); }}
+          backup={() => {}}
+          notify={notify}
+          undoTo={() => () => {}}
+          onShare={() => setShowShare(true)}
+        />
+      )}
+      {showCollection && !sharedShelf && (
         <CollectionManager
           key={collectionVisit}
           catalog={catalog}
@@ -925,6 +1123,9 @@ function App() {
           backup={() => backup()}
           notify={notify}
           undoTo={undoTo}
+          onShare={() => setShowShare(true)}
+          overviewExtra={<RecentShelves list={recent} kept={kept.map(shelf => shelfId(shelf.source))} onOpen={openSharedShelf}
+            onForget={id => setRecent(list => list.filter(ref => shelfId(ref) !== id))} onClear={() => setRecent([])} />}
         />
       )}
     </div>

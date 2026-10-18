@@ -1,4 +1,4 @@
-import { type Collection, type CollectionSource, type Deck } from "./domain.ts";
+import { formatOf, parseCollection, type Collection, type CollectionSource, type Deck } from "./domain.ts";
 
 export function parseSourceInput(
   input: string,
@@ -94,6 +94,73 @@ export function importFolderSelection(collection: Collection, sources: Collectio
   if (accepted.length && pauseGroups.length) {
     const enabled = new Set(sources.filter(s => s.entries.some(e => acceptedIds.has(e.id))).map(s => s.key));
     next = { ...next, disabledGroups: [...new Set([...(next.disabledGroups || []), ...pauseGroups.filter(key => !enabled.has(key))])] };
+  }
+  return next;
+}
+
+// Shared Save adds only new decks. Existing snapshots and source/individual membership
+// stay intact, so removing this connection cannot remove a visitor's earlier decks.
+export function saveSharedCollection(collection: Collection, source: CollectionSource, decks: Deck[], existing: Deck[], catalog: Deck[] = []): Collection {
+  const previous = collection.sources?.find(item => item.key === source.key);
+  // Make inferred Individual decks explicit before a later source refresh can list
+  // them. This preserves membership rather than assigning those decks to the source.
+  const individualIds = showcaseGroups(collection, catalog, existing).find(group => group.key === 'manual')!.ids;
+  const preserved = individualIds.some(id => !collection.manualIds?.includes(id))
+    ? { ...collection, manualIds: [...new Set([...(collection.manualIds || []), ...individualIds])] }
+    : collection;
+  const finish = (result: Collection) => {
+    try { parseCollection(JSON.stringify(result)); }
+    catch { throw new Error('This shared collection exceeds the saved collection limits. Your collection is unchanged.'); }
+    return result;
+  };
+
+  const known = new Set([
+    ...existing.map(deck => deck.id), ...collection.added.map(deck => deck.id),
+    ...(collection.demo?.decks || []).map(deck => deck.id),
+    ...(collection.manualIds || []), ...collection.hidden, ...collection.excluded,
+    ...(collection.sources || []).flatMap(item => [...item.knownIds, ...(item.ownedIds || [])]),
+  ]);
+  const listed = new Set(source.entries.map(entry => entry.id));
+  const fresh = decks.filter(deck => listed.has(deck.id) && !known.has(deck.id));
+  if (previous?.ownedIds !== undefined && !fresh.length) return finish(preserved);
+  const ids = fresh.map(deck => deck.id);
+  const accepted = new Set(ids);
+  const entries = source.entries.filter(entry => accepted.has(entry.id));
+  const savedSource: CollectionSource = previous ? {
+    ...previous,
+    // A Commander-only source that gains other formats now lists them all; nothing is dropped.
+    ...(fresh.some(deck => formatOf(deck).id !== 'commander') ? { formatScope: 'all' as const } : {}),
+    entries: [...previous.entries, ...entries],
+    knownIds: [...previous.knownIds, ...ids],
+    ...(previous.selectedIds !== undefined ? { selectedIds: [...previous.selectedIds, ...ids] } : {}),
+    ownedIds: [...new Set([...effectiveSourceOwnership(previous), ...ids])],
+  } : { ...source, entries, knownIds: ids, selectedIds: ids, ownedIds: ids };
+  if (savedSource.entries.length > 1000 || savedSource.knownIds.length > 2000)
+    throw new Error('This source has too much history. Save a smaller folder instead.');
+  const sources = previous
+    ? collection.sources!.map(item => item.key === source.key ? savedSource : item)
+    : [...(collection.sources || []), savedSource];
+  if (sources.length > 50) throw new Error('A collection can link up to 50 sources.');
+  return finish({ ...saveSnapshots(preserved, fresh), sources });
+}
+
+export type SharedFolder = { source: CollectionSource; path: string; root: boolean };
+
+// A shared account or folder tree saves like Add decks: one source per folder, grouped under
+// the account so My collection shows the tree. Each folder goes through the same add-only
+// Save as a single source; folders with nothing new are skipped, as Add decks skips them.
+export function saveSharedShelf(collection: Collection, source: CollectionSource, decks: Deck[], folders: SharedFolder[] | undefined, catalog: Deck[] = []): Collection {
+  if (!folders?.length) return saveSharedCollection(collection, source, decks, collectionDecks(collection, catalog), catalog);
+  let next = collection;
+  for (const folder of folders) {
+    const listed = new Set(folder.source.entries.map(entry => entry.id));
+    const folderDecks = decks.filter(deck => listed.has(deck.id));
+    if (!folderDecks.length) continue;
+    const tagged = { ...folder.source, folderPath: folder.path, connectionKey: source.key, connectionName: source.name };
+    const after = saveSharedCollection(next, tagged, folderDecks, collectionDecks(next, catalog), catalog);
+    const isNew = !next.sources?.some(item => item.key === tagged.key);
+    if (isNew && !after.sources?.find(item => item.key === tagged.key)?.entries.length) continue;
+    next = after;
   }
   return next;
 }
@@ -291,13 +358,23 @@ export function selectSourceDecks(
     ),
   };
 }
-// Removing a source also removes its saved decks, unless another source or Individual decks still has them.
-export function removeSources(collection: Collection, keys: string[]): Collection {
+// Legacy sources implicitly own their known IDs until an explicit ownership list
+// is recorded. Use the same meaning when saving and removing a connection.
+function effectiveSourceOwnership(source: CollectionSource): string[] {
+  return source.ownedIds ?? source.knownIds;
+}
+
+// Removing a source keeps snapshots and visibility choices still held by precons,
+// another source listing or Individual decks, even when they are deselected.
+// An explicit ownership list limits deletion: discovering an ID during refresh
+// does not grant that source ownership of its saved snapshot or hidden choice.
+export function removeSources(collection: Collection, keys: string[], catalog: Deck[] = []): Collection {
   const sources = collection.sources || [];
   const gone = sources.filter(s => keys.includes(s.key));
   const kept = sources.filter(s => !keys.includes(s.key));
-  const stillUsed = new Set([...(collection.manualIds || []), ...kept.flatMap(s => [...(s.selectedIds ?? s.knownIds), ...(s.ownedIds || [])])]);
-  const ids = new Set(gone.flatMap(s => [...s.knownIds, ...(s.ownedIds || [])]).filter(id => !stillUsed.has(id)));
+  const individualIds = showcaseGroups(collection, catalog, collectionDecks(collection, catalog)).find(group => group.key === 'manual')!.ids;
+  const stillUsed = new Set([...individualIds, ...(collection.starter !== false ? catalog : []).map(deck => deck.id), ...(collection.demo?.decks || []).map(deck => deck.id), ...(collection.manualIds || []), ...kept.flatMap(s => [...s.knownIds, ...(s.ownedIds || [])])]);
+  const ids = new Set(gone.flatMap(effectiveSourceOwnership).filter(id => !stillUsed.has(id)));
   const touches = (p: { keys: string[] }) => p.keys.some(key => keys.includes(key));
   return {
     ...collection,

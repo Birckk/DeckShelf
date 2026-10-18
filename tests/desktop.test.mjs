@@ -23,6 +23,10 @@ test('desktop serves only packaged assets and rejects foreign origins and file e
     const route = await desktopResponse(new Request('archive://app/help/faq'), root);
     assert.equal(await route.text(), '<h1>Archive</h1>');
     assert.match(route.headers.get('Content-Type'), /text\/html/);
+    for (const path of ['/u/A.b', '/f/1916319']) {
+      const shared = await desktopResponse(new Request('archive://app' + path), root);
+      assert.equal(await shared.text(), '<h1>Archive</h1>');
+    }
     assert.equal(await (await desktopResponse(new Request('archive://app/', { method: 'HEAD' }), root)).text(), '');
   } finally { await rm(root, { recursive: true, force: true }); }
 });

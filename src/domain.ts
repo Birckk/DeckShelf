@@ -221,7 +221,7 @@ function webUrl(value: unknown): value is string {
     return false;
   }
 }
-function imageUrl(value: unknown): value is string {
+export function imageUrl(value: unknown): value is string {
   return (
     typeof value === "string" &&
     (/^\/images\/[a-zA-Z0-9.-]+$/.test(value) || webUrl(value))

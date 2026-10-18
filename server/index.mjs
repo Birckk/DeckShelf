@@ -42,7 +42,7 @@ const server = createServer((req,res) => {
     if (!file.startsWith(resolve(root) + sep)) { res.writeHead(403); res.end(); return; }
     let info;
     try { info = await stat(file); } catch {
-      if (extname(path)) { res.writeHead(404); res.end('Not found'); return; }
+      if (extname(path) && !/^\/(u|f)\//.test(path)) { res.writeHead(404); res.end('Not found'); return; }
       file = resolve(root,'index.html'); info = await stat(file);
     }
     if (!info.isFile()) { res.writeHead(404); res.end(); return; }

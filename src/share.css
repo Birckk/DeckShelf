@@ -1,0 +1,31 @@
+.shared-collection-bar { display:flex; align-items:center; flex-wrap:wrap; gap:10px 18px; margin:var(--page-top) var(--gutter); padding:12px 0; border-bottom:1px solid #38393c; }
+.shared-collection-bar p { margin:0; flex:1 1 280px; }
+.shared-collection-bar small { display:block; color:var(--muted); margin-top:4px; }
+.share-dialog label { display:grid; gap:6px; margin:16px 0; }
+.share-dialog input, .share-dialog select { width:100%; min-width:0; padding:10px; border:1px solid #555; border-radius:5px; background:#191a1d; color:inherit; font:inherit; }
+.share-dialog p { line-height:1.5; overflow-wrap:anywhere; }
+.share-link-row { display:flex; gap:10px; margin:16px 0 0; }
+.share-link-row input { flex:1; }
+.share-link-row .button { flex-shrink:0; }
+.share-dialog .share-status { min-height:1.5em; margin:6px 0; color:var(--muted); font-size:13px; }
+.share-base-toggle { font-size:12px; color:var(--muted); }
+/* Slim bar: one row, the shelf's name and its few actions. */
+.shared-bar-slim { flex-wrap:nowrap; gap:12px; padding:6px 0 10px; }
+.shared-bar-slim > .icon-button { flex-shrink:0; }
+.shared-bar-slim > .icon-button:first-child { margin-left:-8px; }
+.shared-bar-slim > .icon-button:last-child { margin-right:-8px; }
+.shared-bar-slim p { flex:1 1 auto; min-width:0; }
+.shared-bar-slim strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; }
+.shared-bar-slim small { margin-top:2px; font-size:12px; }
+.shared-bar-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.shared-bar-actions .button { display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:0 12px; font-size:12px; white-space:nowrap; }
+@media(max-width:550px) {
+  .shared-collection-bar { gap:10px; }
+  /* Phones: name on the first row, the actions in one even row below it. */
+  .shared-bar-slim { flex-wrap:wrap; gap:6px 8px; }
+  .shared-bar-slim p { flex:1 1 0; }
+  .shared-bar-actions { order:1; flex-basis:100%; }
+  .shared-bar-actions .button { flex:1; justify-content:center; padding:0 8px; }
+}
+
+.share-dialog { padding:0 20px 16px; }

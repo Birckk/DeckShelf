@@ -40,7 +40,7 @@ export async function desktopResponse(request, root, api = handleApi) {
     const local = relative(root, file);
     if (local.startsWith('..') || isAbsolute(local)) return new Response('Forbidden', { status: 403 });
     // Like the web server, app routes such as /help/faq load the single page.
-    const page = extname(pathname) ? file : await readFile(file).then(() => file, () => resolve(root, 'index.html'));
+    const page = extname(pathname) && !/^\/(u|f)\//.test(pathname) ? file : await readFile(file).then(() => file, () => resolve(root, 'index.html'));
     const bytes = await readFile(page);
     return new Response(request.method === 'HEAD' ? null : bytes, { headers: {
       'Content-Type': mime[extname(page)] || 'application/octet-stream',
