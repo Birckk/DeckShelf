@@ -109,7 +109,7 @@ const faq: { group: string; items: { q: string; a: ReactNode; see?: HelpSection 
     { q: "Does DeckShelf change my decks on Archidekt?", a: "No. It only reads public decks and never asks for a login. Edit decklists on Archidekt." },
   ] },
   { group: "Decks and collections", items: [
-    { q: "Why is one of my decks missing?", a: "Check the format filter: Commander is the default. Switch the folder list’s format when adding other decks. A Commander deck needs an assigned commander. A deck may also be private, in a subfolder you didn’t tick, in a collection that’s off or hidden, or outside your search and colors.", see: "adding" },
+    { q: "Why is one of my decks missing?", a: "Check the format filter: Commander is the default. Switch the folder list’s format when adding other decks. A Commander deck needs an assigned commander, or it’s removed again just after adding. A deck may also be private, in a subfolder you didn’t tick, in a collection that’s off or hidden, or outside your search and colors.", see: "adding" },
     { q: "A deck shows an old version", a: "Open it and press Refresh snapshot, or refresh its source in My collection.", see: "updates" },
     { q: "Where do tags come from, and why do some decks have none?", a: "Tags are the deck tags set on Archidekt. Copying a deck on Archidekt doesn’t copy its tags, and most official precons have none. Add tags to the deck on Archidekt, then refresh it here.", see: "updates" },
     { q: "I switched a collection off but its decks still show", a: "They’re also in another collection that’s on. A deck shows while any collection holding it is on." },

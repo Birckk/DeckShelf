@@ -59,6 +59,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Public accounts, folders, and individual deck links are read-only sources. Do not ask for platform passwords.
 - Discovering a source does not mean the user owns all its decks. New discoveries wait for selection; refresh preserves display and picker choices.
 - Distinguish local saved decks, starter precons, and source listings. Deduplicate decks shared by multiple sources.
+- Adding decks from a source puts them on the shelf at once from the folder listing (name, format, art, colours). Commanders and the other details fill in in the background, two decks at a time (#102). A deck that can never load (private, gone, no commander) is removed again with a problem notice. One that failed only for now stays and loads on the next start or reconnection.
 - Losing access to a source or a failed refresh must not delete saved decks. Keep the last usable snapshot when refresh fails. Removing a source on purpose is different: see Collection controls (October 15).
 - Preserve the version-1 collection backup format and existing local choices. Include source connections in exports.
 - Select all / Deselect all affect the current deck results, including search and status filters. New source entries are staged until Add selected decks; bulk actions preserve choices outside the results. Keep list controls compact, with no repeated introductory banner.

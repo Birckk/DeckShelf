@@ -29,6 +29,8 @@ export type Deck = {
   cardCount: number;
   releasedAt: string;
   fetchedAt: string;
+  // Added from a folder listing; commanders and other details are still loading.
+  partial?: true;
 };
 export type Filters = {
   format?: string;
@@ -305,7 +307,8 @@ export function validateDeck(value: unknown): value is Deck {
     Array.isArray(d.tags) &&
     d.tags.every((t) => typeof t === "string") &&
     Array.isArray(d.commanders) &&
-    (d.commanders.length > 0 || (d.format !== undefined && formatOf(d).id !== "commander" && d.cover !== undefined)) &&
+    (d.partial === undefined || d.partial === true) &&
+    (d.commanders.length > 0 || (d.cover !== undefined && (d.partial === true || (d.format !== undefined && formatOf(d).id !== "commander")))) &&
     d.commanders.length < 10 &&
     d.commanders.every(
       (c) =>

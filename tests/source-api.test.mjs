@@ -25,6 +25,7 @@ test('refresh bypasses the cache and upstream failure preserves the last good sn
   const failed=await request('/api/decks/987654321?refresh=1');
   assert.equal(failed.status,502);
   assert.match(failed.body.error,/unavailable/);
+  assert.equal(failed.body.retry,true);
   assert.equal((await request('/api/decks/987654321')).body.name,'Updated');
 });
 test('import failures explain private/missing sources and do not return a snapshot', async t => {
@@ -32,5 +33,6 @@ test('import failures explain private/missing sources and do not return a snapsh
   const missing=await request('/api/decks/987654320');
   assert.equal(missing.status,502);
   assert.match(missing.body.error,/public/);
+  assert.equal(missing.body.retry,false);
   assert.equal((await request('/api/decks/not-an-id')).status,404);
 });

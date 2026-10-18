@@ -71,7 +71,8 @@ import HelpCenter, { helpSectionFromPath, type FeatureTarget, type HelpSection }
 import { CardBackContext } from "./placeholders/CardBackArt";
 import CollectionManager from "./CollectionManager";
 import { Notices, notify } from "./Notices";
-import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshCollection, addDemo } from "./collection";
+import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshCollection, addDemo, fillDeck, dropPartialDecks } from "./collection";
+import { DeckLoadError, fillDecks, loadFullDeck } from "./deckFill";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 import FirstVisitHint, { TourPopover } from "./FirstVisitHint";
 import { ENABLE_FIRST_VISIT_IN_PRODUCTION, isFreshProfile, markFirstVisit } from "./firstVisit";
@@ -277,6 +278,46 @@ function App() {
     setCollection(before);
   }, []);
   const online = useOnline();
+  // Decks added from a folder listing get their full details here, so they keep
+  // filling in after the collection manager closes. A deck that cannot load for
+  // good (private, gone, no commander) is dropped again, as it was never added
+  // before; one that failed for now waits for the next start or reconnection.
+  // App lasts as long as the page, so filling is never cancelled.
+  const fill = useRef({ started: new Set<string>(), later: new Set<string>(), signal: new AbortController().signal });
+  const [fillPass, setFillPass] = useState(0);
+  useEffect(() => {
+    if (!online || !fill.current.later.size) return;
+    fill.current.later.forEach(id => fill.current.started.delete(id));
+    fill.current.later.clear();
+    setFillPass(n => n + 1);
+  }, [online]);
+  useEffect(() => {
+    const queue = fill.current;
+    const ids = online ? collection.added.filter(d => d.partial && !queue.started.has(d.id)).map(d => d.id) : [];
+    if (!ids.length) return;
+    ids.forEach(id => queue.started.add(id));
+    const names = new Map(collection.added.map(d => [d.id, d.name]));
+    const dropped: string[] = [];
+    const reasons: string[] = [];
+    fillDecks(ids, loadFullDeck, {
+      signal: queue.signal,
+      onDeck: deck => {
+        setCollection(c => fillDeck(c, deck));
+        setDetail(current => current?.id === deck.id && current.partial ? deck : current);
+      },
+      onError: (id, error) => {
+        if (error instanceof DeckLoadError && !error.retry) {
+          dropped.push(id);
+          reasons.push(`${names.get(id) || id}: ${error.message}`);
+        } else queue.later.add(id);
+      },
+    }).then(() => {
+      if (!dropped.length) return;
+      setCollection(c => dropPartialDecks(c, dropped));
+      setDetail(current => current && dropped.includes(current.id) ? null : current);
+      notify(`${dropped.length === 1 ? "A deck" : `${dropped.length} decks`} could not be added. ${reasons.join(" ")}`, { tone: "problem" });
+    });
+  }, [collection.added, online, fillPass]);
   const updateReady = useUpdateReady();
   const [updateLater, setUpdateLater] = useState(false);
   useEffect(() => {
@@ -1002,7 +1043,7 @@ function App() {
               {(detail.commanders.length ? detail.commanders : [coverOf(detail)]).map((c) => (
                 <div key={c.name}>
                   <Artwork src={c.image} alt={c.name} colors={detail.colors} eager />
-                  {detail.cover?.kind !== 'fallback' && <span>Illustration by {c.artist || "artist unlisted"}</span>}
+                  {detail.cover?.kind !== 'fallback' && !detail.partial && <span>Illustration by {c.artist || "artist unlisted"}</span>}
                 </div>
               ))}
             </div>
@@ -1011,7 +1052,7 @@ function App() {
               <h2>{detail.name}</h2>
               <Mana colors={detail.colors} />
               <p className="detail-commander">
-                {detail.commanders.map((c) => c.name).join(" & ") || (detail.cover?.kind === 'featured' ? `Featured card · ${coverOf(detail).name}` : 'No cover selected · Set a featured card on Archidekt')}
+                {detail.partial ? 'Loading details from Archidekt…' : detail.commanders.map((c) => c.name).join(" & ") || (detail.cover?.kind === 'featured' ? `Featured card · ${coverOf(detail).name}` : 'No cover selected · Set a featured card on Archidekt')}
               </p>
               {detail.theme && <p className="detail-theme">{detail.theme}</p>}
               {detail.tags.length > 0 && <div className="tag-list" role="group" aria-label="Tags">
@@ -1026,7 +1067,7 @@ function App() {
                   )}
                 </p>
               )}
-              <div className="detail-facts">
+              {!detail.partial && <div className="detail-facts">
                 <span>
                   <strong>{detail.cardCount}</strong> cards
                 </span>
@@ -1041,7 +1082,7 @@ function App() {
                       })
                     : "Release not listed"}
                 </span>
-              </div>
+              </div>}
               <div className="detail-actions">
               <a
                 className="button button-gold"
@@ -1081,10 +1122,10 @@ function App() {
                   {refreshError.message}
                 </p>
               )}
-              <p className="source-note">
+              {!detail.partial && <p className="source-note">
                 Saved snapshot · {" "}
                 {new Date(detail.fetchedAt).toLocaleDateString("en-GB")}
-              </p>
+              </p>}
             </div>
           </div>
         </Modal>

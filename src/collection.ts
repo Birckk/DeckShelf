@@ -1,4 +1,4 @@
-import { formatOf, parseCollection, type Collection, type CollectionSource, type Deck } from "./domain.ts";
+import { formatOf, parseCollection, type Collection, type CollectionSource, type Deck, type SourceEntry } from "./domain.ts";
 
 export function parseSourceInput(
   input: string,
@@ -424,6 +424,43 @@ export function freshCollection(snapshot: { snapshotAt: string; decks: Deck[] })
 }
 
 // A refresh only replaces metadata. Local visibility and picker choices survive.
+// A folder listing already names each deck with its format, art and colours, so
+// the deck can join the shelf straight away. The full deck (commanders, colour
+// identity, set, tags) replaces it in the background through fillDeck.
+export function listingDeck(entry: SourceEntry): Deck {
+  return {
+    format: formatOf(entry),
+    cover: entry.image
+      ? { kind: "featured", name: "", artist: "", image: entry.image, art: entry.image }
+      : { kind: "fallback", name: "No cover selected", artist: "", image: "", art: "" },
+    id: entry.id,
+    name: entry.name,
+    set: "",
+    colors: entry.colors,
+    theme: "",
+    tags: [],
+    description: "",
+    commanders: [],
+    sourceUrl: `https://archidekt.com/decks/${entry.id}`,
+    sourceName: "Archidekt",
+    cardCount: 0,
+    releasedAt: "",
+    fetchedAt: "",
+    partial: true,
+  };
+}
+// Only a deck still waiting for its details changes, so a refresh or removal
+// that happened while it loaded wins.
+export function fillDeck(collection: Collection, deck: Deck): Collection {
+  return collection.added.some((d) => d.id === deck.id && d.partial)
+    ? saveSnapshots(collection, [deck])
+    : collection;
+}
+export function dropPartialDecks(collection: Collection, ids: string[]): Collection {
+  const drop = new Set(collection.added.filter((d) => d.partial && ids.includes(d.id)).map((d) => d.id));
+  return drop.size ? { ...collection, added: collection.added.filter((d) => !drop.has(d.id)) } : collection;
+}
+
 export function saveSnapshots(
   collection: Collection,
   decks: Deck[],

@@ -54,6 +54,7 @@ import {
   addDemo,
   updateDemo,
   importFolderSelection,
+  listingDeck,
 } from "./collection";
 import precons from "./data/precons.json";
 import CollectionNavigator from "./CollectionNavigator";
@@ -382,15 +383,14 @@ export default function CollectionManager({
         throw new Error('Choose fewer folders. A collection can link up to 50 sources.');
       if (collection.added.length + selected.filter(id => !collection.added.some(d => d.id === id)).length > 1000)
         throw new Error('A local collection can hold up to 1,000 imported decks. Choose fewer decks.');
-      const { loaded, errors } = await fetchDecks(selected.filter(id => !saved.has(id)), signal, false);
-      signal.throwIfAborted();
-      const accepted = [...loaded, ...selected.filter(id => saved.has(id)).map(id => saved.get(id)!)];
-      const next = importFolderSelection(collection, chosen, accepted, decks, onlyFolders && !errors.length ? groups.map(g => g.key).filter(key => !importedFolderKeys.current.has(key)) : []);
+      // New decks join from the listing at once; App fills in their details in the background.
+      const listed = new Map(discovery.folders.flatMap(f => f.source.entries).map(e => [e.id, e]));
+      const accepted = selected.flatMap(id => saved.get(id) || (listed.has(id) ? [listingDeck(listed.get(id)!)] : []));
+      const next = importFolderSelection(collection, chosen, accepted, decks, onlyFolders ? groups.map(g => g.key).filter(key => !importedFolderKeys.current.has(key)) : []);
       setCollection(next);
       chosen.filter(s => s.entries.some(e => accepted.some(d => d.id === e.id))).forEach(s => importedFolderKeys.current.add(s.key));
-      finish(`${accepted.length} ${accepted.length === 1 ? 'deck' : 'decks'} added to your collection.`, errors);
-      if (errors.length) setSelected(ids => ids.filter(id => !accepted.some(d => d.id === id)));
-      else navigate("overview");
+      finish(`${accepted.length} ${accepted.length === 1 ? 'deck' : 'decks'} added to your collection.`, []);
+      navigate("overview");
     } catch (e) { report(e); }
     finally { setBusy(''); }
   }
@@ -436,12 +436,16 @@ export default function CollectionManager({
         throw new Error(
           "A local collection can hold up to 1,000 imported decks. Choose fewer decks.",
         );
+      // Source listings add at once; other sections still load the full deck first.
+      const listed = new Map(scopedSources.flatMap(s => s.entries).map(e => [e.id, e]));
+      const fresh = selected.filter((id) => !saved.has(id));
       const { loaded, errors } = await fetchDecks(
-        selected.filter((id) => !saved.has(id)),
+        fresh.filter((id) => !listed.has(id)),
         signal,
         false,
       );
       const accepted = [
+        ...fresh.filter((id) => listed.has(id)).map((id) => listingDeck(listed.get(id)!)),
         ...loaded,
         ...selected.filter((id) => saved.has(id)).map((id) => saved.get(id)!),
       ];

@@ -4,7 +4,7 @@ import folderFixture from '../fixtures/collection-folders.json' with { type: 'js
 import deckFixture from '../fixtures/collection-decks.json' with { type: 'json' };
 
 const key = 'commander-archive.collection.v1';
-const decks = seed.slice(0, 6).map((deck, i) => ({ ...deck, id: String(980001 + i) }));
+const decks = seed.slice(0, 7).map((deck, i) => ({ ...deck, id: String(980001 + i) }));
 const makeSource = (id: string, name: string, ids: number[], path: string) => ({
   key: `folder:${id}`, kind: 'folder', value: id, name, url: `https://archidekt.com/folders/${id}`,
   checkedAt: '2026-10-04T12:00:00Z', knownIds: ids.map(i => decks[i].id), selectedIds: ids.map(i => decks[i].id),
@@ -69,11 +69,13 @@ test('failed refresh retains snapshots and hierarchy; Remove keeps decks other c
   expect(after.added.map((d: { id: string }) => d.id)).toEqual([decks[0].id, decks[3].id, decks[4].id]);
 });
 
-test('new source entries stay staged until added and can be retried after failure', async ({ page }) => {
-  const found = makeSource('42', 'Mono-color', [0, 1, 2, 5], 'Home / Test collection / Mono-color');
+test('new source entries join at once, fill in later, and drop only decks that can never load', async ({ page }) => {
+  const found = makeSource('42', 'Mono-color', [0, 1, 2, 5, 6], 'Home / Test collection / Mono-color');
   await page.route('**/api/sources?*', route => route.fulfill({ json: found }));
   await page.route('**/api/decks/*', route => {
     const id = new URL(route.request().url()).pathname.split('/').pop();
+    if (id === decks[5].id) return route.fulfill({ status: 502, json: { error: 'Archidekt is unavailable right now.', retry: true } });
+    if (id === decks[6].id) return route.fulfill({ status: 502, json: { error: 'That deck has no assigned commander.', retry: false } });
     return route.fulfill({ json: decks.find(d => d.id === id) });
   });
   await page.getByRole('navigation').getByRole('button', { name: 'Mono-color', exact: true }).click();
@@ -81,18 +83,21 @@ test('new source entries stay staged until added and can be retried after failur
   const choice = page.getByRole('checkbox', { name: `Select ${decks[5].name}`, exact: true });
   await expect(choice).not.toBeChecked();
   await choice.check();
-  await expect(page.locator('.workspace-heading')).toContainText('5 on display');
-  await page.route(`**/api/decks/${decks[5].id}`, route => route.fulfill({ status: 503, json: { error: 'Try again.' } }));
+  await page.getByRole('checkbox', { name: `Select ${decks[6].name}`, exact: true }).check();
   await page.getByRole('button', { name: 'Add selected decks', exact: true }).click();
-  await expect(page.locator('.manager-failures')).toContainText('Try again.');
-  // The failure is also a notice that stays until dismissed, pointing to the list.
-  const problem = page.locator('[data-sonner-toast]').filter({ hasText: '1 deck could not be loaded.' });
-  await expect(problem.getByRole('alert')).toBeVisible();
-  await problem.getByRole('button', { name: 'Show', exact: true }).click();
-  await expect(page.locator('.manager-failures summary')).toBeFocused();
-  await page.unroute(`**/api/decks/${decks[5].id}`);
-  await page.getByRole('button', { name: 'Add selected decks', exact: true }).click();
+  // A deck that can never load is removed again, and a notice that stays says why.
+  const problem = page.locator('[data-sonner-toast]').filter({ hasText: 'A deck could not be added.' });
+  await expect(problem.getByRole('alert')).toContainText(`${decks[6].name}: That deck has no assigned commander.`);
   await expect(page.locator('.workspace-heading')).toContainText('6 on display');
+  const stored = async () => (await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key)).added as { id: string; partial?: true }[];
+  expect((await stored()).find(d => d.id === decks[6].id)).toBeUndefined();
+  // One that failed for now stays from the listing and loads on the next start.
+  expect((await stored()).find(d => d.id === decks[5].id)?.partial).toBe(true);
+  await page.unroute('**/api/decks/*');
+  await page.route('**/api/decks/*', route => route.fulfill({ json: decks.find(d => d.id === new URL(route.request().url()).pathname.split('/').pop()) }));
+  await page.reload();
+  await expect.poll(async () => (await stored()).find(d => d.id === decks[5].id)?.partial).toBeUndefined();
+  expect((await stored()).find(d => d.id === decks[5].id)).toEqual(decks[5]);
 });
 
 test('the 30-deck folder fixture imports with hierarchy and a version-1 backup round trip', async ({ page }) => {

@@ -89,7 +89,9 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
   try {
     res.end(JSON.stringify(await fetchDeck(match[1], { refresh:url.searchParams.get('refresh') === '1' })));
   } catch (error) {
+    // retry tells background filling whether to keep a listed deck for later or drop it.
+    const retry = error.status === 429 || error.status >= 500 || ['TimeoutError', 'TypeError'].includes(error.name);
     res.writeHead(502);
-    res.end(JSON.stringify({error:error.name === 'TimeoutError' ? 'Archidekt took too long to respond. Your saved collection is still available.' : error.message || 'Could not fetch this deck.'}));
+    res.end(JSON.stringify({error:error.name === 'TimeoutError' ? 'Archidekt took too long to respond. Your saved collection is still available.' : error.message || 'Could not fetch this deck.', retry}));
   }
 }
