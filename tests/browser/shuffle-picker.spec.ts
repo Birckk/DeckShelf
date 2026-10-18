@@ -53,6 +53,14 @@ test('the chosen picker, players and instant pick behave the same in both presen
   await picker.getByRole('button', { name: 'Pick 3 decks' }).click();
   await expect(picker).toHaveClass(/phase-result/);
   await expect(picker.locator('.shuffle-seats.seats-3 .reveal-seat')).toHaveCount(3);
+  // A small back arrow returns from the result to the decks on the table.
+  await picker.getByRole('button', { name: 'Back to the decks', exact: true }).click();
+  await expect(picker).toHaveClass(/phase-ready/);
+  await expect(picker.locator('.gather-card img').first()).toBeAttached();
+  await expect(picker.getByRole('button', { name: 'Back to the decks' })).toHaveCount(0);
+  await expect(picker.getByRole('button', { name: 'Pick 3 decks', exact: true })).toBeEnabled();
+  await picker.getByRole('button', { name: 'Pick 3 decks' }).click();
+  await expect(picker).toHaveClass(/phase-result/);
   // The presentation is remembered like the player count.
   await page.reload();
   await page.getByRole('button', { name: 'Pick a deck', exact: true }).click();

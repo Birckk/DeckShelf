@@ -52,6 +52,7 @@
 /* Bound captions so long imported names cannot push a seat into the controls. */
 .shuffle-caption > span:first-child { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4em; }
 
+.shuffle-back-button { width: 43px; padding: 0; justify-content: center; }
 /* Progress sits just above the dock and never takes table space. */
 .shuffle-status { position: absolute; left: 0; right: 0; bottom: calc(var(--dock-space) - 22px); z-index: 2; text-align: center; font-size: 12px; color: #b9b6ae; pointer-events: none; }
 .phase-result .shuffle-status, .phase-ready .shuffle-status { clip-path: inset(50%); }

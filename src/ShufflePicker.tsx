@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { ArrowRight, Dices, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Dices, RotateCcw } from "lucide-react";
 import { coverOf, type Deck } from "./domain";
 import { Artwork, Mana } from "./components";
 import { CardBackArt } from "./placeholders/CardBackArt";
@@ -54,6 +54,10 @@ export default function ShufflePicker({ decks, spinning, setSpinning, openDeck, 
       card.style.setProperty("--dy", (box.top + box.height / 2 - rect.top - rect.height / 2) + "px");
     });
   }, [phase]);
+  // Back from a result to the decks on the table, like the helix's Browse decks.
+  function back() {
+    cancel(); setRun(null); setPhase("ready");
+  }
   function pick() {
     if (spinning || !decks.length) return;
     cancel();
@@ -121,6 +125,7 @@ export default function ShufflePicker({ decks, spinning, setSpinning, openDeck, 
     <div className={`helix-dock shuffle-dock ${complete ? "with-result" : ""}`}>
       {!compact && playerCount}
       <div className="helix-dock-actions">
+        {complete && <button className="button helix-browse shuffle-back-button" onClick={back} aria-label="Back to the decks" title="Back to the decks"><ArrowLeft size={17} /></button>}
         <button className="button button-gold spin-button" onClick={pick} disabled={spinning || !decks.length}>
           {spinning ? <span className="loading-dot" /> : complete ? <RotateCcw size={16} /> : <Dices size={17} />}
           {spinning ? choosing : complete ? 'Pick again' : seats > 1 ? `Pick ${seats} decks` : 'Pick a deck'}
