@@ -556,7 +556,7 @@
 .source-folder-decks label { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid #ffffff10; cursor: pointer; }
 .source-folder-decks img { width: 42px; height: 36px; object-fit: cover; border-radius: 3px; }
 .source-folder-decks span { font-size: 13px; overflow-wrap: anywhere; }
-.source-choice-footer { position: sticky; bottom: -14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #1b1c20; border-top: 1px solid #ffffff20; padding: 16px 0; }
+.source-choice-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .source-choice-footer > span { color: #a7a8b2; font-size: 12px; }
 .source-choice-footer > label { display: flex; align-items: center; gap: 9px; font-size: 12px; cursor: pointer; }
 .source-choice-footer input { width: 17px; height: 17px; accent-color: #d8c08d; }
@@ -568,7 +568,7 @@
   .source-folder-choice { padding: 12px; gap: 8px; }
   .source-folder-art img { width: 32px; height: 40px; }
   .source-folder-art img:not(:first-child) { display: none; }
-  .source-choice-footer { flex-wrap: wrap; bottom: -12px; }
+  .source-choice-footer { flex-wrap: wrap; }
   .source-choice-footer .button { width: 100%; justify-content: center; }
 }
 .about-copy .about-lead { font-size:22px; font-family:Outfit,sans-serif; line-height:1.35; color:#eeeaf0; margin:0 0 22px; }

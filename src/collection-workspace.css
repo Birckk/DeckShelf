@@ -60,7 +60,8 @@ body:has(.collection-workspace) { min-width:320px; }
 .layout-art .workspace-tile-title h4, .layout-compact .workspace-tile-title h4, .layout-art .workspace-tile-note, .layout-compact .workspace-tile-note { display:none; }
 .layout-art .workspace-tile-title, .layout-compact .workspace-tile-title { position:absolute; right:3px; bottom:5px; margin:0; }
 .layout-art .workspace-tile-art .mana-row { display:none; }
-.collection-workspace .manager-selection { position:sticky; bottom:8px; z-index:2; background:#24252a; padding:12px; border:1px solid #ffffff24; border-radius:6px; }
+/* Sticky action bars float over the list they act on, so rows pass under a card instead of being cut by a band. */
+.collection-workspace .manager-selection, .collection-workspace .source-choice-footer { position:sticky; bottom:8px; z-index:2; background:#24252a; padding:12px; border:1px solid #ffffff24; border-radius:6px; }
 .collection-workspace .manager-restore { flex-wrap:wrap; padding:20px 0; }
 @media(max-width:700px) {
   .collection-workspace { padding-bottom:28px; }
