@@ -122,7 +122,12 @@ export function drawDistinct<T>(
   }
   return pool.slice(0, size);
 }
+
+export type CardBackStyle = "nest" | "wedges";
 export type Collection = {
+  cardBack?: CardBackStyle;
+  /** Show card backs instead of any commander artwork, so none is fetched. */
+  hideArtwork?: true;
   version: 1;
   hidden: string[];
   excluded: string[];
@@ -325,6 +330,8 @@ export function parseCollection(raw: string): Collection {
   }
   return {
     version: 1,
+    ...(v.cardBack === "nest" || v.cardBack === "wedges" ? { cardBack: v.cardBack } : {}),
+    ...(v.hideArtwork === true ? { hideArtwork: true as const } : {}),
     ...(v.archivedGroups !== undefined ? { archivedGroups: [...new Set(v.archivedGroups)] } : {}),
     // Fold the brief per-deck disable experiment into ordinary hidden choices.
     hidden: [...new Set([...v.hidden, ...(v.disabledDecks || [])])],

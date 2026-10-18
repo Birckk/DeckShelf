@@ -1,0 +1,25 @@
+.card-back-settings { margin:0; padding:8px 0 40px; border:0; min-width:0; }
+.card-back-settings legend { float:left; width:100%; margin:0 0 8px; padding:0; font:500 24px Outfit,sans-serif; color:#f0ede7; }
+.card-back-settings > p { clear:both; margin:0 0 24px; color:#b2b0ba; font-size:14px; line-height:1.6; }
+.card-back-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+.card-back-option { min-width:0; padding:18px; border:1px solid #ffffff20; border-radius:8px; background:#ffffff03; cursor:pointer; }
+.card-back-option:has(input:checked) { border-color:#b9a373; background:#e4c68c08; }
+.card-back-option:has(input:focus-visible) { outline:2px solid #e2cd9c; outline-offset:4px; }
+.card-back-choice { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+.card-back-choice input { accent-color:#e2cd9c; width:18px; height:18px; margin:0; }
+.card-back-choice strong { font:500 18px Outfit,sans-serif; color:#f0ede7; }
+.card-back-choice > span { margin-left:auto; color:#aaa69c; font-size:12px; }
+.card-back-samples { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.card-back-sample { display:flex; flex-direction:column; gap:9px; min-width:0; text-align:center; color:#aaa69c; font-size:12px; }
+.card-back-sample .identity-art { position:static; display:block; width:100%; height:auto; aspect-ratio:5/7; border-radius:7px; }
+@media(max-width:1100px) { .card-back-options { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:550px) { .card-back-option { padding:12px; } .card-back-samples { gap:7px; } .card-back-sample { font-size:10px; } .card-back-choice strong { font-size:17px; } }
+
+.studio-workspace.utility-search { padding-bottom:0; }
+.artwork-setting { padding-top:0; }
+.artwork-toggle { display:flex; align-items:flex-start; gap:12px; max-width:640px; padding:16px 18px; border:1px solid #ffffff20; border-radius:8px; background:#ffffff03; cursor:pointer; }
+.artwork-toggle:has(input:checked) { border-color:#b9a373; background:#e4c68c08; }
+.artwork-toggle:has(input:focus-visible) { outline:2px solid #e2cd9c; outline-offset:4px; }
+.artwork-toggle input { accent-color:#e2cd9c; width:18px; height:18px; margin:2px 0 0; flex:none; }
+.artwork-toggle strong { display:block; font:500 16px Outfit,sans-serif; color:#f0ede7; }
+.artwork-toggle span span { display:block; margin-top:4px; color:#b2b0ba; font-size:13px; line-height:1.5; }

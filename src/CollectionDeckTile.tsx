@@ -1,4 +1,4 @@
-import { ExternalLink, Library } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { Artwork, Mana } from './components';
 import type { Deck, SourceEntry } from './domain';
 
@@ -11,7 +11,7 @@ export default function CollectionDeckTile({ row, deck, layout, checked, member,
     if (!busy && !(e.target as HTMLElement).closest('a, input, label, button')) toggle(!checked);
   }}>
     <div className="workspace-tile-art">
-      {image ? <Artwork src={image} alt={row.name} /> : <div className="workspace-art-placeholder"><Library size={28} /><span>{row.name}</span></div>}
+      <Artwork src={image} alt={row.name} colors={deck?.colors || row.colors} />
       <Mana colors={deck?.colors || row.colors} size="mini" />
     </div>
     <div className="workspace-tile-title">

@@ -28,7 +28,7 @@ const STARS =
 
 export function NestArt({ colors }: { colors: Color[] }) {
   return (
-    <svg className="identity-art" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <svg className="identity-art" data-card-back="nest" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <rect width={100} height={140} fill="#1b1c20" />
       <path d={BODY} fill="#2a2b30" fillRule="evenodd" />
       <path d={HIGHLIGHT} fill="#f2ddb0" opacity={0.7} />

@@ -2,10 +2,11 @@ import { useEffect, useRef, useState, type ComponentType, type MouseEvent, type 
 import {
   ArrowLeft, ArrowRight, BookOpen, ChevronRight, Dices, Eye, ExternalLink, Folder, FolderOpen, HardDrive,
   HardDriveDownload, Info, LayoutGrid, Library, Link2, ListChecks, Map as MapIcon, Menu, MessageCircleQuestion, Puzzle,
-  RefreshCw, Search, X,
+  RefreshCw, Search, Settings, X,
 } from "lucide-react";
 import { CardFanIcon } from "./CardFanIcon";
 import CollectionGuide from "./CollectionGuide";
+import SettingsSection, { type Settings as SettingsValue } from "./SettingsSection";
 import decks from "./data/decks.json";
 import { roadmap, roadmapStages } from "./data/roadmap";
 import { AboutPreview, AddingFigure, FeaturesPreview, PickingFigure, RoadmapPreview, SavingFigure, ShowingFigure, UpdatesFigure } from "./HelpFigures";
@@ -25,6 +26,7 @@ export const helpSections = [
   { id: "features", label: "Features", Icon: Puzzle, parent: "project", summary: "Everything DeckShelf does, with a shortcut to each." },
   { id: "roadmap", label: "Roadmap", Icon: MapIcon, parent: "project", summary: "What’s next, later, and still being explored." },
   { id: "about", label: "About", Icon: Info, parent: "project", summary: "Why DeckShelf exists, and credits." },
+  { id: "settings", label: "Settings", Icon: Settings, summary: "Card backs and artwork." },
 ] as const satisfies readonly { id: string; label: string; Icon: Icon; summary: string; group?: boolean; parent?: string }[];
 export type HelpSection = (typeof helpSections)[number]["id"];
 export type FeatureTarget = "grid" | "cards" | "picker" | "search" | "shortlist" | "collection" | "precons";
@@ -36,8 +38,9 @@ const FOLDS_KEY = "deckshelf.help-folds";
 const REPO_URL = "https://github.com/Bircck/DeckShelf";
 const external = (href: string, text: string) => <a href={href} target="_blank" rel="noreferrer">{text} <ExternalLink size={12} /></a>;
 
-/** `/help` opens Start here; unknown sections fall back to it rather than leaving Help. */
+/** `/help` opens Start here; unknown sections fall back to it rather than leaving Help. `/settings` is Help's Settings section. */
 export function helpSectionFromPath(path: string): HelpSection | null {
+  if (/^\/settings\/?$/.test(path)) return "settings";
   const match = /^\/help(?:\/([\w-]+))?\/?$/.exec(path);
   if (!match) return null;
   return helpSections.find(s => s.id === match[1])?.id ?? "start";
@@ -93,8 +96,8 @@ const topics: Partial<Record<HelpSection, Topic>> = {
     Figure: SavingFigure,
     rules: [
       { title: "Each place keeps its own shelf", text: "Another browser, your phone, the Windows app and a local copy each start separately. On iPhone and iPad, the installed web app also keeps a separate shelf from Safari." },
-      { title: "What a backup keeps", text: <>Export and restore are at the bottom of My collection. The version-1 file holds saved deck snapshots, precons, sources and collection choices, including hidden collections. Display preferences and temporary shortlists stay out. Keep a copy outside browser storage before clearing site data or moving devices.</> },
-      { title: "Restore replaces, not merges", text: "A valid version-1 file is previewed before confirmation. It replaces your decks, sources and collection choices only after saving succeeds. A failed save keeps your current shelf and the preview for retry. Display preferences stay as they are." },
+      { title: "What a backup keeps", text: <>Export and restore are at the bottom of My collection. The version-1 file holds saved deck snapshots, precons, sources and collection choices, including hidden collections and your Settings. Layout, card size and temporary shortlists stay out. Keep a copy outside browser storage before clearing site data or moving devices.</> },
+      { title: "Restore replaces, not merges", text: "A valid version-1 file is previewed before confirmation. It replaces your decks, sources and collection choices only after saving succeeds. A failed save keeps your current shelf and the preview for retry. Layout and card size stay as they are." },
     ],
     action: { label: "Open My collection", target: "collection" },
   },
@@ -153,12 +156,13 @@ const previews: Partial<Record<HelpSection, ComponentType>> = {
   features: FeaturesPreview, roadmap: RoadmapPreview, about: AboutPreview,
 };
 
-export default function HelpCenter({ section, onSection, onClose, onGo, precons }: {
+export default function HelpCenter({ section, onSection, onClose, onGo, precons, settings }: {
   section: HelpSection;
   onSection: (section: HelpSection) => void;
   onClose: () => void;
   onGo: (target: FeatureTarget) => void;
   precons: { present: boolean; open: () => void };
+  settings: { value: SettingsValue; change: (value: Partial<SettingsValue>) => void };
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
   const [mobileNav, setMobileNav] = useState(false);
@@ -274,6 +278,8 @@ export default function HelpCenter({ section, onSection, onClose, onGo, precons 
           </div>
           <p className="help-note">Plans, not promises. The order can change as DeckShelf gets used. Follow progress or suggest something on {external(`${REPO_URL}/issues`, "GitHub")}.</p>
         </div>}
+
+        {section === "settings" && <SettingsSection value={settings.value} onChange={settings.change} />}
 
         {section === "about" && <div className="help-topic">
           <div className="about-copy help-lead">

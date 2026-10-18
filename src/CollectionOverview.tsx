@@ -43,13 +43,14 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
         const activeIds = children.length ? children.filter(child => child.enabled).flatMap(child => child.ids) : group.enabled ? group.ids : [];
         const active = new Set(activeIds.filter(id => !collection.hidden.includes(id))).size;
         const previews = [...new Map(group.ids.flatMap(id => {
-          const commander = saved.get(id)?.commanders[0];
-          return commander?.art ? [[commander.art, commander] as const] : [];
+          const deck = saved.get(id);
+          const commander = deck?.commanders[0];
+          return commander?.art ? [[commander.art, { ...commander, colors: deck!.colors }] as const] : [];
         })).values()].slice(0, 3);
         const open = () => children.length ? openScope('scope:' + group.key, group.name, keys) : navigate(group.key);
         return <article key={group.key} className={`overview-group collection-box ${group.enabled ? '' : 'is-paused'}`}>
           <button className="collection-box-cover" disabled={busy} aria-label={`Open ${group.name}`} onClick={open}>
-            {previews.length ? <span className="collection-box-art" aria-hidden="true">{previews.map(commander => <Artwork key={commander.art} src={commander.art} alt="" />)}</span>
+            {previews.length ? <span className="collection-box-art" aria-hidden="true">{previews.map(commander => <Artwork key={commander.art} src={commander.art} alt="" colors={commander.colors} />)}</span>
               : <span className="collection-box-empty"><Icon size={28} /><span>{group.available ? 'Choose decks to preview' : 'No decks added'}</span></span>}
             <span className="collection-box-open" aria-hidden="true"><ArrowUpRight size={17} /></span>
           </button>

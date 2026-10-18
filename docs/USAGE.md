@@ -52,6 +52,14 @@ the animation. Your system's reduced-motion setting is respected.
 
 Limits: up to 50 sources, 1,000 decks per source and 1,000 imported decks.
 
+## Settings
+
+Open **Help → Settings** (`/help/settings`) to choose Dragon nest or Art deco
+wedges for card backs and missing commander artwork. Previews show four sample
+colour identities. **Show card backs instead of artwork** uses the card back for
+every deck and stops DeckShelf downloading any commander artwork. Both choices are
+saved locally and travel with collection backups.
+
 ## Saving and backups
 
 Your collection is stored in this browser, for this site address. It is not

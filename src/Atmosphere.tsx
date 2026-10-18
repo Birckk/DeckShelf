@@ -1,9 +1,11 @@
 import {
+  useContext,
   useEffect,
   useState,
   type CSSProperties,
   type PointerEvent,
 } from "react";
+import { ArtworkContext } from "./components";
 import { cardImage, type Deck } from "./domain";
 
 const light: Record<string, string> = {
@@ -21,6 +23,7 @@ export function Atmosphere({
   revealed: boolean;
 }) {
   const [layers, setLayers] = useState<Deck[]>([]);
+  const artwork = useContext(ArtworkContext);
   useEffect(() => {
     if (!deck) {
       setLayers([]);
@@ -48,7 +51,7 @@ export function Atmosphere({
             } as CSSProperties
           }
         >
-          <img src={cardImage(item.commanders[0].art)} crossOrigin="anonymous" alt="" />
+          {artwork && <img src={cardImage(item.commanders[0].art)} crossOrigin="anonymous" alt="" />}
           <div className="atmosphere-colors" />
         </div>
       ))}

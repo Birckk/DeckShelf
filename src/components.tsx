@@ -1,8 +1,8 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { X, ImageOff } from "lucide-react";
 import { cardImage, COLORS, type Color } from "./domain";
 import { useOnline } from "./pwa";
-import { NestArt } from "./placeholders/NestArt";
+import { CardBackArt } from "./placeholders/CardBackArt";
 
 export function ManaSymbol({ color }: { color: Color | "C" }) {
   return (
@@ -40,6 +40,9 @@ export function Mana({
     </span>
   );
 }
+/** False when Settings asks for card backs instead of commander artwork. */
+export const ArtworkContext = createContext(true);
+
 export function Artwork({
   src,
   alt,
@@ -56,17 +59,18 @@ export function Artwork({
 }) {
   const [failed, setFailed] = useState(false);
   const online = useOnline();
+  const artwork = useContext(ArtworkContext);
   // Imported artwork comes from Archidekt; retry once the connection returns.
   useEffect(() => setFailed(false), [src, online]);
-  return failed ? (
+  return failed || !src || !artwork ? (
     <div
       className={`art-fallback ${colors ? "has-identity" : ""} ${className}`}
       role="img"
-      aria-label={`${alt} — ${online ? "image unavailable" : "artwork unavailable offline"}`}
+      aria-label={`${alt} — ${!artwork ? "card back" : online ? "image unavailable" : "artwork unavailable offline"}`}
     >
-      {colors ? <NestArt colors={colors} /> : <ImageOff size={28} />}
+      {colors ? <CardBackArt colors={colors} /> : <ImageOff size={28} />}
       <span>{alt}</span>
-      {!online && <small>Offline</small>}
+      {!online && artwork && <small>Offline</small>}
     </div>
   ) : (
     <img

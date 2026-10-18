@@ -45,9 +45,9 @@ export default function SourceSetup({ value, setValue, discovery, selected, setS
               <input type="checkbox" aria-label={`Select ${path}`} checked={!!ids.length && count === ids.length} ref={el => { if (el) el.indeterminate = count > 0 && count < ids.length; }} disabled={busy || !ids.length} onChange={e => select(ids, e.target.checked)} />
               <Folder size={21} />
               <span><strong>{source.name}</strong><small>{root ? 'Top-level decks' : path} · {ids.length} {ids.length === 1 ? 'deck' : 'decks'}{count > 0 ? ` · ${count} selected` : ''}</small></span>
-              <span className="source-folder-art" aria-hidden="true">{source.entries.slice(0, 3).filter(e => e.image).map(e => <Artwork key={e.id} src={e.image} alt="" />)}</span>
+              <span className="source-folder-art" aria-hidden="true">{source.entries.slice(0, 3).filter(e => e.image).map(e => <Artwork key={e.id} src={e.image} alt="" colors={e.colors} />)}</span>
             </label>
-            {ids.length > 0 && <details><summary>Choose individual decks</summary><div className="source-folder-decks">{source.entries.map(entry => <label key={entry.id}><input type="checkbox" checked={selected.includes(entry.id)} disabled={busy} onChange={e => select([entry.id], e.target.checked)} />{entry.image && <Artwork src={entry.image} alt="" />}<span>{entry.name}</span></label>)}</div></details>}
+            {ids.length > 0 && <details><summary>Choose individual decks</summary><div className="source-folder-decks">{source.entries.map(entry => <label key={entry.id}><input type="checkbox" checked={selected.includes(entry.id)} disabled={busy} onChange={e => select([entry.id], e.target.checked)} />{entry.image && <Artwork src={entry.image} alt="" colors={entry.colors} />}<span>{entry.name}</span></label>)}</div></details>}
           </div>;
         })}
       </div>

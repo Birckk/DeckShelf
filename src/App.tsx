@@ -37,7 +37,7 @@ import {
   type Deck,
   type Filters,
 } from "./domain";
-import { Artwork, Mana, ManaSymbol, Modal } from "./components";
+import { Artwork, ArtworkContext, Mana, ManaSymbol, Modal } from "./components";
 import { applyUpdate, useOnline, useUpdateReady } from "./pwa";
 import { onMenuCommand } from "./WindowBar";
 import { CollectionLayoutSwitch } from "./CollectionLayoutSwitch";
@@ -45,6 +45,7 @@ import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
 import CardStudio from "./CardStudio";
 import HelpCenter, { helpSectionFromPath, type FeatureTarget, type HelpSection } from "./HelpCenter";
+import { CardBackContext } from "./placeholders/CardBackArt";
 import CollectionManager from "./CollectionManager";
 import { showcaseDecks, collectionDecks, freshCollection, addDemo } from "./collection";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
@@ -122,11 +123,14 @@ function App() {
   const helpTrigger = useRef<HTMLButtonElement>(null);
   // Help is the only addressable page; every other view keeps the plain root URL.
   useEffect(() => {
-    const current = helpSectionFromPath(location.pathname);
-    if (help ? current !== help : current) history.pushState(null, "", help ? `/help/${help}` : "/");
+    const path = help ? `/help/${help}` : "/";
+    if (location.pathname === path) return;
+    // Equivalent addresses (/help, the older /settings) are tidied in place rather than added to history.
+    if (helpSectionFromPath(location.pathname) === help) history.replaceState(null, "", path);
+    else history.pushState(null, "", path);
   }, [help]);
   useEffect(() => {
-    const sync = () => setHelp(helpSectionFromPath(location.pathname));
+    const sync = () => { setShowCollection(false); setHelp(helpSectionFromPath(location.pathname)); };
     addEventListener("popstate", sync);
     return () => removeEventListener("popstate", sync);
   }, []);
@@ -231,8 +235,15 @@ function App() {
     Number(!!filters.set) +
     Number(!!filters.tag) +
     Number(!!filters.count);
+  function changeFilters(next: Parameters<typeof setFilters>[0]) {
+    if (help) {
+      setHelp(null);
+      selectView(HOME_VIEW);
+    }
+    setFilters(next);
+  }
   function updateFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
-    setFilters((f) => ({ ...f, [key]: value }));
+    changeFilters((f) => ({ ...f, [key]: value }));
   }
   function openPrecons() {
     setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
@@ -346,7 +357,7 @@ function App() {
                   aria-label={`Filter ${c.name}`}
                   aria-pressed={filters.colors.includes(c.id)}
                   onClick={() =>
-                    setFilters((f) => ({
+                    changeFilters((f) => ({
                       ...f,
                       colorless: false,
                       colors: f.colors.includes(c.id)
@@ -377,6 +388,8 @@ function App() {
             </label>
           </div>);
   return (
+    <CardBackContext.Provider value={collection.cardBack ?? "nest"}>
+    <ArtworkContext.Provider value={!collection.hideArtwork}>
     <div
       className={`app-shell studio-theme ${revealed ? "winner-atmosphere" : ""}`}
     >
@@ -465,14 +478,7 @@ function App() {
           </button>
         </div>
       )}
-      {help && !showCollection && <HelpCenter
-        section={help}
-        onSection={setHelp}
-        onClose={() => { setHelp(null); requestAnimationFrame(() => helpTrigger.current?.focus()); }}
-        onGo={goToFeature}
-        precons={{ present: !!collection.demo && !collection.demo.removed, open: openPrecons }}
-      />}
-      {!showCollection && !help && <div className="studio-workspace">
+      {!showCollection && <div className={`studio-workspace ${help ? "utility-search" : ""}`}>
         <fieldset
           className="studio-toolbar"
           disabled={spinning}
@@ -541,7 +547,7 @@ function App() {
                       type="checkbox"
                       checked={filters.colorless}
                       onChange={(e) =>
-                        setFilters((f) => ({
+                        changeFilters((f) => ({
                           ...f,
                           colorless: e.target.checked,
                           colors: [],
@@ -617,7 +623,7 @@ function App() {
                   <button
                     className="reset-button"
                     disabled={!activeCount}
-                    onClick={() => setFilters({ ...EMPTY_FILTERS })}
+                    onClick={() => changeFilters({ ...EMPTY_FILTERS })}
                   >
                     <X size={13} /> Clear filters{" "}
                     {activeCount > 0 && <span>{activeCount}</span>}
@@ -631,7 +637,7 @@ function App() {
             )}
           </div>
         </fieldset>
-        <main>
+        {!help && <main>
           <section className="collection-section">
             <h1 className="sr-only">
               {view === "picker"
@@ -798,7 +804,7 @@ function App() {
                   className="button button-gold"
                   onClick={() =>
                     owned.length
-                      ? setFilters({ ...EMPTY_FILTERS })
+                      ? changeFilters({ ...EMPTY_FILTERS })
                       : setShowCollection(true)
                   }
                 >
@@ -807,7 +813,7 @@ function App() {
               </div>
             )}
           </section>
-        </main>
+        </main>}
       </div>
       }
       {notice && (
@@ -816,6 +822,19 @@ function App() {
           {notice}
         </div>
       )}
+      {help && !showCollection && <HelpCenter
+        section={help}
+        onSection={setHelp}
+        onClose={() => { setHelp(null); requestAnimationFrame(() => helpTrigger.current?.focus()); }}
+        onGo={goToFeature}
+        precons={{ present: !!collection.demo && !collection.demo.removed, open: openPrecons }}
+        settings={{
+          value: { cardBack: collection.cardBack ?? "nest", hideArtwork: !!collection.hideArtwork },
+          change: ({ hideArtwork, ...rest }) => setCollection(({ hideArtwork: was, ...c }) => ({
+            ...c, ...rest, ...((hideArtwork ?? was) ? { hideArtwork: true as const } : {}),
+          })),
+        }}
+      />}
       {detail && (
         <Modal
           title="Deck details"
@@ -934,6 +953,8 @@ function App() {
         />
       )}
     </div>
+    </ArtworkContext.Provider>
+    </CardBackContext.Provider>
   );
 }
 

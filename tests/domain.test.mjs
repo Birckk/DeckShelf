@@ -139,3 +139,23 @@ test('multi-deck picks are distinct, capped by the pool and fair for every deck'
   for (let i = 0; i < runs; i++) for (const d of drawDistinct(decks, 4)) seen[d]++;
   for (const d of decks) assert.ok(Math.abs(seen[d] / runs - 4 / 7) < 0.01, `${d}: ${seen[d] / runs}`);
 });
+
+test('card backs round trip in v1 backups while old or unknown choices use the default', () => {
+  const legacy = { version: 1, hidden: ['123'], excluded: ['456'], added: [] };
+  assert.deepEqual(parseCollection(JSON.stringify(legacy)), legacy);
+  for (const cardBack of ['nest', 'wedges']) {
+    const saved = { ...legacy, cardBack };
+    assert.deepEqual(parseCollection(JSON.stringify(saved)), saved);
+  }
+  for (const cardBack of ['future-style', null, {}, 42]) {
+    assert.deepEqual(parseCollection(JSON.stringify({ ...legacy, cardBack })), legacy);
+  }
+});
+
+test('hiding artwork round trips in v1 backups and ignores anything but true', () => {
+  const legacy = { version: 1, hidden: [], excluded: [], added: [] };
+  assert.deepEqual(parseCollection(JSON.stringify({ ...legacy, hideArtwork: true })), { ...legacy, hideArtwork: true });
+  for (const hideArtwork of [false, 'yes', 1, null]) {
+    assert.deepEqual(parseCollection(JSON.stringify({ ...legacy, hideArtwork })), legacy);
+  }
+});
