@@ -300,6 +300,7 @@ export default function HelpCenter({ section, onSection, onClose, onGo, precons,
               {external(`${REPO_URL}/issues`, "Report a problem or suggest a feature")}
               {external("https://archidekt.com/commander-precons", "Deck information: Archidekt")}
             </div>
+            <span>Inspired by {external("https://gameshelf.io/", "GameShelf")}: the same idea, for Magic decks.</span>
             <span>
               DeckShelf is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.
               Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.

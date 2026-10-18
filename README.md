@@ -60,6 +60,8 @@ Then open http://127.0.0.1:4317. On Windows you can double-click
 
 ## Credits
 
+Inspired by [GameShelf](https://gameshelf.io/): the same idea, for Magic decks.
+
 DeckShelf is unofficial Fan Content permitted under the
 [Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy). Not
 approved/endorsed by Wizards. Portions of the materials used are property of
