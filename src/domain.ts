@@ -173,6 +173,8 @@ export type Collection = {
   list?: Partial<ListSettings>;
   /** Show card backs instead of any commander artwork, so none is fetched. */
   hideArtwork?: true;
+  /** Settings turned off adding new decks from Archidekt folders automatically. */
+  followOff?: true;
   version: 1;
   hidden: string[];
   excluded: string[];
@@ -204,6 +206,12 @@ export type CollectionSource = {
   entries: SourceEntry[];
   knownIds: string[];
   selectedIds?: string[];
+  pendingIds?: string[];
+  excludedIds?: string[];
+  membership?: "follow" | "selected";
+  refresh?: { failures: number; retryAt?: string; error?: string };
+  // Last successful delta: a hook for #57, not a history or Undo stack.
+  lastChange?: { at: string; added: string[]; unlisted: string[]; renamed: string[] };
   ownedIds?: string[];
   folderPath?: string;
   connectionKey?: string;
@@ -233,6 +241,14 @@ export function validateSource(value: unknown): value is CollectionSource {
   if (!value || typeof value !== "object") return false;
   const s = value as CollectionSource;
   return (
+    (s.excludedIds === undefined || (Array.isArray(s.excludedIds) && s.excludedIds.length <= 2000 && s.excludedIds.every(id => typeof id === "string" && Array.isArray(s.knownIds) && s.knownIds.includes(id)))) &&
+    (s.pendingIds === undefined || (Array.isArray(s.pendingIds) && s.pendingIds.length <= 2000 && s.pendingIds.every(id => typeof id === "string" && Array.isArray(s.knownIds) && s.knownIds.includes(id)))) &&
+    (s.membership === undefined || ["follow", "selected"].includes(s.membership)) &&
+    (s.refresh === undefined || (!!s.refresh && Number.isInteger(s.refresh.failures) && s.refresh.failures >= 0 && s.refresh.failures <= 20 &&
+      (s.refresh.retryAt === undefined || (typeof s.refresh.retryAt === "string" && Number.isFinite(Date.parse(s.refresh.retryAt)))) &&
+      (s.refresh.error === undefined || (typeof s.refresh.error === "string" && s.refresh.error.length <= 2000)))) &&
+    (s.lastChange === undefined || (!!s.lastChange && typeof s.lastChange.at === "string" && Number.isFinite(Date.parse(s.lastChange.at)) &&
+      [s.lastChange.added, s.lastChange.unlisted, s.lastChange.renamed].every(ids => Array.isArray(ids) && ids.length <= 2000 && ids.every(id => typeof id === "string" && /^\d{1,12}$/.test(id))))) &&
     (s.formatScope === undefined || ["all", "commander"].includes(s.formatScope)) &&
     [s.folderPath, s.connectionKey, s.connectionName].every(v => v === undefined || (typeof v === "string" && v.length <= 2000)) &&
     ["account", "folder"].includes(s.kind) &&
@@ -394,6 +410,7 @@ export function parseCollection(raw: string): Collection {
     version: 1,
     ...(v.cardBack === "nest" || v.cardBack === "wedges" ? { cardBack: v.cardBack } : {}),
     ...(v.hideArtwork === true ? { hideArtwork: true as const } : {}),
+    ...(v.followOff === true ? { followOff: true as const } : {}),
     ...(parseListSettings(v.list) ? { list: parseListSettings(v.list) } : {}),
     ...(v.archivedGroups !== undefined ? { archivedGroups: [...new Set(v.archivedGroups)] } : {}),
     // Fold the brief per-deck disable experiment into ordinary hidden choices.

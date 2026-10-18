@@ -7,7 +7,7 @@ const key = 'commander-archive.collection.v1';
 const decks = seed.slice(0, 7).map((deck, i) => ({ ...deck, id: String(980001 + i) }));
 const makeSource = (id: string, name: string, ids: number[], path: string) => ({
   key: `folder:${id}`, kind: 'folder', value: id, name, url: `https://archidekt.com/folders/${id}`,
-  checkedAt: '2026-10-04T12:00:00Z', knownIds: ids.map(i => decks[i].id), selectedIds: ids.map(i => decks[i].id),
+  membership: 'selected', checkedAt: new Date().toISOString(), knownIds: ids.map(i => decks[i].id), selectedIds: ids.map(i => decks[i].id),
   entries: ids.map(i => ({ id: decks[i].id, name: decks[i].name, image: decks[i].commanders[0].art, colors: decks[i].colors })),
   folderPath: path, connectionKey: 'account:birckk', connectionName: 'Birckk',
 });
@@ -56,11 +56,14 @@ test('search-scoped bulk selection and source switches keep other choices', asyn
 
 test('failed refresh retains snapshots and hierarchy; Remove keeps decks other collections still have', async ({ page }) => {
   await page.route('**/api/sources?*', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Source unavailable.' }) }));
+  await page.route('**/api/decks/*', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Source unavailable.' }) }));
   await page.getByRole('navigation').getByRole('button', { name: 'Mono-color', exact: true }).click();
   await page.getByRole('button', { name: 'Refresh', exact: true }).click();
-  await expect(page.getByRole('alert')).toHaveText('Source unavailable.');
+  await expect(page.locator('.source-refresh-status')).toContainText('Couldn’t check · Source unavailable.');
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
-  expect(saved.sources).toEqual(sources);
+  expect(saved.sources[0].checkedAt).toBe(sources[0].checkedAt);
+  expect(saved.sources[0].selectedIds).toEqual(sources[0].selectedIds);
+  expect(saved.sources[0].refresh.failures).toBe(1);
   expect(saved.added).toEqual(fixture.added);
   await menu(page, 'Mono-color', 'Remove');
   // Deck 0 is also in Multicolor and stays; decks 1 and 2 only came from Mono-color.

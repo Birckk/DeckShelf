@@ -40,7 +40,9 @@ export function rememberSource(
 ): Collection {
   const previous = collection.sources?.find((s) => s.key === source.key);
   const updated = {
+    ...previous,
     ...source,
+    ...((previous?.pendingIds || source.pendingIds) ? { pendingIds: [...new Set([...(previous?.pendingIds || []), ...(source.pendingIds || [])])] } : {}),
     ...(previous?.ownedIds ? { ownedIds: previous.ownedIds } : {}),
     ...((source.folderPath ?? previous?.folderPath) !== undefined ? { folderPath: source.folderPath ?? previous?.folderPath } : {}),
     ...((source.connectionKey ?? previous?.connectionKey) !== undefined ? { connectionKey: source.connectionKey ?? previous?.connectionKey } : {}),
@@ -65,12 +67,14 @@ export function rememberSource(
   };
 }
 
-export function importFolderSelection(collection: Collection, sources: CollectionSource[], accepted: Deck[], existing: Deck[], pauseGroups: string[] = []): Collection {
-  let next = saveSnapshots(collection, accepted, true);
+export function importFolderSelection(collection: Collection, sources: CollectionSource[], accepted: Deck[], existing: Deck[], pauseGroups: string[] = [], requestedIds: string[] = accepted.map(deck => deck.id), catalog: Deck[] = []): Collection {
+  let next = saveSnapshots(materializeIndependentDecks(collection, catalog), accepted, true);
   const acceptedIds = new Set(accepted.map(deck => deck.id));
   for (const source of sources) {
     const ids = source.entries.map(entry => entry.id).filter(id => acceptedIds.has(id));
-    if (!ids.length) continue;
+    const membership = next.sources?.find(s => s.key === source.key)?.membership ?? source.membership;
+    const pendingIds = membership === 'follow' ? source.knownIds.filter(id => requestedIds.includes(id) && !acceptedIds.has(id)) : [];
+    if (!ids.length && !pendingIds.length) continue;
     const previous = next.sources?.find(s => s.key === source.key);
     // Legacy membership is implicit in knownIds. Freeze it before adding discoveries
     // that may already be saved in another, paused collection.
@@ -84,6 +88,9 @@ export function importFolderSelection(collection: Collection, sources: Collectio
         ...(source.formatScope !== 'all' ? { entries: [...new Map([...previous.entries, ...source.entries].map(entry => [entry.id, entry])).values()] } : {}),
       } : {}),
       selectedIds: [],
+      // Adding the folder again keeps an earlier on/off choice for new decks.
+      ...(membership ? { membership } : {}),
+      ...(pendingIds.length ? { pendingIds: [...new Set([...(source.pendingIds || []), ...pendingIds])] } : {}),
     };
     if (listing.entries.length > 1000) throw new Error('This source has more than 1,000 decks. Link a smaller folder instead.');
     next = rememberSource(next, listing);
@@ -134,7 +141,7 @@ export function saveSharedCollection(collection: Collection, source: CollectionS
     knownIds: [...previous.knownIds, ...ids],
     ...(previous.selectedIds !== undefined ? { selectedIds: [...previous.selectedIds, ...ids] } : {}),
     ownedIds: [...new Set([...effectiveSourceOwnership(previous), ...ids])],
-  } : { ...source, entries, knownIds: ids, selectedIds: ids, ownedIds: ids };
+  } : { ...source, membership: 'selected', entries, knownIds: ids, selectedIds: ids, ownedIds: ids };
   if (savedSource.entries.length > 1000 || savedSource.knownIds.length > 2000)
     throw new Error('This source has too much history. Save a smaller folder instead.');
   const sources = previous
@@ -351,6 +358,8 @@ export function selectSourceDecks(
       s.key === key
         ? {
             ...s,
+            ...(s.pendingIds ? { pendingIds: s.pendingIds.filter(id => !ids.includes(id)) } : {}),
+            ...(s.excludedIds ? { excludedIds: s.excludedIds.filter(id => !ids.includes(id)) } : {}),
             selectedIds: [...new Set([...sourceDeckIds(s, decks), ...ids])],
             ownedIds: [...new Set([...(s.ownedIds || []), ...sourceDeckIds(s, decks), ...ids])],
           }
@@ -535,9 +544,79 @@ export function setSourceSelection(collection: Collection, keys: string[], ids: 
     if (!keys.includes(source.key)) return source;
     const current = sourceDeckIds(source, decks);
     const available = new Set(source.knownIds);
-    return { ...source, ownedIds: [...new Set([...(source.ownedIds || []), ...current, ...(selected ? ids.filter(id => available.has(id)) : [])])], selectedIds: selected
+    return { ...source,
+      ...(source.pendingIds ? { pendingIds: source.pendingIds.filter(id => !wanted.has(id)) } : {}),
+      excludedIds: selected ? (source.excludedIds || []).filter(id => !wanted.has(id)) : [...new Set([...(source.excludedIds || []), ...ids.filter(id => available.has(id))])],
+      ownedIds: [...new Set([...(source.ownedIds || []), ...current, ...(selected ? ids.filter(id => available.has(id)) : [])])], selectedIds: selected
       ? [...new Set([...current, ...ids.filter(id => available.has(id))])]
       : current.filter(id => !wanted.has(id)) };
   }) };
   return selected ? setShown(next, ids, true) : next;
+}
+
+// Unsaved Follow rows can be excluded without claiming source ownership or a snapshot.
+export function setPendingSourceSelection(collection: Collection, keys: string[], ids: string[], selected: boolean): Collection {
+  return { ...collection, sources: collection.sources?.map(source => {
+    if (!keys.includes(source.key) || sourceMembership(source) !== 'follow') return source;
+    const wanted = ids.filter(id => source.pendingIds?.includes(id) || source.excludedIds?.includes(id));
+    if (!wanted.length) return source;
+    return { ...source,
+      pendingIds: selected ? [...new Set([...(source.pendingIds || []), ...wanted])] : (source.pendingIds || []).filter(id => !wanted.includes(id)),
+      excludedIds: selected ? (source.excludedIds || []).filter(id => !wanted.includes(id)) : [...new Set([...(source.excludedIds || []), ...wanted])],
+    };
+  }) };
+}
+
+export const SOURCE_TTL = 24 * 60 * 60 * 1000;
+// Sources saved before Follow existed follow when every deck in them was picked;
+// hand-picked folders stay fixed. An explicit choice always wins.
+export function sourceMembership(source: CollectionSource): "follow" | "selected" {
+  if (source.membership) return source.membership;
+  const picked = source.selectedIds ?? source.knownIds;
+  return source.knownIds.every(id => picked.includes(id)) ? 'follow' : 'selected';
+}
+// Save inferred Individual membership before new source ownership can mask it.
+export function materializeIndependentDecks(collection: Collection, catalog: Deck[] = []): Collection {
+  const ids = showcaseGroups(collection, catalog, collectionDecks(collection, catalog)).find(group => group.key === 'manual')!.ids;
+  const manualIds = [...new Set([...(collection.manualIds || []), ...ids])];
+  return ids.every(id => collection.manualIds?.includes(id)) ? collection : { ...collection, manualIds };
+}
+export function sourceDue(source: CollectionSource, now = Date.now()): boolean {
+  return now >= Date.parse(source.refresh?.retryAt || "1970-01-01") && now - Date.parse(source.checkedAt) >= SOURCE_TTL;
+}
+export function sourceRefreshFailure(collection: Collection, key: string, error: string, now = Date.now()): Collection {
+  return { ...collection, sources: collection.sources?.map(source => {
+    if (source.key !== key) return source;
+    const failures = Math.min(20, (source.refresh?.failures || 0) + 1);
+    return { ...source, refresh: { failures, error: error.slice(0, 2000),
+      retryAt: new Date(now + Math.min(SOURCE_TTL, 60000 * 2 ** (failures - 1))).toISOString() } };
+  }) };
+}
+// Apply only complete discovery. Existing snapshots and local choices survive.
+export function refreshSourceMembership(collection: Collection, found: CollectionSource, loaded: Deck[], catalog: Deck[] = []): Collection {
+  const previous = collection.sources?.find(source => source.key === found.key);
+  if (!previous) return collection;
+  collection = materializeIndependentDecks(collection, catalog);
+  const membership = sourceMembership(previous);
+  const fresh = found.entries.filter(entry => !previous.knownIds.includes(entry.id));
+  const available = new Set([...collection.added, ...loaded].map(deck => deck.id));
+  const pending = previous.pendingIds || [];
+  const excluded = new Set(previous.excludedIds || []);
+  const additions = membership === 'follow' ? [...new Set([...fresh.map(entry => entry.id), ...pending])]
+    .filter(id => available.has(id) && found.entries.some(entry => entry.id === id) &&
+      (!previous.knownIds.includes(id) || !(previous.ownedIds || []).includes(id)) && !excluded.has(id)) : [];
+  const before = new Map(previous.entries.map(entry => [entry.id, entry]));
+  const listed = new Set(found.entries.map(entry => entry.id));
+  const updated: CollectionSource = { ...previous, name: found.name, entries: found.entries, checkedAt: found.checkedAt,
+    knownIds: [...new Set([...previous.knownIds, ...found.knownIds])], membership,
+    selectedIds: [...new Set([...(previous.selectedIds ?? previous.knownIds), ...additions])],
+    ownedIds: [...new Set([...(previous.ownedIds ?? previous.selectedIds ?? previous.knownIds), ...additions])],
+    pendingIds: [...new Set([...fresh.map(entry => entry.id), ...pending])].filter(id => !excluded.has(id) && !additions.includes(id) && !(previous.ownedIds ?? previous.selectedIds ?? previous.knownIds).includes(id)),
+    refresh: { failures: 0 },
+    lastChange: { at: found.checkedAt, added: fresh.map(entry => entry.id),
+      unlisted: previous.knownIds.filter(id => !listed.has(id)),
+      renamed: found.entries.filter(entry => before.has(entry.id) && before.get(entry.id)!.name !== entry.name).map(entry => entry.id) } };
+  if (updated.knownIds.length > 2000) throw new Error('Source history is full. Saved decks are unchanged.');
+  return { ...saveSnapshots(collection, loaded.filter(deck => !collection.added.some(saved => saved.id === deck.id))),
+    sources: collection.sources!.map(source => source.key === found.key ? updated : source) };
 }

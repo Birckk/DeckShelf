@@ -249,3 +249,14 @@ body:has(.collection-workspace) { min-width:320px; }
 .hidden-collections .navigator-name { color:#b9b5ac; }
 .collection-workspace .navigator-row > .navigator-show { grid-column:4; justify-self:end; display:grid; place-items:center; width:30px; height:24px; padding:0; border:1px solid #363638; border-radius:4px; background:#1b1c1e; color:#c9c7c1; cursor:pointer; }
 .navigator-show:hover:not(:disabled) { border-color:#696153; background:#262521; color:#eddfc4; }
+
+.source-refresh-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 8px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.source-refresh-status span { overflow-wrap: anywhere; }

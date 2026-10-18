@@ -1,3 +1,4 @@
+import { createUpstreamCooldown, upstreamCooldown, fetchArchidekt } from './archidekt.mjs';
 import { archidektFormat } from '../shared/formats.mjs';
 const ORIGIN = "https://archidekt.com";
 const idPattern = /^\d{1,12}$/;
@@ -9,24 +10,31 @@ export function featuredCardId(url) {
 }
 export const archidektImage = (uid, kind) => `https://card-images.archidekt.com/${kind}/front/${uid[0]}/${uid[1]}/${uid}.webp`;
 
-async function read(path, signal) {
-  const response = await fetch(`${ORIGIN}${path}`, {
+// The web API passes `request: fetchArchidekt` for the shared cooldown; the MCP server keeps its own backoff.
+async function read(path, signal, request = fetch) {
+  const response = await request(`${ORIGIN}${path}`, {
     headers: {
       Accept: "application/json",
       "User-Agent": "DeckShelf/1.0 (personal deck showcase)",
     },
     signal: AbortSignal.any([signal, AbortSignal.timeout(20000)]),
   });
-  if (!response.ok)
-    throw Object.assign(new Error(
+  if (!response.ok) {
+    // The status lets the MCP server back off when Archidekt limits requests (429).
+    const error = Object.assign(new Error(
       response.status === 404 || response.status === 403
         ? "Source not found or not public. Check the Archidekt link."
         : "Archidekt is unavailable right now. Your saved collection is unchanged.",
     ), { status: response.status });
+    if (response.status === 429) {
+      error.retryAfter = Math.max(60000, upstreamCooldown.retryAt - Date.now());
+    }
+    throw error;
+  }
   return response.json();
 }
 
-export async function discoverSource(kind, value, { strict = false, verifyCount = false, signal: outerSignal, firstPage, formatScope = 'commander', withUpdatedAt = false } = {}) {
+export async function discoverSource(kind, value, { strict = false, verifyCount = false, signal: outerSignal, firstPage, formatScope = 'commander', withUpdatedAt = false, request = fetch } = {}) {
   if (!['commander', 'all'].includes(formatScope) || (strict && formatScope !== 'commander')) throw new Error('Choose Commander or All formats.');
   if (
     !["account", "folder"].includes(kind) ||
@@ -43,13 +51,15 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
   let expectedCount;
   const seen = new Set();
   for (let page = 1; page <= 50; page++) {
+    // Paginated checks stay sequential and spaced; never burst through 50 pages.
+    if (page > 1) await new Promise(resolve => setTimeout(resolve, 300));
     signal.throwIfAborted();
     // Construct pagination ourselves; never fetch a URL supplied by upstream data.
     const path =
       kind === "account"
         ? `/api/decks/v3/?${new URLSearchParams({ ownerUsername: value, ...(formatScope === 'commander' ? { deckFormat: "3" } : {}), page: String(page) })}`
         : `/api/decks/folders/${value}/?page=${page}`;
-    const data = page === 1 && firstPage ? firstPage : await read(path, signal);
+    const data = page === 1 && firstPage ? firstPage : await read(path, signal, request);
     const rows = kind === "account" ? data.results : data.decks;
     if (verifyCount) {
       if (!Number.isInteger(data.count) || data.count < 0 || (expectedCount !== undefined && expectedCount !== data.count))
@@ -153,8 +163,8 @@ export function readFolderPage(id, signal) {
 }
 
 // Tells a misspelled username apart from an account with no public Commander decks.
-export async function accountExists(username, signal) {
-  const response = await fetch(`${ORIGIN}/u/${encodeURIComponent(username)}`, {
+export async function accountExists(username, signal, request = fetch) {
+  const response = await request(`${ORIGIN}/u/${encodeURIComponent(username)}`, {
     headers: { Accept: "text/html", "User-Agent": "DeckShelf/1.0 (personal deck showcase)" },
     signal: AbortSignal.any([signal, AbortSignal.timeout(20000)]), redirect: "manual",
   });
@@ -162,7 +172,7 @@ export async function accountExists(username, signal) {
 }
 
 // Discovery is a preview. It never changes a visitor's saved source selections.
-export async function discoverFolders(kind, value, { signal: outerSignal, formatScope = 'commander', withUpdatedAt = false } = {}) {
+export async function discoverFolders(kind, value, { signal: outerSignal, formatScope = 'commander', withUpdatedAt = false, request = fetch } = {}) {
   if (!['commander', 'all'].includes(formatScope)) throw new Error('Choose Commander or All formats.');
   if (!['account', 'folder'].includes(kind) ||
       !(kind === 'folder' ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(value))
@@ -171,7 +181,7 @@ export async function discoverFolders(kind, value, { signal: outerSignal, format
   signal.throwIfAborted();
   let root = value;
   if (kind === 'account') {
-    const response = await fetch(`${ORIGIN}/u/${encodeURIComponent(value)}`, {
+    const response = await request(`${ORIGIN}/u/${encodeURIComponent(value)}`, {
       headers: { Accept: 'text/html', 'User-Agent': 'DeckShelf/1.0 (personal deck showcase)' },
       signal, redirect: 'error',
     });
@@ -192,10 +202,10 @@ export async function discoverFolders(kind, value, { signal: outerSignal, format
     signal.throwIfAborted();
     const batch = queue.splice(0, 4);
     const results = await Promise.all(batch.map(async item => {
-      const data = await read(`/api/decks/folders/${item.id}/?page=1`, signal);
+      const data = await read(`/api/decks/folders/${item.id}/?page=1`, signal, request);
       if (kind === 'account' && data.owner?.username?.toLowerCase() !== value.toLowerCase())
         throw new Error('Archidekt returned a folder for a different account.');
-      const source = await discoverSource('folder', item.id, { signal, firstPage: data, verifyCount: true, formatScope, withUpdatedAt });
+      const source = await discoverSource('folder', item.id, { signal, firstPage: data, verifyCount: true, formatScope, withUpdatedAt, request });
       if (!Array.isArray(data.subfolders)) throw new Error('Could not read the complete folder listing. Try a smaller folder link.');
       return { item, source, children: data.subfolders };
     }));
@@ -216,3 +226,45 @@ export async function discoverFolders(kind, value, { signal: outerSignal, format
   }
   return { name: kind === 'account' ? value : folders[0].source.name, folders };
 }
+
+// Public discovery cache is shared by visitors, including in-flight work and failures.
+// Manual checks can bypass the 24h TTL, but never the five-minute burst guard.
+export function createSourceCache(discover = discoverSource, now = Date.now, cooldown = createUpstreamCooldown(now)) {
+  const cache = new Map();
+  let queue = Promise.resolve();
+  return async function cachedSource(kind, value, manual = false, formatScope = 'commander') {
+    const key = JSON.stringify([kind, String(value).toLowerCase(), formatScope]);
+    let entry = cache.get(key);
+    if (entry?.pending) return entry.pending;
+    if (entry?.retryAt > now()) throw new Error(entry.error);
+    if (entry?.data && now() - entry.time < (manual ? 300000 : 86400000)) return entry.data;
+    if (!entry) {
+      if (cache.size >= 200) {
+        const oldest = [...cache].find(([, value]) => !value.pending);
+        if (!oldest) throw new Error('Archidekt checks are busy. Try again later.');
+        cache.delete(oldest[0]);
+      }
+      entry = { failures: 0 };
+      cache.set(key, entry);
+    }
+    const work = queue.then(async () => {
+      try {
+        cooldown.check();
+        const data = await discover(kind, value, { verifyCount: true, formatScope, request: fetchArchidekt });
+        Object.assign(entry, { data, time: now(), failures: 0, retryAt: 0 });
+        return data;
+      } catch (error) {
+        entry.failures = Math.min(20, entry.failures + 1);
+        entry.error = error.message;
+        entry.retryAt = now() + Math.min(86400000, 60000 * 2 ** (entry.failures - 1));
+        if (error.retryAfter) cooldown.defer(error.retryAfter);
+        entry.retryAt = Math.max(entry.retryAt, cooldown.retryAt);
+        throw error;
+      } finally { delete entry.pending; }
+    });
+    entry.pending = work;
+    queue = work.catch(() => {});
+    return work;
+  };
+}
+export const cachedSource = createSourceCache(discoverSource, Date.now, upstreamCooldown);

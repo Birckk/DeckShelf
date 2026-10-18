@@ -13,7 +13,7 @@ const decks = [commander, ...[2, 1, 6, 99].map((id, index) => ({
     : { ...seed[index + 1].commanders[0], kind: 'featured' },
 }))];
 const fixture = { version: 1, starter: false, hidden: ['999'], excluded: [decks[1].id], added: decks, manualIds: decks.map(d => d.id) };
-const source = { key: 'folder:88', kind: 'folder', value: '88', name: 'Mixed formats', url: 'https://archidekt.com/folders/88', checkedAt: '2026-10-16T12:00:00Z', formatScope: 'all', entries: decks.map(d => ({ id: d.id, name: d.name, image: d.commanders[0]?.art || ('cover' in d ? d.cover.art : ''), colors: d.colors, format: 'format' in d ? d.format : archidektFormat(3) })), knownIds: decks.map(d => d.id) };
+const source = { key: 'folder:88', kind: 'folder', value: '88', name: 'Mixed formats', url: 'https://archidekt.com/folders/88', checkedAt: new Date().toISOString(), formatScope: 'all', entries: decks.map(d => ({ id: d.id, name: d.name, image: d.commanders[0]?.art || ('cover' in d ? d.cover.art : ''), colors: d.colors, format: 'format' in d ? d.format : archidektFormat(3) })), knownIds: decks.map(d => d.id) };
 const commanderSource = { ...source, formatScope: 'commander', entries: source.entries.slice(0, 1), knownIds: [commander.id] };
 async function mockDiscovery(page: Page, calls: string[] = []) {
   await page.route('**/api/source-folders?*', route => {
@@ -269,7 +269,8 @@ test('widening a legacy source does not select an unticked deck saved in paused 
 });
 
 test('re-adding Commander decks retains an all-format connection and refreshes its Modern deck', async ({ page }) => {
-  const connected = { ...source, entries: source.entries.slice(0, 2), knownIds: decks.slice(0, 2).map(d => d.id), selectedIds: decks.slice(0, 2).map(d => d.id) };
+  // Fixed (not following), so Refresh updates saved decks without adding the three new ones.
+  const connected = { ...source, membership: 'selected', entries: source.entries.slice(0, 2), knownIds: decks.slice(0, 2).map(d => d.id), selectedIds: decks.slice(0, 2).map(d => d.id) };
   await init(page, { ...fixture, added: decks.slice(0, 2), manualIds: [], sources: [connected] });
   await mockDiscovery(page);
   await startFolderImport(page);
@@ -295,6 +296,8 @@ test('re-adding Commander decks retains an all-format connection and refreshes i
   await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   await expect(page.locator('.manager-progress')).toHaveCount(0);
   expect(refreshed).toEqual(expect.arrayContaining(connected.selectedIds));
+  // The new-deck check that follows the update records the full listing.
+  await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)!).sources[0].entries.length, key)).toBe(5);
   const after = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
   expect(after.added.find((d: { id: string }) => d.id === decks[1].id).name).toBe(`Updated ${decks[1].id}`);
   expect(after.sources[0].entries).toHaveLength(5);

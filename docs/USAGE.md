@@ -59,8 +59,11 @@ the animation. Your system's reduced-motion setting is respected.
 - **Official Commander precons:** the starter collection of 184 precons from
   Archidekt's catalog. Remove it when you only want your own decks, and restore
   it at any time without losing your selections.
-- **Refresh** a source to pick up new or changed decks. New decks wait for you to
-  add them; decks that disappear from the source stay saved.
+- **Refresh** a source to pick up new or changed decks. Once a day, when you open
+  DeckShelf, folders you added whole also get their new decks automatically (turn
+  this off with **Add new decks automatically**). In folders where you picked
+  single decks, new decks wait for you to add them. Decks that disappear from the
+  source stay saved.
 
 Limits: up to 50 sources, 1,000 decks per source and 1,000 imported decks.
 

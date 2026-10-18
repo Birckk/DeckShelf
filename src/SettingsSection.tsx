@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
-import { ChevronRight, Image, ImageOff, List as ListIcon, RectangleVertical } from "lucide-react";
+import { ChevronRight, Image, ImageOff, List as ListIcon, RectangleVertical, RefreshCw } from "lucide-react";
 import { LIST_COLUMNS, PHONE_LIST_COLUMNS, type CardBackStyle, type Color, type ListArt, type ListColumn, type ListSettings } from "./domain";
 import { CardBackArt } from "./placeholders/CardBackArt";
 import "./settings.css";
@@ -17,7 +17,7 @@ const styles: { id: CardBackStyle; name: string }[] = [
   { id: "wedges", name: "Art deco wedges" },
 ];
 
-export type Settings = { cardBack: CardBackStyle; hideArtwork: boolean; list: ListSettings };
+export type Settings = { cardBack: CardBackStyle; hideArtwork: boolean; list: ListSettings; addNewDecks: boolean };
 
 const columnNames: Record<ListColumn, string> = { commander: "Commander", colors: "Colors", format: "Format", tags: "Tags", release: "Release", collection: "Collection" };
 const artStyles: { id: ListArt; name: string }[] = [
@@ -62,6 +62,15 @@ export default function SettingsSection({ value, onChange }: { value: Settings; 
       id: "list", title: "List", Icon: ListIcon,
       summary: `${list.columns.length + 1} columns · ${columnNames[list.phoneColumn]} on phones · ${artStyles.find(a => a.id === list.art)!.name}`,
       body: <ListSettingsFields value={list} onChange={next => onChange({ list: next })} />,
+    },
+    {
+      id: "new-decks", title: "New decks", Icon: RefreshCw,
+      summary: value.addNewDecks ? "Added automatically" : "Only when you press Refresh",
+      body: <label className="artwork-toggle">
+        <input type="checkbox" checked={value.addNewDecks} onChange={e => onChange({ addNewDecks: e.target.checked })} />
+        <span><strong>Add new decks automatically</strong>
+          <span>Once a day, when you open DeckShelf, folders you added whole get their new Archidekt decks. Decks you switched off stay off. Folders where you picked single decks only show what’s new. Refresh works either way.</span></span>
+      </label>,
     },
   ];
   return <div className="settings-layout">

@@ -7,13 +7,17 @@ const key = 'commander-archive.collection.v1';
 const decks = seed.slice(0, 4);
 const sources = [0, 1].map(i => ({
   key: `folder:${42 + i}`, kind: 'folder', value: String(42 + i), name: i ? 'Multicolor' : 'Mono-color',
-  url: `https://archidekt.com/folders/${42 + i}`, checkedAt: '2026-10-04T12:00:00Z',
+  url: `https://archidekt.com/folders/${42 + i}`, checkedAt: new Date().toISOString(),
   knownIds: decks.map(d => d.id), selectedIds: decks.map(d => d.id),
   entries: decks.map(d => ({ id: d.id, name: d.name, image: d.commanders[0].art, colors: d.colors })),
   folderPath: 'Home / Test collection / ' + (i ? 'Multicolor' : 'Mono-color'),
   connectionKey: 'account:test', connectionName: 'Test account',
 }));
 const fixture = { version: 1, starter: false, added: decks, hidden: [], excluded: [], sources, manualIds: [] };
+// Layout fixtures must never refresh real upstream folders on revisit.
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/sources?*', route => route.fulfill({ json: sources.find(s => s.value === new URL(route.request().url()).searchParams.get('value')) }));
+});
 for (const width of [320, 390, 800, 1440]) {
   test(`collection captions and folder actions fit ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
@@ -103,7 +107,9 @@ for (const width of [320, 390]) test('phone browsing controls form compact group
   await page.evaluate(()=>scrollTo(0,0));
   const heights=await page.getByRole('group',{name:'Quick deck choice'}).getByRole('button').evaluateAll(els=>els.map(el=>el.getBoundingClientRect()).map(r=>[Math.round(r.y),Math.round(r.height)]));
   expect(new Set(heights.map(h=>h.join())).size).toBe(1);
-  expect(await count.boundingBox()).toEqual(countBox);
+  const afterCount = (await count.boundingBox())!;
+  // Font shaping can vary by a fraction of a pixel after the toolbar changes.
+  for (const field of ['x', 'y', 'width', 'height'] as const) expect(afterCount[field]).toBeCloseTo(countBox[field], 0);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   await page.getByRole('button',{name:'My collection',exact:true}).click();
   await page.getByRole('button',{name:'Open Test account',exact:true}).click();

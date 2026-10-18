@@ -75,7 +75,7 @@ const topics: Partial<Record<HelpSection, Topic>> = {
     Figure: UpdatesFigure,
     rules: [
       { title: "Refresh a source", text: "Updates the decks you’ve added from it and checks Archidekt for changes." },
-      { title: "New decks wait", text: <>Decks added on Archidekt since your import show as <b>Not added</b> until you add them.</> },
+      { title: "New decks", text: <>Once a day, when you open DeckShelf, folders you added whole get their new Archidekt decks automatically. Where you picked single decks, new ones show as <b>Not added</b> until you add them.</> },
       { title: "Deleted decks stay", text: <>A deck removed from Archidekt is marked <b>No longer listed · saved copy kept</b>.</> },
       { title: "Refresh one deck", text: <>Open the deck and press <b>Refresh snapshot</b> after editing it on Archidekt. Otherwise DeckShelf may reuse a copy from the last hour.</> },
     ],

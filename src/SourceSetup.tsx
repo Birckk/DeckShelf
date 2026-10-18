@@ -10,7 +10,8 @@ export type FolderDiscovery = {
   folders: { source: CollectionSource; path: string; root: boolean }[];
 };
 
-export default function SourceSetup({ value, setValue, discovery, selected, setSelected, busy, back, connect, save, formatScope, setFormatScope }: {
+export default function SourceSetup({ followEnabled, value, setValue, discovery, selected, setSelected, busy, back, connect, save, formatScope, setFormatScope }: {
+  followEnabled: boolean;
   formatScope: string; setFormatScope: (value: string) => void;
   value: string; setValue: (value: string) => void;
   discovery: FolderDiscovery | null; selected: string[];
@@ -39,7 +40,7 @@ export default function SourceSetup({ value, setValue, discovery, selected, setS
       <p className="manager-note">Public decks only. Decklists stay on Archidekt.</p>
     </form> : <>
       <div className="source-choice-heading"><h3 ref={heading} tabIndex={-1}>Which folders do you want to show?</h3><p>{discovery.name} · {allIds.length} decks</p></div>
-      <p className="source-choice-note">Pick folders or individual decks. Subfolders are listed separately.</p>
+      <p className="source-choice-note">Pick folders or individual decks. Subfolders are listed separately.{followEnabled && ' When you add a whole folder, new decks you put in it on Archidekt are added automatically.'}</p>
       <div className="manager-bulk"><span>{folders.length} {folders.length === 1 ? 'folder' : 'folders'}</span><FormatSelect label="Format" value={formatScope} onChange={setFormatScope} items={entries} all disabled={busy} /><button className="text-button" disabled={busy} onClick={() => select(allIds, true)}>Select all</button><button className="text-button" disabled={busy} onClick={() => select(allIds, false)}>Clear</button></div>
       <div className="source-folders">
         {folders.map(({ source, path, root }) => {

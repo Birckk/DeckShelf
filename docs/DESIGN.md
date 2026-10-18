@@ -57,7 +57,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Do not show a precon attribution/start-collection strip above search. Keep precon information in My collection and the optional guide.
 - My collection controls the showcase. Deck editing and card inventory stay on the external platform.
 - Public accounts, folders, and individual deck links are read-only sources. Do not ask for platform passwords.
-- Discovering a source does not mean the user owns all its decks. New discoveries wait for selection; refresh preserves display and picker choices.
+- Discovering a source does not mean the user owns all its decks. Folders added whole get new decks automatically (see New decks, October 18); in hand-picked folders and saved shared collections, new discoveries wait for selection. Refresh preserves display and picker choices.
 - Distinguish local saved decks, starter precons, and source listings. Deduplicate decks shared by multiple sources.
 - Adding decks from a source puts them on the shelf at once from the folder listing (name, format, art, colours). Commanders and the other details fill in in the background, two decks at a time (#102). A deck that can never load (private, gone, no commander) is removed again with a problem notice. One that failed only for now stays and loads on the next start or reconnection.
 - Losing access to a source or a failed refresh must not delete saved decks. Keep the last usable snapshot when refresh fails. Removing a source on purpose is different: see Collection controls (October 15).
@@ -244,3 +244,10 @@ Owner decisions for #91, after comparing variants in the app three times: the ar
 ### Settings layout (October 18)
 
 Owner decision after comparing folding rows, tabs and a compact page in the app: Settings (Help › Settings) is one folding row per group (Card backs, Artwork, List). Each row shows its icon, title and current value ("Dragon nest", "6 columns · Colors on phones · Square thumbnail") and opens to its controls; open rows are remembered. A flat page buried List under the card-back previews. On phones the value sits under the title. A new group is one more row.
+
+### New decks (October 18)
+
+Owner decision after a walkthrough of the Follow prototype (#23): people add decks on Archidekt monthly or more, so new decks arrive on their own.
+- On by default. Once a day, when DeckShelf opens, folders added whole get their new Archidekt decks. Switched-off decks stay off; hand-picked folders and saved shared collections only show what's new.
+- The only off switch is one row in Settings (New decks · Add new decks automatically). No per-folder control and no switch at the bottom of My collection: the owner couldn't find either.
+- Each folder shows a quiet status line: when it was checked and what changed, in plain words ("1 new deck added"). Avoid "membership", "follow" and "pending" in copy.

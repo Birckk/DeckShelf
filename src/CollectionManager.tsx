@@ -35,11 +35,14 @@ import {
 import { clearResults, type Notify } from "./Notices";
 import {
   parseSourceInput,
+  sourceMembership,
   rememberSource,
+  collectionDecks,
   saveSnapshots,
   setShown,
   setDeckSelection,
   setSourceSelection,
+  setPendingSourceSelection,
   showcaseGroups,
   deckCollections,
   showcaseDecks,
@@ -66,6 +69,8 @@ import FormatSelect from './FormatSelect';
 import "./collection.css";
 
 type Props = {
+  sourceRefresh: { checking: string; refresh: (key: string, manual?: boolean) => Promise<void> };
+  followEnabled: boolean;
   decks: Deck[];
   catalog: Deck[];
   collection: Collection;
@@ -134,6 +139,8 @@ async function loadFolders(kind: string, value: string, signal: AbortSignal, for
 }
 
 export default function CollectionManager({
+  sourceRefresh,
+  followEnabled,
   decks,
   catalog,
   collection,
@@ -191,6 +198,9 @@ export default function CollectionManager({
   useEffect(() => () => controller.current?.abort(), []);
   const sources = collection.sources || [];
   const source = sources.find((s) => s.key === section);
+  const newDeckCount = source ? sourceMembership(source) === 'selected'
+    ? (source.pendingIds || []).filter(id => !(source.ownedIds || source.selectedIds || []).includes(id)).length
+    : source.lastChange?.added.length || 0 : 0;
   const scopedSources = scope ? sources.filter(s => scope.keys.includes(s.key)) : source ? [source] : [];
   const scopedKeys = scopedSources.map(s => s.key);
   const saved = useMemo(() => new Map(decks.map((d) => [d.id, d])), [decks]);
@@ -254,8 +264,11 @@ export default function CollectionManager({
   function selectAll(select: boolean) {
     if (scopedSources.length) {
       const ids = shown.filter(row => isSavedHere(row.id)).map(row => row.id);
-      setCollection(c => setSourceSelection(c, scopedKeys, ids, select, decks));
       const pending = shown.filter(row => !isSavedHere(row.id)).map(row => row.id);
+      setCollection(c => {
+        const next = setSourceSelection(c, scopedKeys, ids, select, decks);
+        return followEnabled ? setPendingSourceSelection(next, scopedKeys, pending, select) : next;
+      });
       setSelected(current => select ? [...new Set([...current, ...pending])] : current.filter(id => !pending.includes(id)));
       return;
     }
@@ -308,6 +321,13 @@ export default function CollectionManager({
       action: { label: "Show", run: () => { failuresRegion.current?.scrollIntoView({ block: "nearest" }); failuresRegion.current?.querySelector("summary")?.focus(); } },
     });
   }
+  function commitAsync(update: (c: Collection) => Collection, signal: AbortSignal) {
+    setCollection(c => {
+      if (signal.aborted) return c;
+      try { return parseCollection(JSON.stringify(update(c))); }
+      catch (error) { queueMicrotask(() => { if (!signal.aborted) report(error); }); return c; }
+    });
+  }
   async function connect(event: React.FormEvent) {
     event.preventDefault();
     const signal = begin("Finding decks…");
@@ -323,10 +343,10 @@ export default function CollectionManager({
           );
         const deck = await loadDeck(parsed.value, signal);
         signal.throwIfAborted();
-        setCollection({
-          ...saveSnapshots(collection, [deck], true),
-          manualIds: [...new Set([...(collection.manualIds || []), deck.id])],
-        });
+        commitAsync(c => ({
+          ...saveSnapshots(c, [deck], true),
+          manualIds: [...new Set([...(c.manualIds || []), deck.id])],
+        }), signal);
         navigate("manual");
         notify(`${deck.name} added to Individual decks.`);
       } else {
@@ -377,7 +397,7 @@ export default function CollectionManager({
       const allFormats = formatScope !== 'commander' || discovery.folders.some(f => f.source.entries.some(e => selected.includes(e.id) && formatOf(e).id !== 'commander'));
       const chosen = discovery.folders.map(f => {
         const entries = f.source.entries.filter(e => allFormats || formatOf(e).id === 'commander');
-        return { ...f.source, entries, knownIds: entries.map(e => e.id), formatScope: allFormats ? 'all' as const : 'commander' as const, folderPath: f.path, connectionKey: parsed.key, connectionName: discovery.name };
+        return { ...f.source, membership: entries.every(e => selected.includes(e.id)) ? "follow" as const : "selected" as const, entries, knownIds: entries.map(e => e.id), formatScope: allFormats ? 'all' as const : 'commander' as const, folderPath: f.path, connectionKey: parsed.key, connectionName: discovery.name };
       }).filter(s => s.entries.some(e => selected.includes(e.id)));
       if (new Set([...sources.map(s => s.key), ...chosen.map(s => s.key)]).size > 50)
         throw new Error('Choose fewer folders. A collection can link up to 50 sources.');
@@ -386,8 +406,10 @@ export default function CollectionManager({
       // New decks join from the listing at once; App fills in their details in the background.
       const listed = new Map(discovery.folders.flatMap(f => f.source.entries).map(e => [e.id, e]));
       const accepted = selected.flatMap(id => saved.get(id) || (listed.has(id) ? [listingDeck(listed.get(id)!)] : []));
-      const next = importFolderSelection(collection, chosen, accepted, decks, onlyFolders ? groups.map(g => g.key).filter(key => !importedFolderKeys.current.has(key)) : []);
-      setCollection(next);
+      // Merge into the latest state: a background check may have saved since this render.
+      const importedKeys = new Set(importedFolderKeys.current);
+      commitAsync(c => importFolderSelection(c, chosen, accepted, collectionDecks(c, catalog),
+        onlyFolders ? showcaseGroups(c, catalog, collectionDecks(c, catalog)).map(g => g.key).filter(key => !importedKeys.has(key)) : [], selected, catalog), signal);
       chosen.filter(s => s.entries.some(e => accepted.some(d => d.id === e.id))).forEach(s => importedFolderKeys.current.add(s.key));
       finish(`${accepted.length} ${accepted.length === 1 ? 'deck' : 'decks'} added to your collection.`, []);
       navigate("overview");
@@ -449,16 +471,12 @@ export default function CollectionManager({
         ...loaded,
         ...selected.filter((id) => saved.has(id)).map((id) => saved.get(id)!),
       ];
-      const next = setShown(
-        saveSnapshots(collection, accepted, true),
-        accepted.map((d) => d.id),
-        true,
-      );
-      setCollection(
-        scopedSources.length
-          ? setSourceSelection(next, scopedKeys, accepted.map(d => d.id), true, [...decks, ...accepted])
-          : next,
-      );
+      commitAsync(c => {
+        const next = saveSnapshots(c, accepted, true);
+        return scopedSources.length
+          ? setSourceSelection(next, scopedKeys, accepted.map(d => d.id), true, collectionDecks(next, catalog))
+          : next;
+      }, signal);
       setSelected((ids) =>
         ids.filter((id) => !accepted.some((d) => d.id === id)),
       );
@@ -474,7 +492,20 @@ export default function CollectionManager({
   }
   async function refreshSource() {
     if (!source) return;
-    const signal = begin("Checking source…");
+    if (followEnabled) {
+      // Update saved decks as Refresh always has, without touching the listing,
+      // then let the check add new decks and record what changed.
+      const signal = begin('Updating saved decks\u2026');
+      try {
+        const { loaded, errors } = await fetchDecks(source.entries.filter(e => sourceIds.has(e.id)).map(e => e.id), signal, true);
+        commitAsync(c => c.sources?.some(s => s.key === source.key) ? saveSnapshots(c, loaded) : c, signal);
+        finish(`Checked. ${loaded.length} saved ${loaded.length === 1 ? 'deck' : 'decks'} updated.`, errors);
+      } catch (error) { report(error); }
+      finally { if (controller.current?.signal === signal) setBusy(''); }
+      await sourceRefresh.refresh(source.key, true);
+      return;
+    }
+    const signal = begin('Checking source\u2026');
     try {
       const found = await loadSource(source.kind, source.value, signal, source.formatScope || 'commander');
       const { loaded, errors } = await fetchDecks(
@@ -482,7 +513,7 @@ export default function CollectionManager({
         signal,
         true,
       );
-      setCollection(saveSnapshots(rememberSource(collection, found), loaded));
+      commitAsync(c => c.sources?.some(s => s.key === source.key) ? saveSnapshots(rememberSource(c, found), loaded) : c, signal);
       setSelected([]);
       finish(
         `Source checked. ${loaded.length} saved decks refreshed; new decks are ready to review.`,
@@ -530,7 +561,7 @@ export default function CollectionManager({
       const found = await loadSource("account", "Archidekt_Precons", signal);
       const known = new Set(collection.demo?.decks.map(d => d.id) || []);
       const { loaded, errors } = await fetchDecks(found.entries.map(e => e.id).filter(id => !known.has(id)), signal, false);
-      setCollection(c => updateDemo(c, loaded, found.checkedAt));
+      commitAsync(c => updateDemo(c, loaded, found.checkedAt), signal);
       finish(loaded.length ? `${loaded.length} new ${loaded.length === 1 ? "precon" : "precons"} added.` : "Precons are up to date.", errors);
     } catch (e) {
       report(e);
@@ -562,9 +593,13 @@ export default function CollectionManager({
       !!source &&
       !!deck &&
       !source.entries.some((e) => e.id === row.id);
-    const toggle = (on: boolean) => readOnly ? undefined : member
-      ? setCollection(c => scopedSources.length ? setSourceSelection(c, scopedKeys, [row.id], on, decks) : setShown(c, [row.id], on))
-      : setSelected(ids => on ? [...new Set([...ids, row.id])] : ids.filter(id => id !== row.id));
+    const toggle = (on: boolean) => {
+      if (readOnly) return;
+      if (member) return setCollection(c => scopedSources.length ? setSourceSelection(c, scopedKeys, [row.id], on, decks) : setShown(c, [row.id], on));
+      // A deck still waiting to download keeps its choice across the next check.
+      if (followEnabled) setCollection(c => setPendingSourceSelection(c, scopedKeys, [row.id], on));
+      setSelected(ids => on ? [...new Set([...ids, row.id])] : ids.filter(id => id !== row.id));
+    };
     const status = missing ? 'No longer listed · saved copy kept' : !member ? 'Not added' : !displayedHere(row.id) && checked ? (headerHidden ? 'Hidden · selection kept' : 'Collection off · selection kept') : '';
     return { row, deck, member, checked, toggle, status, busy: !!busy, selectable: !readOnly };
   });
@@ -638,7 +673,7 @@ export default function CollectionManager({
               </details>
             )}
             {connecting ? (
-              <SourceSetup value={value} setValue={setValue} discovery={discovery}
+              <SourceSetup followEnabled={followEnabled} value={value} setValue={setValue} discovery={discovery}
                 formatScope={formatScope} setFormatScope={changeFormatScope}
                 selected={selected} setSelected={setSelected} busy={!!busy}
                 back={() => { if (!discovery) setConnecting(false); resetSourceForm(); }}
@@ -712,12 +747,17 @@ export default function CollectionManager({
                           : onlyGroup(c, section, groups))}><Focus size={14} />Only this</button>
                       </div>}
                   <div className="manager-toolbar-end">
-                    {source && <button className="text-button" disabled={!!busy} onClick={refreshSource}><RefreshCw size={14} />Refresh</button>}
+                    {source && <button className="text-button" disabled={!!busy || !!sourceRefresh.checking || followEnabled && Date.now() < Date.parse(source.refresh?.retryAt || "1970-01-01")} onClick={refreshSource}><RefreshCw size={14} />{sourceRefresh.checking === source.key ? "Checking…" : "Refresh"}</button>}
                     {section === "demo" && !headerHidden && <button className="text-button" disabled={!!busy} title="Check Archidekt for precons released since this snapshot" onClick={updatePrecons}><RefreshCw size={14} />Refresh</button>}
                     <CollectionMenu name={headerName} busy={!!busy} items={menuItems} />
                   </div>
                   {section === "starter" && !collection.demo && <div className="manager-precon-link"><button className="text-button" disabled={!!busy} onClick={addPrecons}>
                     <Plus size={14} />Add all Official Commander precons</button></div>}
+                </div>}
+                {followEnabled && source && <div className="source-refresh-status" aria-live="polite">
+                  <span>Checked {new Date(source.checkedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                  {sourceRefresh.checking === source.key ? <span>Checking…</span> : source.refresh?.error ? <span>Couldn’t check · {source.refresh.error} Trying again after {new Date(source.refresh.retryAt!).toLocaleTimeString([], { timeStyle: 'short' })}</span>
+                    : source.lastChange && <span>{refreshSummary(source, newDeckCount)}</span>}
                 </div>}
                 <div className="manager-search">
                   <label>
@@ -852,6 +892,7 @@ export default function CollectionManager({
               disabled={!!busy}
               onClick={() => {
                 try {
+                  controller.current?.abort();
                   onRestore(restorePreview);
                   setRestoreError("");
                   setRestorePreview(null);
@@ -876,6 +917,19 @@ export default function CollectionManager({
     </main>
   );
 }
+// What the last check found, in plain words. Zero counts are left out.
+function refreshSummary(source: CollectionSource, newDecks: number): string {
+  const follow = sourceMembership(source) === 'follow';
+  const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  const parts = [
+    newDecks ? `${count(newDecks, 'new deck')} ${follow ? 'added' : 'on Archidekt, not added'}` : '',
+    source.lastChange?.unlisted.length ? `${source.lastChange.unlisted.length} no longer on Archidekt` : '',
+    source.lastChange?.renamed.length ? `${source.lastChange.renamed.length} renamed` : '',
+    follow && source.pendingIds?.length ? `${source.pendingIds.length} still downloading` : '',
+  ].filter(Boolean);
+  return parts.join(' · ') || 'No changes';
+}
+
 function toEntry(deck: Deck): SourceEntry {
   return {
     format: formatOf(deck),

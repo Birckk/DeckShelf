@@ -131,7 +131,7 @@ for (const width of [1920, 390]) {
     await page.getByRole('radio', { name: 'Art deco wedges' }).check();
     await page.evaluate(key => {
       const saved = JSON.parse(localStorage.getItem(key)!);
-      saved.sources = [{ key: 'folder:123', kind: 'folder', value: '123', name: 'Empty artwork', url: 'https://archidekt.com/folders/123', checkedAt: '2026-10-16T12:00:00Z', knownIds: ['987654'], selectedIds: [], entries: [{ id: '987654', name: 'Unsaved deck', image: '', colors: ['U', 'R'] }] }];
+      saved.sources = [{ key: 'folder:123', kind: 'folder', value: '123', name: 'Empty artwork', url: 'https://archidekt.com/folders/123', checkedAt: new Date().toISOString(), knownIds: ['987654'], selectedIds: [], entries: [{ id: '987654', name: 'Unsaved deck', image: '', colors: ['U', 'R'] }] }];
       localStorage.setItem(key, JSON.stringify(saved));
     }, key);
     await page.reload();
@@ -190,11 +190,12 @@ test('Show card backs instead of artwork stops every artwork request and survive
 test('Settings folds into one row per group that shows its value, opens from the keyboard and stays open', async ({ page }) => {
   await page.goto('/settings');
   const rows = page.locator('.settings-fold h3 button');
-  await expect(rows).toHaveCount(3);
-  expect(await rows.evaluateAll(els => els.map(el => el.getAttribute('aria-expanded')))).toEqual(['false', 'false', 'false']);
+  await expect(rows).toHaveCount(4);
+  expect(await rows.evaluateAll(els => els.map(el => el.getAttribute('aria-expanded')))).toEqual(['false', 'false', 'false', 'false']);
   await expect(rows.nth(0)).toContainText('Dragon nest');
   await expect(rows.nth(1)).toContainText('Commander artwork');
   await expect(rows.nth(2)).toContainText('6 columns · Colors on phones · Square thumbnail');
+  await expect(rows.nth(3)).toContainText('Added automatically');
   await rows.nth(2).focus();
   await page.keyboard.press('Enter');
   await expect(rows.nth(2)).toHaveAttribute('aria-expanded', 'true');

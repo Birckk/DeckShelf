@@ -74,3 +74,38 @@ test('desktop copies a Commander Archive profile into a new DeckShelf profile on
     assert.equal(await readFile(join(profile, 'Local Storage', 'leveldb', '000003.log'), 'utf8'), 'newer');
   } finally { await rm(appData, { recursive: true, force: true }); }
 });
+
+test('desktop bundle includes all local server module dependencies', async () => {
+  const config = await readFile(new URL('../desktop/electron-builder.yml', import.meta.url), 'utf8');
+  const bundled = new Set([...config.matchAll(/^  - ((?:server|shared)\/.+\.mjs)$/gm)].map(match => match[1]));
+  const queue = ['server/api.mjs'];
+  const visited = new Set();
+  while (queue.length) {
+    const name = queue.shift();
+    if (visited.has(name)) continue;
+    visited.add(name);
+    assert.ok(bundled.has(name), `Missing desktop module: ${name}`);
+    const url = new URL(`../${name}`, import.meta.url);
+    const source = await readFile(url, 'utf8');
+    for (const [, relative] of source.matchAll(/from ['"]([.][^'"]+\.mjs)['"]/g)) {
+      const dependency = new URL(relative, url).pathname.slice(new URL('../', import.meta.url).pathname.length);
+      queue.push(dependency);
+    }
+  }
+});
+
+test('desktop snapshots and discovery share the same Retry-After cooldown', async t => {
+  let calls = 0;
+  t.mock.method(globalThis, 'fetch', async () => {
+    calls++;
+    return { ok: false, status: 429, headers: new Headers({ 'Retry-After': '3600' }) };
+  });
+  const limited = await desktopResponse(new Request('archive://app/api/decks/987654300'), '.');
+  assert.equal(limited.status, 502);
+  const second = await desktopResponse(new Request('archive://app/api/decks/987654301'), '.');
+  assert.equal(second.status, 502);
+  assert.match((await second.json()).error, /rate limited/);
+  const source = await desktopResponse(new Request('archive://app/api/sources?kind=folder&value=987654302&prototype=1'), '.');
+  assert.equal(source.status, 502);
+  assert.equal(calls, 1);
+});

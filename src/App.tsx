@@ -70,6 +70,7 @@ import CardStudio from "./CardStudio";
 import HelpCenter, { helpSectionFromPath, type FeatureTarget, type HelpSection } from "./HelpCenter";
 import { CardBackContext } from "./placeholders/CardBackArt";
 import CollectionManager from "./CollectionManager";
+import { useSourceRefresh } from './sourceRefresh';
 import { Notices, notify } from "./Notices";
 import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshCollection, addDemo, fillDeck, dropPartialDecks } from "./collection";
 import { DeckLoadError, fillDecks, loadFullDeck } from "./deckFill";
@@ -192,6 +193,10 @@ function App() {
   const [collection, setCollection] = useState<Collection>(loaded.collection);
   const [storageError, setStorageError] = useState(loaded.error);
   const [storageLocked, setStorageLocked] = useState(!!loaded.error);
+  // New decks from Archidekt folders are added automatically unless Settings turns it off.
+  const followEnabled = !collection.followOff;
+  const collectionGeneration = useRef(0);
+  const sourceRefresh = useSourceRefresh(collection, setCollection, storageLocked, followEnabled, catalog);
   const persistedCollection = useRef<Collection | null>(null);
   const wasShared = useRef(isShared);
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
@@ -455,6 +460,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }
   async function refreshDeck(deck: Deck) {
+    const epoch = collectionGeneration.current;
     setRefreshing(true);
     setRefreshError(null);
     try {
@@ -471,7 +477,8 @@ function App() {
         theme: deck.theme || data.theme,
         originalUrl: deck.originalUrl,
       };
-      setCollection((c) => ({
+      if (epoch !== collectionGeneration.current) return;
+      setCollection((c) => epoch !== collectionGeneration.current ? c : ({
         ...c,
         added: [...c.added.filter((d) => d.id !== deck.id), updated],
       }));
@@ -498,6 +505,8 @@ function App() {
     } catch {
       throw new Error("The backup could not be saved. Your current collection is unchanged. Free browser storage or allow storage access, then try again.");
     }
+    collectionGeneration.current++;
+    sourceRefresh.invalidate();
     setCollection(value);
     setFirstVisit(false);
     setStorageLocked(false);
@@ -1022,12 +1031,16 @@ function App() {
         onGo={goToFeature}
         precons={{ present: !!collection.demo && !collection.demo.removed, open: openPrecons }}
         settings={{
-          value: { cardBack: collection.cardBack ?? "nest", hideArtwork: !!collection.hideArtwork, list: listSettings(collection) },
-          change: ({ hideArtwork, list, ...rest }) => setCollection(({ hideArtwork: was, list: wasList, ...c }) => {
-            // Only choices that differ from the defaults are saved.
-            const nextList = list ? parseListSettings(list) : wasList;
-            return { ...c, ...rest, ...((hideArtwork ?? was) ? { hideArtwork: true as const } : {}), ...(nextList ? { list: nextList } : {}) };
-          }),
+          value: { cardBack: collection.cardBack ?? "nest", hideArtwork: !!collection.hideArtwork, list: listSettings(collection), addNewDecks: !collection.followOff },
+          change: ({ hideArtwork, list, addNewDecks, ...rest }) => {
+            if (addNewDecks !== undefined) sourceRefresh.invalidate();
+            setCollection(({ hideArtwork: was, list: wasList, followOff: wasOff, ...c }) => {
+              // Only choices that differ from the defaults are saved.
+              const nextList = list ? parseListSettings(list) : wasList;
+              const off = addNewDecks === undefined ? wasOff : !addNewDecks;
+              return { ...c, ...rest, ...((hideArtwork ?? was) ? { hideArtwork: true as const } : {}), ...(nextList ? { list: nextList } : {}), ...(off ? { followOff: true as const } : {}) };
+            });
+          },
         }}
       />}
       {detail && (
@@ -1134,6 +1147,9 @@ function App() {
         <CollectionManager
           key={`${sharedIdentity}:${collectionVisit}`}
           readOnly={{ name: sharedName, actions: shelfButtons }}
+          // Someone else's shelf is never checked or changed from here.
+          sourceRefresh={sourceRefresh}
+          followEnabled={false}
           catalog={[]}
           decks={shared.decks}
           collection={sharedWorkspace}
@@ -1150,6 +1166,8 @@ function App() {
       )}
       {showCollection && !sharedShelf && (
         <CollectionManager
+          sourceRefresh={sourceRefresh}
+          followEnabled={followEnabled}
           key={collectionVisit}
           catalog={catalog}
           decks={allDecks}

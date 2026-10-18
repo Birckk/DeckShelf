@@ -1,6 +1,9 @@
-import { discoverSource, discoverFolders, featuredCardId, archidektImage } from './sources.mjs';
+import { fetchArchidekt, upstreamCooldown } from './archidekt.mjs';
+import { cachedSource, discoverSource, discoverFolders, featuredCardId, archidektImage } from './sources.mjs';
 import { archidektFormat } from '../shared/formats.mjs';
 const cache = new Map();
+const pendingDecks = new Map();
+const failedDecks = new Map();
 const colors = { White:'W', Blue:'U', Black:'B', Red:'R', Green:'G' };
 const plain = value => String(value || '').replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
 export function descriptionText(value) {
@@ -44,12 +47,13 @@ export function normalizeDeck(data) {
 }
 
 // Deck metadata is cached for an hour; callers with larger collections can pass their own bounded store.
-export async function fetchDeck(id, { refresh = false, store = cache, limit = 100, signal } = {}) {
+// The web API passes the shared Archidekt cooldown as `request`; the MCP server keeps its own backoff.
+export async function fetchDeck(id, { refresh = false, store = cache, limit = 100, signal, request = fetch } = {}) {
   signal?.throwIfAborted();
   if (!/^\d{1,12}$/.test(id)) throw new Error('Use a public Archidekt deck link or its numeric ID.');
   let cached = store.get(id);
   if (refresh || !cached || Date.now() - cached.time > 3600000) {
-    const response = await fetch(`https://archidekt.com/api/decks/${id}/`, {
+    const response = await request(`https://archidekt.com/api/decks/${id}/`, {
       headers:{ 'User-Agent':'DeckShelf/1.0 (personal deck showcase)', Accept:'application/json' },
       signal:signal ? AbortSignal.any([signal, AbortSignal.timeout(20000)]) : AbortSignal.timeout(20000),
     });
@@ -74,8 +78,11 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
   res.setHeader('X-Content-Type-Options','nosniff');
   if (['/api/sources', '/api/source-folders'].includes(url.pathname) && req.method === 'GET') {
     try {
-      const discover = url.pathname === '/api/source-folders' ? discoverFolders : discoverSource;
-      const source = await discover(url.searchParams.get('kind'), url.searchParams.get('value') || '', { formatScope: url.searchParams.get('formats') || 'commander' });
+      const discover = url.pathname === '/api/source-folders' ? discoverFolders : url.searchParams.get('prototype') === '1' ? cachedSource : discoverSource;
+      const formatScope = url.searchParams.get('formats') || 'commander';
+      const source = discover === cachedSource
+        ? await cachedSource(url.searchParams.get('kind'), url.searchParams.get('value') || '', url.searchParams.get('refresh') === '1', formatScope)
+        : await discover(url.searchParams.get('kind'), url.searchParams.get('value') || '', { formatScope, request:fetchArchidekt });
       res.end(JSON.stringify(source));
     } catch (error) {
       res.writeHead(502);
@@ -87,7 +94,27 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
     res.writeHead(404); res.end(JSON.stringify({ error:'Unknown source request.' })); return;
   }
   try {
-    res.end(JSON.stringify(await fetchDeck(match[1], { refresh:url.searchParams.get('refresh') === '1' })));
+    const id = match[1];
+    const manual = url.searchParams.get('refresh') === '1';
+    const failed = failedDecks.get(id);
+    if (!manual && failed?.retryAt > Date.now()) throw new Error(failed.error);
+    // Automatic checks share one in-flight request per deck and remember failures briefly.
+    let request = !manual && pendingDecks.get(id);
+    if (!request) {
+      request = fetchDeck(id, { refresh:manual, request:fetchArchidekt });
+      if (!manual) pendingDecks.set(id, request);
+    }
+    try {
+      const deck = await request;
+      failedDecks.delete(id);
+      res.end(JSON.stringify(deck));
+    } catch (error) {
+      if (!manual) {
+        if (failedDecks.size >= 100) failedDecks.delete(failedDecks.keys().next().value);
+        failedDecks.set(id, { error: error.message, retryAt: Math.max(Date.now() + 60000, upstreamCooldown.retryAt) });
+      }
+      throw error;
+    } finally { if (pendingDecks.get(id) === request) pendingDecks.delete(id); }
   } catch (error) {
     // retry tells background filling whether to keep a listed deck for later or drop it.
     const retry = error.status === 429 || error.status >= 500 || ['TimeoutError', 'TypeError'].includes(error.name);
