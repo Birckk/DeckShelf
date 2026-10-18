@@ -59,7 +59,7 @@ for (const [width, height] of [[1920, 1080], [1500, 900], [390, 844], [320, 844]
       await page.keyboard.press('ArrowRight');
       await expect(slider).toHaveAttribute('aria-valuetext', 'Medium');
       if (width > 320) expect((await firstTile.boundingBox())!.width).toBeGreaterThan(smallWidth);
-      await expect(sort.locator('option')).toHaveText(['Collection order', 'Name', 'Commander', 'Release', 'Colors']);
+      await expect(sort.locator('option')).toHaveText(['Collection order', 'Name', 'Commander', 'Release', 'Colors', 'Format', 'Collection name']);
       if (width <= 700) await controls.getByRole('button', { name: 'Size and sort' }).click();
       for (const [name, layout] of [['Details', 'grid'], ['Cards only', 'art'], ['Compact', 'compact'], ['List', 'list']]) {
         await controls.getByRole('button', { name, exact: true }).click();
@@ -253,8 +253,14 @@ for (const width of [1500, 390]) test(`List is a sortable table on both pages at
     await page.getByRole('button', { name: 'Sort order: Fewest', exact: true }).click();
     await expect(colorsHeader).toHaveAttribute('aria-sort', 'descending');
     await expect(direction).toHaveText('Most');
+    // Collection order keeps its direction button too, so the toolbar never shifts: As listed or Reversed.
     await sort.selectOption('collection');
-    await expect(direction).toHaveCount(0);
+    await expect(direction).toHaveText('As listed');
+    await expect(rows.first()).toContainText(decks[0].name);
+    await direction.click();
+    await expect(direction).toHaveText('Reversed');
+    await expect(rows.first()).toContainText(decks.at(-1)!.name);
+    await direction.click();
     await expect(rows.first()).toContainText(decks[0].name);
     if (phone) await page.getByRole('button', { name: 'Size and sort' }).click();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

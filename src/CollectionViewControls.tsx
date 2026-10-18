@@ -37,28 +37,32 @@ export function useCollectionDisplay(key: string, fallback: Display["layout"] = 
  * same values, so a header click and the menu plus direction button always agree.
  */
 const SORT_FIELDS = [
-  { field: "collection", label: "Collection order", orders: [["collection", ""]] },
+  { field: "collection", label: "Collection order", orders: [["collection", "As listed"], ["collection-desc", "Reversed"]] },
   { field: "name", label: "Name", orders: [["name", "A–Z"], ["name-desc", "Z–A"]] },
   { field: "commander", label: "Commander", orders: [["commander", "A–Z"], ["commander-desc", "Z–A"]] },
   { field: "release", label: "Release", orders: [["release", "Newest"], ["release-asc", "Oldest"]] },
   { field: "colors", label: "Colors", orders: [["colors", "Fewest"], ["colors-desc", "Most"]] },
+  { field: "format", label: "Format", orders: [["format", "A–Z"], ["format-desc", "Z–A"]] },
+  { field: "collection-name", label: "Collection name", orders: [["collection-name", "A–Z"], ["collection-name-desc", "Z–A"]] },
 ] as const;
 const sortField = (sort: string) => SORT_FIELDS.find(f => f.orders.some(([value]) => value === sort)) || SORT_FIELDS[0];
 
-type Sortable = { name: string; colors: string[]; releasedAt?: string; commanders?: { name: string }[] };
-export function compareCollectionDecks(sort: string, a: Sortable, b: Sortable) {
+type Sortable = { name: string; colors: string[]; releasedAt?: string; commanders?: { name: string }[]; format?: { name: string }; collections?: string[] };
+/* Text fields compare their first value; items without one stay at the end in both directions. */
+function byText(first: string | undefined, second: string | undefined, reverse: boolean) {
+  if (!first !== !second) return first ? -1 : 1;
+  const order = (first || "").localeCompare(second || "");
+  return reverse ? -order : order;
+}
+function compare(sort: string, a: Sortable, b: Sortable) {
   const byName = a.name.localeCompare(b.name);
-  if (sort === "name") return byName;
-  if (sort === "name-desc") return -byName;
-  if (sort === "commander" || sort === "commander-desc") {
-    // Decks not yet added have no commander to compare; they stay at the end.
-    const first = a.commanders?.[0]?.name, second = b.commanders?.[0]?.name;
-    if (!first !== !second) return first ? -1 : 1;
-    const order = (first || "").localeCompare(second || "") || byName;
-    return sort === "commander" ? order : -order;
-  }
+  const reverse = sort.endsWith("-desc");
+  if (sort === "name" || sort === "name-desc") return reverse ? -byName : byName;
+  if (sort.startsWith("commander")) return byText(a.commanders?.[0]?.name, b.commanders?.[0]?.name, reverse) || byName;
+  // Commander is the default format, as everywhere else.
+  if (sort.startsWith("format")) return byText(a.format?.name ?? "Commander", b.format?.name ?? "Commander", reverse) || byName;
+  if (sort.startsWith("collection-name")) return byText(a.collections?.[0], b.collections?.[0], reverse) || byName;
   if (sort === "release" || sort === "release-asc") {
-    // Decks without a release date stay at the end in both directions.
     if (!a.releasedAt !== !b.releasedAt) return a.releasedAt ? -1 : 1;
     const order = (b.releasedAt || "").localeCompare(a.releasedAt || "");
     return sort === "release" ? order : -order;
@@ -66,6 +70,12 @@ export function compareCollectionDecks(sort: string, a: Sortable, b: Sortable) {
   if (sort === "colors") return a.colors.length - b.colors.length || byName;
   if (sort === "colors-desc") return b.colors.length - a.colors.length || byName;
   return 0;
+}
+/** Sorts a copy of the items; `view` gives the values to sort by. Collection order keeps or reverses the given order. */
+export function sortCollectionDecks<T>(sort: string, items: T[], view: (item: T) => Sortable): T[] {
+  if (sort === "collection-desc") return [...items].reverse();
+  const keyed = items.map(item => [item, view(item)] as const);
+  return keyed.sort((a, b) => compare(sort, a[1], b[1])).map(([item]) => item);
 }
 
 export default function CollectionViewControls({ display, onChange, sort, onSort }: {
@@ -106,6 +116,7 @@ function SortControl({ sort, onSort }: { sort: string; onSort: (sort: string) =>
       </select>
       <ChevronDown size={12} />
     </label>
+    {/* Always present, so the toolbar never shifts as the field changes. */}
     {other && <button type="button" className="sort-direction" aria-label={`Sort order: ${field.orders[current][1]}`}
       title={`Switch to ${other[1]}`} onClick={() => onSort(other[0])}>
       {field.orders[current][1]}<ArrowUpDown size={12} aria-hidden="true" />

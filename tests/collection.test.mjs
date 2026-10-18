@@ -10,6 +10,7 @@ import {
   setDeckSelection,
   showcaseGroups,
   showcaseDecks,
+  deckCollections,
   enableGroup,
   onlyGroup,
   selectSourceDecks,
@@ -417,4 +418,16 @@ test('persistent disabling survives bulk enabling, backup, overlaps and disconne
   assert.ok(!detached.archivedGroups.includes(second.key));
   assert.throws(() => parseCollection(JSON.stringify({ ...base, archivedGroups: ['bad'] })));
   assert.throws(() => parseCollection(JSON.stringify({ ...base, disabledDecks: [123] })));
+});
+
+test("deckCollections names every enabled collection a deck is shown from, in order", () => {
+  const groups = [
+    { key: "demo", name: "Official Commander precons", kind: "demo", ids: ["1", "2"], available: 2, enabled: true },
+    { key: "manual", name: "Individual decks", kind: "manual", ids: ["2"], available: 1, enabled: true },
+    { key: "account:x", name: "x", kind: "account", ids: ["1"], available: 1, enabled: false },
+  ];
+  const names = deckCollections(groups);
+  assert.deepEqual(names.get("1"), ["Official Commander precons"]);
+  assert.deepEqual(names.get("2"), ["Official Commander precons", "Individual decks"]);
+  assert.equal(names.has("3"), false);
 });

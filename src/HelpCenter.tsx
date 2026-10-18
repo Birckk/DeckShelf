@@ -26,7 +26,7 @@ export const helpSections = [
   { id: "features", label: "Features", Icon: Puzzle, parent: "project", summary: "Everything DeckShelf does, with a shortcut to each." },
   { id: "roadmap", label: "Roadmap", Icon: MapIcon, parent: "project", summary: "What’s next, later, and still being explored." },
   { id: "about", label: "About", Icon: Info, parent: "project", summary: "Why DeckShelf exists, and credits." },
-  { id: "settings", label: "Settings", Icon: Settings, summary: "Card backs and artwork." },
+  { id: "settings", label: "Settings", Icon: Settings, summary: "Card backs, artwork and List columns." },
 ] as const satisfies readonly { id: string; label: string; Icon: Icon; summary: string; group?: boolean; parent?: string }[];
 export type HelpSection = (typeof helpSections)[number]["id"];
 export type FeatureTarget = "grid" | "cards" | "picker" | "search" | "shortlist" | "collection" | "precons";

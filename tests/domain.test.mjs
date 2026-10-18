@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { cardImage, descriptionParts, matchesDeck, randomIndex, drawDistinct, parseCollection, validateDeck, tagCounts, EMPTY_FILTERS } from '../src/domain.ts';
+import { cardImage, descriptionParts, matchesDeck, randomIndex, drawDistinct, parseCollection, validateDeck, tagCounts, EMPTY_FILTERS, listSettings, DEFAULT_LIST } from '../src/domain.ts';
 import { normalizeDeck, descriptionText } from '../server/api.mjs';
 
 const decks = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)));
@@ -171,4 +171,18 @@ test('hiding artwork round trips in v1 backups and ignores anything but true', (
   for (const hideArtwork of [false, 'yes', 1, null]) {
     assert.deepEqual(parseCollection(JSON.stringify({ ...legacy, hideArtwork })), legacy);
   }
+});
+
+test('List settings round trip in v1 backups, keeping only valid choices that differ from the defaults', () => {
+  const legacy = { version: 1, hidden: [], excluded: [], added: [] };
+  const list = { columns: ['colors', 'release', 'collection'], phoneColumn: 'release', art: 'strip' };
+  assert.deepEqual(parseCollection(JSON.stringify({ ...legacy, list })), { ...legacy, list });
+  // Columns keep the table's order whatever order they were saved in, and unknown ones are dropped.
+  assert.deepEqual(parseCollection(JSON.stringify({ ...legacy, list: { columns: ['release', 'future', 'colors'] } })).list, { columns: ['colors', 'release'] });
+  // Defaults, the commander as a phone column, unknown artwork and junk save nothing.
+  for (const junk of [DEFAULT_LIST, { phoneColumn: 'commander' }, { art: 'poster' }, { columns: 'all' }, null, 'list', 3]) {
+    assert.deepEqual(parseCollection(JSON.stringify({ ...legacy, list: junk })), legacy);
+  }
+  assert.deepEqual(listSettings(legacy), DEFAULT_LIST);
+  assert.deepEqual(listSettings({ list: { art: 'none' } }), { ...DEFAULT_LIST, art: 'none' });
 });

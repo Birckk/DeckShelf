@@ -179,6 +179,12 @@ export function showcaseDecks(
     (d) => ids.has(d.id) && !collection.hidden.includes(d.id),
   );
 }
+/** Names of the enabled collections each deck is shown from, in sidebar order. */
+export function deckCollections(groups: ShowcaseGroup[]): Map<string, string[]> {
+  const names = new Map<string, string[]>();
+  for (const group of groups.filter(g => g.enabled)) for (const id of group.ids) names.set(id, [...(names.get(id) || []), group.name]);
+  return names;
+}
 export function groupActive(collection: Collection, key: string): boolean {
   return !collection.disabledGroups?.includes(key) && !collection.archivedGroups?.includes(key);
 }

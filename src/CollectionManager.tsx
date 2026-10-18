@@ -41,6 +41,7 @@ import {
   setDeckSelection,
   setSourceSelection,
   showcaseGroups,
+  deckCollections,
   showcaseDecks,
   hideGroups,
   isHidden,
@@ -56,7 +57,7 @@ import {
 } from "./collection";
 import precons from "./data/precons.json";
 import CollectionNavigator from "./CollectionNavigator";
-import CollectionViewControls, { collectionTileSize, compareCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
+import CollectionViewControls, { collectionTileSize, sortCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
 import "./collection-workspace.css";
 import CollectionOverview from "./CollectionOverview";
 import SourceSetup, { type FolderDiscovery } from "./SourceSetup";
@@ -186,6 +187,7 @@ export default function CollectionManager({
   const scopedKeys = scopedSources.map(s => s.key);
   const saved = useMemo(() => new Map(decks.map((d) => [d.id, d])), [decks]);
   const groups = showcaseGroups(collection, catalog, decks);
+  const collectionNames = deckCollections(groups);
   const activeGroup = groups.find((g) => g.key === section);
   const onDisplayIds = new Set(
     showcaseDecks(collection, catalog, decks).map((d) => d.id),
@@ -217,7 +219,7 @@ export default function CollectionManager({
           ? manual
           : decks
       ).map(toEntry);
-  const shown = rows.filter((row) => {
+  const shown = sortCollectionDecks(sort, rows.filter((row) => {
     const deck = saved.get(row.id);
     const text = [row.name, ...(deck?.commanders.map((c) => c.name) || [])]
       .join(" ")
@@ -231,7 +233,7 @@ export default function CollectionManager({
         (status === "hidden" && isSavedHere(row.id) && !display) ||
         (status === "new" && !isSavedHere(row.id)))
     );
-  }).sort((a, b) => compareCollectionDecks(sort, saved.get(a.id) || a, saved.get(b.id) || b));
+  }), row => ({ ...(saved.get(row.id) || row), collections: collectionNames.get(row.id) }));
   const rowChecked = (id: string) => isSavedHere(id)
     ? !collection.hidden.includes(id) && (!scopedSources.length || sourceIds.has(id))
     : selected.includes(id);
@@ -558,7 +560,7 @@ export default function CollectionManager({
   const deckViews = layout === "list" && deckRows.length
     ? <DeckTable label="Decks in this collection" sort={sort} onSort={setSort} size={size} lead="Shown" trail="Archidekt"
         rows={deckRows.map(item => ({
-          deck: item.deck ? tableDeck(item.deck) : tableEntry(item.row),
+          deck: item.deck ? tableDeck(item.deck, collectionNames.get(item.row.id)) : tableEntry(item.row),
           className: `workspace-tile ${item.checked ? "" : "is-hidden"}`,
           onActivate: () => { if (!busy) item.toggle(!item.checked); },
           title: <h4>{item.deck?.name || item.row.name}</h4>,

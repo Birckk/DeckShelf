@@ -143,8 +143,32 @@ export function drawDistinct<T>(
 }
 
 export type CardBackStyle = "nest" | "wedges";
+/** Columns after Name in the List table, in display order. */
+export const LIST_COLUMNS = ["commander", "colors", "format", "tags", "release", "collection"] as const;
+export type ListColumn = (typeof LIST_COLUMNS)[number];
+export type ListArt = "thumbnail" | "strip" | "none";
+export type ListSettings = { columns: ListColumn[]; phoneColumn: ListColumn; art: ListArt };
+export const DEFAULT_LIST: ListSettings = { columns: ["commander", "colors", "format", "tags", "release"], phoneColumn: "colors", art: "thumbnail" };
+/* Phones always show the commander under the name, so it is never their extra column. */
+export const PHONE_LIST_COLUMNS: ListColumn[] = LIST_COLUMNS.filter(c => c !== "commander");
+const sameColumns = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((c, i) => c === b[i]);
+/** Keeps only valid, non-default List choices, so a profile without changes saves nothing. */
+export function parseListSettings(value: unknown): Partial<ListSettings> | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const v = value as Record<string, unknown>;
+  const columns = Array.isArray(v.columns) ? LIST_COLUMNS.filter(c => (v.columns as unknown[]).includes(c)) : undefined;
+  const list: Partial<ListSettings> = {
+    ...(columns && !sameColumns(columns, DEFAULT_LIST.columns) ? { columns } : {}),
+    ...(PHONE_LIST_COLUMNS.includes(v.phoneColumn as ListColumn) && v.phoneColumn !== DEFAULT_LIST.phoneColumn ? { phoneColumn: v.phoneColumn as ListColumn } : {}),
+    ...(v.art === "strip" || v.art === "none" ? { art: v.art } : {}),
+  };
+  return Object.keys(list).length ? list : undefined;
+}
+export const listSettings = (collection: Pick<Collection, "list">): ListSettings => ({ ...DEFAULT_LIST, ...collection.list });
 export type Collection = {
   cardBack?: CardBackStyle;
+  /** List table choices that differ from DEFAULT_LIST. */
+  list?: Partial<ListSettings>;
   /** Show card backs instead of any commander artwork, so none is fetched. */
   hideArtwork?: true;
   version: 1;
@@ -367,6 +391,7 @@ export function parseCollection(raw: string): Collection {
     version: 1,
     ...(v.cardBack === "nest" || v.cardBack === "wedges" ? { cardBack: v.cardBack } : {}),
     ...(v.hideArtwork === true ? { hideArtwork: true as const } : {}),
+    ...(parseListSettings(v.list) ? { list: parseListSettings(v.list) } : {}),
     ...(v.archivedGroups !== undefined ? { archivedGroups: [...new Set(v.archivedGroups)] } : {}),
     // Fold the brief per-deck disable experiment into ordinary hidden choices.
     hidden: [...new Set([...v.hidden, ...(v.disabledDecks || [])])],

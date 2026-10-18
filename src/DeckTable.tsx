@@ -1,7 +1,7 @@
-import type { MouseEvent, ReactNode } from "react";
+import { createContext, useContext, type MouseEvent, type ReactNode } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { Artwork, Mana } from "./components";
-import { coverOf, formatOf, type Color, type Deck, type SourceEntry } from "./domain";
+import { coverOf, DEFAULT_LIST, formatOf, type Color, type Deck, type ListColumn, type ListSettings, type SourceEntry } from "./domain";
 import "./deck-table.css";
 
 /** What a table row shows; both pages map their decks to this. */
@@ -15,11 +15,16 @@ export type TableDeck = {
   set?: string;
   releasedAt?: string;
   image?: string;
+  /** Collections the deck is shown from, when the page knows them. */
+  collections?: string[];
 };
 
-export const tableDeck = (deck: Deck): TableDeck => ({
+/** The List choices from Settings; App provides the saved ones. */
+export const ListSettingsContext = createContext<ListSettings>(DEFAULT_LIST);
+
+export const tableDeck = (deck: Deck, collections?: string[]): TableDeck => ({
   id: deck.id, name: deck.name, commanders: deck.commanders.map(c => c.name), colors: deck.colors, tags: deck.tags,
-  format: formatOf(deck), set: deck.set, releasedAt: deck.releasedAt, image: coverOf(deck).art || coverOf(deck).image,
+  format: formatOf(deck), set: deck.set, releasedAt: deck.releasedAt, image: coverOf(deck).art || coverOf(deck).image, collections,
 });
 /** A source listing not yet added has only its name, colors, format and artwork. */
 export const tableEntry = (row: SourceEntry): TableDeck => ({
@@ -28,25 +33,23 @@ export const tableEntry = (row: SourceEntry): TableDeck => ({
 
 const none = <span className="deck-table-none">—</span>;
 const releaseYear = (date?: string) => /^\d{4}/.test(date || "") ? date!.slice(0, 4) : "";
-const list = (values: string[], separator: string) => values.length ? values.join(separator) : none;
+const list = (values: string[] | undefined, separator: string) => values?.length ? values.join(separator) : none;
 
 type Column = {
-  key: string;
+  key: ListColumn;
   label: string;
   /** Natural order first; a second header click switches to the reverse. The sort menu offers the same values. */
   sort?: readonly [string, string];
   /** Drops out when no deck in the results has a value. */
   optional?: (deck: TableDeck) => boolean;
-  /** Phones keep only these, with the commander under the name. */
-  phone?: boolean;
   cell: (deck: TableDeck) => ReactNode;
 };
-/* Columns after Name, in display order. A new column, such as a deck format, is one more entry. */
+/* Columns after Name, in the order of LIST_COLUMNS. Settings choose which show; a new one is one more entry. */
 const COLUMNS: Column[] = [
   { key: "commander", label: "Commander", sort: ["commander", "commander-desc"], cell: deck => list(deck.commanders, " & ") },
-  { key: "colors", label: "Colors", sort: ["colors", "colors-desc"], phone: true, cell: deck => <Mana colors={deck.colors} /> },
+  { key: "colors", label: "Colors", sort: ["colors", "colors-desc"], cell: deck => <Mana colors={deck.colors} /> },
   // Commander is the default format, so the column appears only when the results hold another one.
-  { key: "format", label: "Format", optional: deck => deck.format.id !== "commander", cell: deck => deck.format.name },
+  { key: "format", label: "Format", sort: ["format", "format-desc"], optional: deck => deck.format.id !== "commander", cell: deck => deck.format.name },
   { key: "tags", label: "Tags", optional: deck => deck.tags.length > 0, cell: deck => list(deck.tags.slice(0, 3), " · ") },
   {
     key: "release", label: "Release", sort: ["release", "release-asc"], cell: deck => {
@@ -54,9 +57,10 @@ const COLUMNS: Column[] = [
       return set || year ? <><span title={deck.set}>{set || "—"}</span>{year && <span className="deck-table-year">{year}</span>}</> : none;
     },
   },
+  { key: "collection", label: "Collection", sort: ["collection-name", "collection-name-desc"], optional: deck => !!deck.collections?.length, cell: deck => list(deck.collections, ", ") },
 ];
 const NAME_SORT = ["name", "name-desc"] as const;
-const ASCENDING = new Set(["name", "commander", "colors", "release-asc"]);
+const ASCENDING = new Set(["name", "commander", "colors", "release-asc", "format", "collection-name"]);
 
 export type DeckTableRow = {
   deck: TableDeck;
@@ -83,9 +87,15 @@ export function DeckTable({ label, rows, sort, onSort, size, lead, trail }: {
   lead?: string;
   trail?: string;
 }) {
-  const columns = COLUMNS.filter(({ optional }) => !optional || rows.some(row => optional(row.deck)));
-  // CSS hides desktop-only columns on phones, so resizing never needs a re-render.
-  const placement = (column: Column) => `deck-table-${column.key}${column.phone ? "" : " is-desktop"}`;
+  const settings = useContext(ListSettingsContext);
+  const desktop = (column: Column) => settings.columns.includes(column.key) && (!column.optional || rows.some(row => column.optional!(row.deck)));
+  // The phone column is a deliberate pick, so it stays even when empty.
+  const columns = COLUMNS.filter(column => desktop(column) || column.key === settings.phoneColumn);
+  // Desktop and phone columns render together and CSS shows the right set, so resizing never needs a re-render.
+  const placement = (column: Column) => `deck-table-${column.key}${column.key !== settings.phoneColumn ? " is-desktop" : desktop(column) ? "" : " is-phone"}`;
+  // Phones always show the commander under the name; wider screens only without a Commander column.
+  const subline = `deck-table-sub${columns.some(c => c.key === "commander") ? " is-phone" : ""}`;
+  const art = settings.art !== "none";
   const ariaSort = (order?: readonly [string, string]) =>
     order?.includes(sort) ? (ASCENDING.has(sort) ? "ascending" : "descending") : undefined;
   const header = (text: string, order?: readonly [string, string]) => !order ? text
@@ -93,12 +103,12 @@ export function DeckTable({ label, rows, sort, onSort, size, lead, trail }: {
       {text}
       {order.includes(sort) && (ASCENDING.has(sort) ? <ArrowUp size={12} aria-hidden="true" /> : <ArrowDown size={12} aria-hidden="true" />)}
     </button>;
-  return <div className={`deck-table-wrap deck-table-size-${size}`}>
+  return <div className={`deck-table-wrap deck-table-size-${size}${settings.art === "strip" ? " deck-table-strip" : ""}`}>
     <table className="deck-table" aria-label={label}>
       <thead>
         <tr>
           {lead && <th className="deck-table-lead" scope="col"><span className="sr-only">{lead}</span></th>}
-          <th className="deck-table-art" scope="col"><span className="sr-only">Artwork</span></th>
+          {art && <th className="deck-table-art" scope="col"><span className="sr-only">Artwork</span></th>}
           <th className="deck-table-name" scope="col" aria-sort={ariaSort(NAME_SORT)}>{header("Name", NAME_SORT)}</th>
           {columns.map(column => <th key={column.key} className={placement(column)} scope="col" aria-sort={ariaSort(column.sort)}>
             {header(column.label, column.sort)}
@@ -112,15 +122,15 @@ export function DeckTable({ label, rows, sort, onSort, size, lead, trail }: {
             if (onActivate && !(event.target as HTMLElement).closest("a, input, label, button")) onActivate(event);
           }}>
             {lead && <td className="deck-table-lead">{leadCell}</td>}
-            <td className="deck-table-art">
+            {art && <td className="deck-table-art">
               {deck.image ? <Artwork src={deck.image} alt={deck.commanders[0] || deck.name} colors={deck.colors} eager={eager} /> : <span className="deck-table-art-empty" />}
-            </td>
+            </td>}
             <td className="deck-table-name">
               <div className="deck-table-name-line">
                 {mark ? <span className="shortlist-mark deck-table-mark" aria-hidden="true">{String(mark).padStart(2, "0")}</span> : null}
                 {title}
               </div>
-              {deck.commanders.length > 0 && <span className="deck-table-sub">{deck.commanders.join(" & ")}</span>}
+              {deck.commanders.length > 0 && <span className={subline}>{deck.commanders.join(" & ")}</span>}
               {note && <span className="deck-table-note">{note}</span>}
             </td>
             {columns.map(column => <td key={column.key} className={placement(column)}>{column.cell(deck)}</td>)}

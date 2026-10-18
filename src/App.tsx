@@ -33,6 +33,8 @@ import {
   descriptionParts,
   EMPTY_COLLECTION,
   EMPTY_FILTERS,
+  listSettings,
+  parseListSettings,
   matchesDeck,
   pickerDecks,
   parseCollection,
@@ -45,8 +47,8 @@ import {
 import { Artwork, ArtworkContext, Mana, ManaSymbol, Modal } from "./components";
 import { applyUpdate, useOnline, useUpdateReady } from "./pwa";
 import { onMenuCommand } from "./WindowBar";
-import { DeckTable, tableDeck } from "./DeckTable";
-import CollectionViewControls, { collectionTileSize, compareCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
+import { DeckTable, ListSettingsContext, tableDeck } from "./DeckTable";
+import CollectionViewControls, { collectionTileSize, sortCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
 import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
 import CardStudio from "./CardStudio";
@@ -54,7 +56,7 @@ import HelpCenter, { helpSectionFromPath, type FeatureTarget, type HelpSection }
 import { CardBackContext } from "./placeholders/CardBackArt";
 import CollectionManager from "./CollectionManager";
 import { Notices, notify } from "./Notices";
-import { showcaseDecks, collectionDecks, freshCollection, addDemo } from "./collection";
+import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshCollection, addDemo } from "./collection";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 import FirstVisitHint, { TourPopover } from "./FirstVisitHint";
 import { ENABLE_FIRST_VISIT_IN_PRODUCTION, isFreshProfile, markFirstVisit } from "./firstVisit";
@@ -198,11 +200,13 @@ function App() {
     () => showcaseDecks(collection, catalog, allDecks),
     [allDecks, collection],
   );
-  const visible = useMemo(() => {
-    const decks = owned.filter((d) => matchesDeck(d, filters));
-    decks.sort((a, b) => compareCollectionDecks(sort, a, b));
-    return decks;
-  }, [owned, filters, sort]);
+  const tableSettings = useMemo(() => listSettings(collection), [collection.list]);
+  // The List table's Collection column and the Collection name sort use these.
+  const collectionNames = useMemo(() => deckCollections(showcaseGroups(collection, catalog, allDecks)), [allDecks, collection]);
+  const visible = useMemo(
+    () => sortCollectionDecks(sort, owned.filter((d) => matchesDeck(d, filters)), deck => ({ ...deck, collections: collectionNames.get(deck.id) })),
+    [owned, filters, sort, collectionNames],
+  );
   useEffect(() => setRefreshError(null), [detail?.id]);
   const [selecting, setSelecting] = useState(false);
   const [shortlist, setShortlist] = useState<string[]>([]);
@@ -412,6 +416,7 @@ function App() {
   return (
     <CardBackContext.Provider value={collection.cardBack ?? "nest"}>
     <ArtworkContext.Provider value={!collection.hideArtwork}>
+    <ListSettingsContext.Provider value={tableSettings}>
     <div
       className={`app-shell studio-theme ${revealed ? "winner-atmosphere" : ""}`}
     >
@@ -714,7 +719,7 @@ function App() {
                     const selected = shortlistNumbers.get(deck.id) || 0;
                     const act = (shift: boolean) => selecting ? selectDeck(deck.id, shift) : setDetail(deck);
                     return {
-                      deck: tableDeck(deck),
+                      deck: tableDeck(deck, collectionNames.get(deck.id)),
                       className: `collection-tile ${selected ? "is-shortlisted" : ""}`,
                       onActivate: event => act(event.shiftKey),
                       title: <button type="button" className="deck-table-title" onClick={e => act(e.shiftKey)}
@@ -785,10 +790,12 @@ function App() {
         onGo={goToFeature}
         precons={{ present: !!collection.demo && !collection.demo.removed, open: openPrecons }}
         settings={{
-          value: { cardBack: collection.cardBack ?? "nest", hideArtwork: !!collection.hideArtwork },
-          change: ({ hideArtwork, ...rest }) => setCollection(({ hideArtwork: was, ...c }) => ({
-            ...c, ...rest, ...((hideArtwork ?? was) ? { hideArtwork: true as const } : {}),
-          })),
+          value: { cardBack: collection.cardBack ?? "nest", hideArtwork: !!collection.hideArtwork, list: listSettings(collection) },
+          change: ({ hideArtwork, list, ...rest }) => setCollection(({ hideArtwork: was, list: wasList, ...c }) => {
+            // Only choices that differ from the defaults are saved.
+            const nextList = list ? parseListSettings(list) : wasList;
+            return { ...c, ...rest, ...((hideArtwork ?? was) ? { hideArtwork: true as const } : {}), ...(nextList ? { list: nextList } : {}) };
+          }),
         }}
       />}
       {detail && (
@@ -910,6 +917,7 @@ function App() {
         />
       )}
     </div>
+    </ListSettingsContext.Provider>
     </ArtworkContext.Provider>
     </CardBackContext.Provider>
   );
