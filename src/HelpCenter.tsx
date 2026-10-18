@@ -54,7 +54,7 @@ const topics: Partial<Record<HelpSection, Topic>> = {
     Figure: AddingFigure,
     rules: [
       { title: "Paste any Archidekt link", text: "A username, profile, folder or single deck. You see the folders and decks before anything is added." },
-      { title: "Only public Commander decks come in", text: "Private decks, other formats and decks without an assigned commander are skipped without a message." },
+      { title: "Commander is the default", text: "The folder list starts with Commander decks. Switch its format to see the others. A pasted deck link adds that deck in its own format. Commander decks still need an assigned commander. Other decks use featured artwork from Archidekt." },
       { title: "Subfolders are separate", text: "Ticking a folder doesn’t include the folders inside it. Each has its own row; tick every one you want." },
       { title: "Show only these folders", text: "Switches your other collections off once every deck has loaded. They stay saved, and Enable all brings them back." },
     ],
@@ -81,10 +81,10 @@ const topics: Partial<Record<HelpSection, Topic>> = {
     ],
   },
   picking: {
-    lead: <>The picker draws from what the shelf shows: collections that are on, narrowed by search and colors, then by your shortlist if you made one.</>,
+    lead: <>The picker uses collections that are on, narrowed by search, colors and your shortlist. Pick format sets one format for the game, independently of the browsing format filter.</>,
     Figure: PickingFigure,
     rules: [
-      { title: "Collections that are on", text: "Hidden and switched-off collections are left out. A deck in two collections counts once." },
+      { title: "One format at a time", text: "Hidden and switched-off collections are left out. A deck in two collections counts once. A single-format shelf or shortlist carries its scope into the picker; mixed pools start in Commander." },
       { title: "Colors include; Exact matches", text: <>U and B shows every deck with both, Esper and Grixis too. Turn on <b>Exact colors</b> for Dimir only. Search needs every word to match.</> },
       { title: "Choose a few", text: <>Press <b>Choose a few</b>, click decks (Shift-click selects a range), then <b>Picker</b>. The numbers are just order. The shortlist lasts until you clear it or reload.</> },
       { title: "Equal odds", text: "Every deck in the pool has the same chance. Picking for 2–4 players gives each player a different deck, numbered in the order the spiral stops on them. Small pools repeat around the spiral; repeats don’t change the odds." },
@@ -109,8 +109,9 @@ const faq: { group: string; items: { q: string; a: ReactNode; see?: HelpSection 
     { q: "Does DeckShelf change my decks on Archidekt?", a: "No. It only reads public decks and never asks for a login. Edit decklists on Archidekt." },
   ] },
   { group: "Decks and collections", items: [
-    { q: "Why is one of my decks missing?", a: "It may be private, not in the Commander format, or without an assigned commander. It may sit in a subfolder you didn’t tick, in a collection that’s off or hidden, or outside your current search and colors.", see: "adding" },
+    { q: "Why is one of my decks missing?", a: "Check the format filter: Commander is the default. Switch the folder list’s format when adding other decks. A Commander deck needs an assigned commander. A deck may also be private, in a subfolder you didn’t tick, in a collection that’s off or hidden, or outside your search and colors.", see: "adding" },
     { q: "A deck shows an old version", a: "Open it and press Refresh snapshot, or refresh its source in My collection.", see: "updates" },
+    { q: "Where do tags come from, and why do some decks have none?", a: "Tags are the deck tags set on Archidekt. Copying a deck on Archidekt doesn’t copy its tags, and most official precons have none. Add tags to the deck on Archidekt, then refresh it here.", see: "updates" },
     { q: "I switched a collection off but its decks still show", a: "They’re also in another collection that’s on. A deck shows while any collection holding it is on." },
   ] },
   { group: "Picking", items: [
@@ -121,7 +122,7 @@ const faq: { group: string; items: { q: string; a: ReactNode; see?: HelpSection 
     { q: "What if my collection cannot be saved or read?", a: "After a failed save, changes still work for this session: export them before closing, or retry saving when storage is available. Damaged or unreadable saved data is kept untouched until you confirm a valid restore. Download recovery data preserves the damaged file for manual repair; Export backup saves the current session instead.", see: "saving" },
     { q: "Can I use it on my phone and my computer?", a: "Yes, but each keeps its own shelf. Export a backup on one and restore it on the other. Sync between devices is on the roadmap.", see: "saving" },
     { q: "Does it work offline?", a: "Browsing and picking work once DeckShelf has loaded. Adding or refreshing decks needs a connection, and artwork may too unless your browser has cached it." },
-    { q: "Moxfield, or formats other than Commander?", a: "Not yet. Archidekt and Commander only for now; both are on the roadmap.", see: "roadmap" },
+    { q: "Moxfield, or formats other than Commander?", a: "Public Archidekt decks support other formats, including Modern, Standard and Pauper. Switch the folder list’s format when adding them, then set Pick format for the game. Moxfield is still on the roadmap.", see: "adding" },
     { q: "Where do I report a problem or suggest something?", a: <>Open an issue on {external(`${REPO_URL}/issues`, "GitHub")}. Include what you clicked and what you expected.</> },
   ] },
 ];

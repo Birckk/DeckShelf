@@ -1,5 +1,13 @@
+import { archidektFormat } from '../shared/formats.mjs';
 const ORIGIN = "https://archidekt.com";
 const idPattern = /^\d{1,12}$/;
+
+// Archidekt serves a deck's featured art from its card-image host or as a
+// storage.googleapis.com art crop. Both name the card, so keep only its ID.
+export function featuredCardId(url) {
+  return /^https:\/\/(?:card-images\.archidekt\.com\/(?:art|grid)\/front\/[a-f0-9]\/[a-f0-9]\/|storage\.googleapis\.com\/archidekt-card-images\/[a-z0-9]+\/)([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})(?:\.webp|_art_crop\.jpg)$/.exec(url || '')?.[1] || '';
+}
+export const archidektImage = (uid, kind) => `https://card-images.archidekt.com/${kind}/front/${uid[0]}/${uid[1]}/${uid}.webp`;
 
 async function read(path, signal) {
   const response = await fetch(`${ORIGIN}${path}`, {
@@ -18,7 +26,8 @@ async function read(path, signal) {
   return response.json();
 }
 
-export async function discoverSource(kind, value, { strict = false, verifyCount = false, signal: outerSignal, firstPage } = {}) {
+export async function discoverSource(kind, value, { strict = false, verifyCount = false, signal: outerSignal, firstPage, formatScope = 'commander' } = {}) {
+  if (!['commander', 'all'].includes(formatScope) || (strict && formatScope !== 'commander')) throw new Error('Choose Commander or All formats.');
   if (
     !["account", "folder"].includes(kind) ||
     !(kind === "folder" ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(
@@ -37,7 +46,7 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
     // Construct pagination ourselves; never fetch a URL supplied by upstream data.
     const path =
       kind === "account"
-        ? `/api/decks/v3/?${new URLSearchParams({ ownerUsername: value, deckFormat: "3", page: String(page) })}`
+        ? `/api/decks/v3/?${new URLSearchParams({ ownerUsername: value, ...(formatScope === 'commander' ? { deckFormat: "3" } : {}), page: String(page) })}`
         : `/api/decks/folders/${value}/?page=${page}`;
     const data = page === 1 && firstPage ? firstPage : await read(path, signal);
     const rows = kind === "account" ? data.results : data.decks;
@@ -75,7 +84,7 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
       if (strict && (seen.has(String(row.id)) || row.private || row.deckFormat !== 3))
         throw new Error("Catalog contains duplicate or unavailable entries.");
       seen.add(String(row.id));
-      if (row.private || row.deckFormat !== 3) continue;
+      if (row.private || (formatScope === 'commander' && row.deckFormat !== 3)) continue;
       if (
         kind === "account" &&
         row.owner?.username?.toLowerCase() !== value.toLowerCase()
@@ -86,11 +95,14 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
       const id = String(row.id);
       if (!idPattern.test(id) || typeof row.name !== "string")
         throw new Error("Archidekt returned incomplete deck information.");
-      const image =
-        typeof row.featured === "string" && row.featured.startsWith("https://")
+      const featuredId = featuredCardId(row.featured);
+      const image = featuredId
+        ? archidektImage(featuredId, "art")
+        : typeof row.featured === "string" && row.featured.startsWith("https://")
           ? row.featured
           : "";
       entries.set(id, {
+        format: archidektFormat(row.deckFormat),
         id,
         name: row.name,
         image,
@@ -116,6 +128,7 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
     throw new Error('The folder listing was incomplete. Try again; saved decks are unchanged.');
   return {
     key: `${kind}:${value.toLowerCase()}`,
+    ...(formatScope === 'all' ? { formatScope } : {}),
     kind,
     value,
     name,
@@ -131,7 +144,8 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
 }
 
 // Discovery is a preview. It never changes a visitor's saved source selections.
-export async function discoverFolders(kind, value) {
+export async function discoverFolders(kind, value, { formatScope = 'commander' } = {}) {
+  if (!['commander', 'all'].includes(formatScope)) throw new Error('Choose Commander or All formats.');
   if (!['account', 'folder'].includes(kind) ||
       !(kind === 'folder' ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(value))
     throw new Error('Enter an Archidekt username, profile or folder link.');
@@ -161,7 +175,7 @@ export async function discoverFolders(kind, value) {
       const data = await read(`/api/decks/folders/${item.id}/?page=1`, signal);
       if (kind === 'account' && data.owner?.username?.toLowerCase() !== value.toLowerCase())
         throw new Error('Archidekt returned a folder for a different account.');
-      const source = await discoverSource('folder', item.id, { signal, firstPage: data, verifyCount: true });
+      const source = await discoverSource('folder', item.id, { signal, firstPage: data, verifyCount: true, formatScope });
       if (!Array.isArray(data.subfolders)) throw new Error('Could not read the complete folder listing. Try a smaller folder link.');
       return { item, source, children: data.subfolders };
     }));
@@ -169,7 +183,7 @@ export async function discoverFolders(kind, value) {
       const path = item.path ? `${item.path} / ${source.name}` : source.name;
       folders.push({ source, path, root: item.id === root });
       source.entries.forEach(entry => ids.add(entry.id));
-      if (ids.size > 1000) throw new Error('This collection has more than 1,000 Commander decks. Paste a smaller folder link.');
+      if (ids.size > 1000) throw new Error('This collection has more than 1,000 decks. Paste a smaller folder link.');
       for (const child of children) {
         if (child.private) continue;
         const id = String(child.id);

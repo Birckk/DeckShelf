@@ -1,3 +1,4 @@
+import { coverOf } from './domain';
 import {
   useContext,
   useEffect,
@@ -51,7 +52,7 @@ export function Atmosphere({
             } as CSSProperties
           }
         >
-          {artwork && <img src={cardImage(item.commanders[0].art)} crossOrigin="anonymous" alt="" />}
+          {artwork && coverOf(item).art && <img src={cardImage(coverOf(item).art)} crossOrigin="anonymous" alt="" />}
           <div className="atmosphere-colors" />
         </div>
       ))}

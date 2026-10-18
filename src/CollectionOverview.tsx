@@ -1,3 +1,4 @@
+import { coverOf } from './domain';
 import CollectionMenu from './CollectionMenu';
 import { useEffect, useState } from 'react';
 import { ArrowUpRight, EyeOff, Folder, Library, Link2, UserRound, Power, Focus, ChevronDown, ChevronUp, Trash2, Plus } from 'lucide-react';
@@ -44,7 +45,7 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
         const active = new Set(activeIds.filter(id => !collection.hidden.includes(id))).size;
         const previews = [...new Map(group.ids.flatMap(id => {
           const deck = saved.get(id);
-          const commander = deck?.commanders[0];
+          const commander = deck ? coverOf(deck) : undefined;
           return commander?.art ? [[commander.art, { ...commander, colors: deck!.colors }] as const] : [];
         })).values()].slice(0, 3);
         const open = () => children.length ? openScope('scope:' + group.key, group.name, keys) : navigate(group.key);

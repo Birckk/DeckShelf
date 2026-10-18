@@ -71,7 +71,22 @@ export function importFolderSelection(collection: Collection, sources: Collectio
   for (const source of sources) {
     const ids = source.entries.map(entry => entry.id).filter(id => acceptedIds.has(id));
     if (!ids.length) continue;
-    next = rememberSource(next, { ...source, selectedIds: [] });
+    const previous = next.sources?.find(s => s.key === source.key);
+    // Legacy membership is implicit in knownIds. Freeze it before adding discoveries
+    // that may already be saved in another, paused collection.
+    if (previous && previous.selectedIds === undefined)
+      next = { ...next, sources: next.sources!.map(s => s.key === source.key ? { ...s, selectedIds: sourceDeckIds(previous, existing) } : s) };
+    const listing = {
+      ...source,
+      ...(previous?.formatScope === 'all' ? {
+        formatScope: 'all' as const,
+        // A Commander preview is only a partial listing of this connection.
+        ...(source.formatScope !== 'all' ? { entries: [...new Map([...previous.entries, ...source.entries].map(entry => [entry.id, entry])).values()] } : {}),
+      } : {}),
+      selectedIds: [],
+    };
+    if (listing.entries.length > 1000) throw new Error('This source has more than 1,000 decks. Link a smaller folder instead.');
+    next = rememberSource(next, listing);
     next = selectSourceDecks(next, source.key, ids, existing);
     next = enableGroup(next, source.key, true);
   }

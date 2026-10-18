@@ -44,6 +44,16 @@ test('folder discovery follows constructed pagination and keeps Commander scope'
   assert.deepEqual(result.folders[0].source.knownIds,['11','13']);
   assert.ok(calls.every(url => url.startsWith('https://archidekt.com/')));
 });
+
+test('Commander discovery ignores unrelated formats in the aggregate tree limit', async t => {
+  const modern = (start, parent) => Array.from({ length: 600 }, (_, i) => ({ ...row(start + i, parent), deckFormat: 2 }));
+  mockTree(t, { 1: folder(1, [2, 3], [row(11, 1)]), 2: folder(2, [], modern(100, 2)), 3: folder(3, [], modern(1000, 3)) });
+  const result = await discoverFolders('folder', '1');
+  assert.deepEqual(result.folders.flatMap(f => f.source.knownIds), ['11']);
+  await assert.rejects(discoverFolders('folder', '1', { formatScope: 'all' }), /1,000 decks/);
+  const retry = await discoverFolders('folder', '1');
+  assert.deepEqual(retry.folders.flatMap(f => f.source.knownIds), ['11'], 'an all-format limit failure does not affect Commander discovery');
+});
 test('incomplete, cyclic and unavailable trees fail instead of claiming completeness', async t => {
   const tree = {1: folder(1,[2])};
   mockTree(t,tree);

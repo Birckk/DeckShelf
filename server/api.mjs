@@ -1,4 +1,5 @@
-import { discoverSource, discoverFolders } from './sources.mjs';
+import { discoverSource, discoverFolders, featuredCardId, archidektImage } from './sources.mjs';
+import { archidektFormat } from '../shared/formats.mjs';
 const cache = new Map();
 const colors = { White:'W', Blue:'U', Black:'B', Red:'R', Green:'G' };
 const plain = value => String(value || '').replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
@@ -12,24 +13,33 @@ export function descriptionText(value) {
 }
 
 export function normalizeDeck(data) {
-  if (data.private || data.deckFormat !== 3 || !Array.isArray(data.cards)) throw new Error('Use a public Commander deck from Archidekt.');
+  if (data.private || !Array.isArray(data.cards)) throw new Error('Use a public deck from Archidekt.');
+  const format = archidektFormat(data.deckFormat);
   const cards = data.cards.filter(c => c.categories?.includes('Commander')).map(c => c.card);
-  if (!cards.length) throw new Error('That deck has no assigned commander. Set its commander on Archidekt first.');
+  if (!cards.length && format.id === 'commander') throw new Error('That deck has no assigned commander. Set its commander on Archidekt first.');
   cards.sort((a, b) => Number(!(data.featured || '').includes(a.uid)) - Number(!(data.featured || '').includes(b.uid)));
-  const identity = new Set(cards.flatMap(c => c.oracleCard.colorIdentity.map(c => colors[c]).filter(Boolean)));
+  const mainboard = data.cards.filter(c => !c.categories?.some(k => ['Maybeboard','Sideboard'].includes(k)));
+  const identityCards = cards.length ? cards : mainboard.map(c => c.card).filter(Boolean);
+  const identity = new Set(identityCards.flatMap(c => (c.oracleCard.colorIdentity || []).map(c => colors[c] || c).filter(c => 'WUBRG'.includes(c))));
   const commanders = cards.map(c => {
     if (!/^[a-f0-9-]{36}$/.test(c.uid)) throw new Error('The source returned an invalid card image identifier.');
     const image = kind => `https://card-images.archidekt.com/${kind}/front/${c.uid[0]}/${c.uid[1]}/${c.uid}.webp`;
     return { name:c.oracleCard.name, image:image('grid'), art:image('art'), artist:c.artist || '' };
   });
+  const featured = featuredCardId(data.featured);
+  const featuredCard = featured ? data.cards.find(c => c.card?.uid === featured)?.card : undefined;
+  const cover = commanders.length ? undefined : featured
+    ? { kind:'featured', name:featuredCard?.oracleCard.name || 'Featured card', artist:featuredCard?.artist || '', image:archidektImage(featured, 'grid'), art:archidektImage(featured, 'art') }
+    : { kind:'fallback', name:'No cover selected', artist:'', image:'', art:'' };
   return {
-    id:String(data.id), name:plain(data.name), set:cards[0].edition.editionname,
+    format, ...(cover ? { cover } : {}),
+    id:String(data.id), name:plain(data.name), set:cards[0]?.edition.editionname || '',
     colors:[...'WUBRG'].filter(c => identity.has(c)), theme:'',
     tags:(data.deckTags || []).map(t => t.tag?.name || t.name).filter(t => typeof t === 'string'),
     description:descriptionText(data.description).slice(0, 12000), commanders,
     sourceUrl:`https://archidekt.com/decks/${data.id}`, sourceName:'Archidekt',
     cardCount:data.cards.filter(c => !c.categories?.some(k => ['Maybeboard','Sideboard'].includes(k))).reduce((n,c) => n + c.quantity, 0),
-    releasedAt:cards[0].releasedAt || '', fetchedAt:new Date().toISOString(),
+    releasedAt:cards[0]?.releasedAt || '', fetchedAt:new Date().toISOString(),
   };
 }
 
@@ -42,7 +52,7 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
   if (['/api/sources', '/api/source-folders'].includes(url.pathname) && req.method === 'GET') {
     try {
       const discover = url.pathname === '/api/source-folders' ? discoverFolders : discoverSource;
-      const source = await discover(url.searchParams.get('kind'), url.searchParams.get('value') || '');
+      const source = await discover(url.searchParams.get('kind'), url.searchParams.get('value') || '', { formatScope: url.searchParams.get('formats') || 'commander' });
       res.end(JSON.stringify(source));
     } catch (error) {
       res.writeHead(502);

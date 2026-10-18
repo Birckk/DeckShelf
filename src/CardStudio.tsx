@@ -1,3 +1,4 @@
+import { coverOf, formatOf } from './domain';
 import { useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import type { Deck } from "./domain";
@@ -63,7 +64,7 @@ export default function CardStudio({
   return (
     <section
       className="card-studio"
-      aria-label="Commander card carousel"
+      aria-label="Deck card carousel"
       aria-roledescription="carousel"
       onKeyDown={(e) => {
         if (
@@ -129,8 +130,8 @@ export default function CardStudio({
               onClick={() => (active ? openDeck(item) : setSelected(item.id))}
             >
               <Artwork
-                src={item.commanders[0].image}
-                alt={item.commanders[0].name}
+                src={coverOf(item).image}
+                alt={coverOf(item).name}
                 colors={item.colors}
                 eager={distance <= 3}
               />
@@ -143,7 +144,7 @@ export default function CardStudio({
           <h2>{deck.name}</h2>
           <ExternalLink size={18} />
         </button>
-        <p>{deck.commanders.map((c) => c.name).join(" & ")}</p>
+        <p>{formatOf(deck).id !== 'commander' ? `${formatOf(deck).name} · ` : ''}{deck.commanders.map((c) => c.name).join(" & ") || coverOf(deck).name}</p>
       </div>
       <div className="studio-controls">
         <span className="studio-hint">

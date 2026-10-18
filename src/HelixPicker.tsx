@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { coverOf } from './domain';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import {
   ArrowRight,
   ExternalLink,
@@ -64,7 +65,9 @@ export default function HelixPicker({
   setSpinning,
   openDeck,
   onWinner,
+  scopeControl,
 }: {
+  scopeControl?: ReactNode;
   decks: Deck[];
   spinning: boolean;
   setSpinning: (v: boolean) => void;
@@ -399,6 +402,7 @@ export default function HelixPicker({
       className={`helix-picker ${spinning ? "is-spinning" : ""} ${winner ? "has-winner" : ""} ${chain.length ? "is-chaining" : ""} ${systemReduced ? "reduced-motion" : ""}`}
       aria-label="Random deck picker"
     >
+      <div className="helix-format">{scopeControl}</div>
         <span className="sr-only" role="status">
           {spinning
             ? seats > 1 ? `Picking ${seats} decks…` : "Picking a deck…"
@@ -419,7 +423,7 @@ export default function HelixPicker({
       <div
         ref={stage}
         className={`helix-stage ${dragging ? "is-dragging" : ""}`}
-        aria-label="Moving double helix of commander decks"
+        aria-label="Moving double helix of decks"
         onPointerDown={startDrag}
         onPointerMove={drag}
         onPointerUp={endDrag}
@@ -467,8 +471,8 @@ export default function HelixPicker({
               onClick={() => openDeck(deck)}
             >
               <Artwork
-                src={deck.commanders[0].art}
-                alt={deck.commanders[0].name}
+                src={coverOf(deck).art}
+                alt={coverOf(deck).name}
                 colors={deck.colors}
                 eager={index < 42}
               />
@@ -517,8 +521,8 @@ export default function HelixPicker({
                         onClick={() => openDeck(deck)}
                       >
                         <Artwork
-                          src={deck.commanders[0].image}
-                          alt={deck.commanders[0].name}
+                          src={coverOf(deck).image}
+                          alt={coverOf(deck).name}
                           colors={deck.colors}
                           eager
                         />

@@ -5,7 +5,7 @@
 <h1 align="center">DeckShelf</h1>
 
 <p align="center">
-  DeckShelf shows your Magic: The Gathering decks as a wall of commander cards.<br>
+  DeckShelf shows your Magic: The Gathering decks as a wall of cards.<br>
   Filter them, then pick one at random when the table can't decide what to play.
 </p>
 
@@ -19,7 +19,7 @@
 ## What it does
 
 DeckShelf reads public decklists from Archidekt and shows each deck as its
-commander card. Search by name, filter by colour identity, set or theme, and send
+commander or featured card. Search by name, filter by format, colour identity, set or theme, and send
 the matching decks to the picker. Every deck in the pool has the same chance.
 
 ![1. Link your decks from Archidekt. 2. Filter the shelf. 3. Pick one at random.](docs/images/how-it-works.webp)
@@ -29,7 +29,9 @@ the matching decks to the picker. Every deck in the pool has the same chance.
 - Saves your collection in your browser. A backup file moves it to another browser or the Windows app.
 - Runs in the browser, in Docker or as a Windows app.
 
-Commander is the only MTG format so far.
+Commander is the default. Choose All formats in the folder list to include Modern,
+Standard, Pauper and other Archidekt formats. The picker always uses one explicit
+format scope.
 
 ## Get started
 

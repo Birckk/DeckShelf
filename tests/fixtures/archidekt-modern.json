@@ -1,0 +1,70 @@
+{
+  "id": 25228988,
+  "name": "Mono Red - Burn them down",
+  "deckFormat": 2,
+  "private": false,
+  "featured": "https://card-images.archidekt.com/art/front/5/a/5af80f3b-229d-43f8-976e-50bee70b32e7.webp",
+  "deckTags": [],
+  "cards": [
+    {
+      "quantity": 20,
+      "categories": [
+        "Land"
+      ],
+      "card": {
+        "uid": "de0ac2b0-175b-4e71-9172-ce2a72234818",
+        "artist": "Julian Kok Joon Wen",
+        "edition": {
+          "editionname": "Edge of Eternities"
+        },
+        "oracleCard": {
+          "name": "Mountain",
+          "colorIdentity": [
+            "Red"
+          ]
+        },
+        "releasedAt": "2025-08-01"
+      }
+    },
+    {
+      "quantity": 4,
+      "categories": [
+        "Burn"
+      ],
+      "card": {
+        "uid": "79c21c1f-eaa4-454d-a1c7-b41466d0a428",
+        "artist": "Igor Kieryluk",
+        "edition": {
+          "editionname": "Ultimate Masters"
+        },
+        "oracleCard": {
+          "name": "Lava Spike",
+          "colorIdentity": [
+            "Red"
+          ]
+        },
+        "releasedAt": "2018-12-07"
+      }
+    },
+    {
+      "quantity": 3,
+      "categories": [
+        "Burn"
+      ],
+      "card": {
+        "uid": "7f399983-d70a-4cf3-b76e-bb0c472e7c69",
+        "artist": "Dave Kendall",
+        "edition": {
+          "editionname": "Ravnica Remastered"
+        },
+        "oracleCard": {
+          "name": "Skullcrack",
+          "colorIdentity": [
+            "Red"
+          ]
+        },
+        "releasedAt": "2024-01-12"
+      }
+    }
+  ]
+}

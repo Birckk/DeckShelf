@@ -1,5 +1,8 @@
+import { formatOf, validFormat, type DeckFormat } from "../shared/formats.mjs";
+export { formatOf, formatName } from "../shared/formats.mjs";
+export type { DeckFormat } from "../shared/formats.mjs";
 export type Color = "W" | "U" | "B" | "R" | "G";
-export type Commander = {
+export type CardArtwork = {
   name: string;
   image: string;
   art: string;
@@ -7,7 +10,11 @@ export type Commander = {
   imageSource?: string;
   artSource?: string;
 };
+export type Commander = CardArtwork;
 export type Deck = {
+  // Missing in legacy v1 snapshots: those decks are Commander.
+  format?: DeckFormat;
+  cover?: CardArtwork & { kind: "featured" | "fallback" };
   id: string;
   name: string;
   set: string;
@@ -24,21 +31,24 @@ export type Deck = {
   fetchedAt: string;
 };
 export type Filters = {
+  format?: string;
   query: string;
   colors: Color[];
   exact: boolean;
   colorless: boolean;
   set: string;
-  tag: string;
+  // Deck tags from the source; a deck must carry every selected tag.
+  tags: string[];
   count: string;
 };
 export const EMPTY_FILTERS: Filters = {
+  format: "commander",
   query: "",
   colors: [],
   exact: false,
   colorless: false,
   set: "",
-  tag: "",
+  tags: [],
   count: "",
 };
 export const COLORS: { id: Color; name: string }[] = [
@@ -49,12 +59,15 @@ export const COLORS: { id: Color; name: string }[] = [
   { id: "G", name: "Green" },
 ];
 export function matchesDeck(deck: Deck, f: Filters): boolean {
+  if (f.format && f.format !== "all" && formatOf(deck).id !== f.format) return false;
   const terms = f.query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   const text = [
     deck.name,
     deck.set,
     deck.theme,
     deck.description,
+    formatOf(deck).name,
+    deck.cover?.name || "",
     ...deck.tags,
     ...deck.commanders.map((c) => c.name),
   ]
@@ -68,9 +81,15 @@ export function matchesDeck(deck: Deck, f: Filters): boolean {
   }
   return (
     (!f.set || deck.set === f.set) &&
-    (!f.tag || deck.tags.includes(f.tag)) &&
+    f.tags.every((t) => deck.tags.includes(t)) &&
     (!f.count || deck.colors.length === Number(f.count))
   );
+}
+// Most-used tags first, so a folded list still shows the useful ones.
+export function tagCounts(decks: Deck[]): [string, number][] {
+  const counts = new Map<string, number>();
+  for (const deck of decks) for (const tag of new Set(deck.tags)) counts.set(tag, (counts.get(tag) || 0) + 1);
+  return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 export type DescriptionPart = { text: string; card?: true };
 // Archidekt descriptions reference cards as [[Card Name]]; split them out so
@@ -142,12 +161,14 @@ export type Collection = {
   demo?: { snapshotAt: string; decks: Deck[]; removed: boolean };
 };
 export type SourceEntry = {
+  format?: DeckFormat;
   id: string;
   name: string;
   image: string;
   colors: Color[];
 };
 export type CollectionSource = {
+  formatScope?: "all" | "commander";
   key: string;
   kind: "account" | "folder";
   value: string;
@@ -186,6 +207,7 @@ export function validateSource(value: unknown): value is CollectionSource {
   if (!value || typeof value !== "object") return false;
   const s = value as CollectionSource;
   return (
+    (s.formatScope === undefined || ["all", "commander"].includes(s.formatScope)) &&
     [s.folderPath, s.connectionKey, s.connectionName].every(v => v === undefined || (typeof v === "string" && v.length <= 2000)) &&
     ["account", "folder"].includes(s.kind) &&
     typeof s.value === "string" &&
@@ -219,6 +241,7 @@ export function validateSource(value: unknown): value is CollectionSource {
         typeof e.id === "string" &&
         /^\d{1,12}$/.test(e.id) &&
         typeof e.name === "string" &&
+        (e.format === undefined || validFormat(e.format)) &&
         (e.image === "" || imageUrl(e.image)) &&
         Array.isArray(e.colors) &&
         e.colors.every((c) => COLORS.some((v) => v.id === c)) &&
@@ -230,6 +253,11 @@ export function validateDeck(value: unknown): value is Deck {
   if (!value || typeof value !== "object") return false;
   const d = value as Deck;
   return (
+    (d.format === undefined || validFormat(d.format)) &&
+    (d.cover === undefined || (!!d.cover &&
+      typeof d.cover.name === "string" && typeof d.cover.artist === "string" &&
+      (d.cover.kind === "featured" ? imageUrl(d.cover.image) && imageUrl(d.cover.art)
+        : d.cover.kind === "fallback" && d.cover.image === "" && d.cover.art === ""))) &&
     typeof d.id === "string" &&
     /^\d{1,12}$/.test(d.id) &&
     [
@@ -253,7 +281,7 @@ export function validateDeck(value: unknown): value is Deck {
     Array.isArray(d.tags) &&
     d.tags.every((t) => typeof t === "string") &&
     Array.isArray(d.commanders) &&
-    d.commanders.length > 0 &&
+    (d.commanders.length > 0 || (d.format !== undefined && formatOf(d).id !== "commander" && d.cover !== undefined)) &&
     d.commanders.length < 10 &&
     d.commanders.every(
       (c) =>
@@ -264,6 +292,13 @@ export function validateDeck(value: unknown): value is Deck {
         imageUrl(c.art),
     )
   );
+}
+export function coverOf(deck: Deck): CardArtwork {
+  return deck.cover || deck.commanders[0] || { name: "No cover selected", image: "", art: "", artist: "" };
+}
+export function pickerDecks(decks: Deck[], scope: string, shortlist: string[] = []): Deck[] {
+  // No All option: even an all-format shelf or shortlist has one explicit play scope.
+  return decks.filter(deck => formatOf(deck).id === scope && (!shortlist.length || shortlist.includes(deck.id)));
 }
 export function parseCollection(raw: string): Collection {
   const v = JSON.parse(raw) as Collection & { disabledDecks?: string[] };

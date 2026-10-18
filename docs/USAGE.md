@@ -15,8 +15,14 @@ DeckShelf has three views of the same collection:
 
 Search matches deck names, commanders, descriptions, sets and themes. The colour
 buttons show decks that contain every selected colour; turn on **Exact colors**
-to show only that exact combination. **Filters** adds set, theme, number of
-colours and colourless decks. Search, colours and filters apply to all three views.
+to show only that exact combination. **Filters** adds set, tags, number of
+colours and colourless decks. Tags are the deck's Archidekt tags; choosing several
+shows decks that have all of them, and clicking a tag on a deck filters by it. A
+deck copied on Archidekt doesn't keep the original's tags, so add them there and
+refresh. Commander is the default format; choose **All formats**
+or another saved format in Filters. Search and colours apply to all three views.
+Non-Commander decks show their featured card from Archidekt, or a labelled fallback
+when none is selected. Change the featured card on Archidekt, then refresh the snapshot.
 
 Open a deck for its commander, themes, description and release, with a link to
 the full decklist on Archidekt. **Refresh snapshot** fetches the latest version
@@ -24,7 +30,10 @@ of the deck. If the source is unavailable, your saved copy stays as it was.
 
 ## Picking a deck
 
-The picker draws from whatever the current search and filters show. To pick from
+The picker draws from active collections matching search and colours, within its
+explicit **Pick format** scope. It never mixes formats. A single-format shelf or
+shortlist carries that scope into the picker; mixed shelves start in Commander.
+Changing Pick format replaces the browsing format filter for picking only. To pick from
 a handful instead, use **Choose a few** in the Collection view: click the decks
 you're considering (Shift-click selects a range), then **Picker**. Every deck in
 the pool has the same chance; repeated cards in the spiral are only there to fill
@@ -39,7 +48,10 @@ the animation. Your system's reduced-motion setting is respected.
 
 - **Add decks:** paste an Archidekt username, profile, folder or deck link. For
   an account or folder, choose the folders or individual decks you want, then
-  **Add selected decks**. Only public Commander decks can be imported, and
+  **Add selected decks**. Commander is selected initially. Choose **All formats**
+  to include other formats, then narrow the selection to an actual format if wanted.
+  Bulk actions affect the current format results and keep other selections.
+  A pasted deck link adds that deck in its own format. Only public decks can be imported, and
   DeckShelf never writes to Archidekt or asks for a password.
 - **Show or hide:** each account, folder and group has a switch. **Only this**
   shows just one; **Enable all** turns everything back on. Hiding a collection
@@ -51,6 +63,11 @@ the animation. Your system's reduced-motion setting is respected.
   add them; decks that disappear from the source stay saved.
 
 Limits: up to 50 sources, 1,000 decks per source and 1,000 imported decks.
+
+Existing source connections keep discovering Commander decks on refresh. Add the
+same source again with All formats to widen discovery without losing its saved
+selections. Unknown source formats keep their original numeric ID and have their
+own picker scope. DeckShelf displays the source format; it does not check legality.
 
 ## Settings
 

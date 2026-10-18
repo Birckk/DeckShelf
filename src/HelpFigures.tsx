@@ -14,13 +14,13 @@ const Mana = ({ colors }: { colors: Color[] }) => <span className="hf-mana">{col
 const Card = ({ i, className = "" }: { i: number; className?: string }) => <img className={`hf-card ${className}`} src={grid(i)} alt="" />;
 
 export function AddingFigure() {
-  return <figure className="hf hf-adding" aria-label="Pasting an Archidekt link previews its folders; subfolders, private and non-Commander decks are separate or skipped.">
+  return <figure className="hf hf-adding" aria-label="Pasting an Archidekt link previews its folders; subfolders are separate, private decks are skipped, and All formats includes Modern.">
     <div className="hf-input"><Link2 size={15} /><span>archidekt.com/u/your-name</span><ArrowRight size={15} /><N n={1} /></div>
     <div className="hf-tree">
       <div className="hf-row"><span className="hf-box is-on" /><Folder size={14} /><span>Commander</span><small>12 decks</small></div>
       <div className="hf-row hf-indent"><span className="hf-box" /><Folder size={14} /><span>Commander / Precons</span><small>24 decks</small><N n={3} /></div>
       <div className="hf-row hf-skip"><Lock size={14} /><span>Draft ideas · private</span><small>skipped</small><N n={2} /></div>
-      <div className="hf-row hf-skip"><span className="hf-tag">Modern</span><span>Burn</span><small>skipped</small></div>
+      <div className="hf-row"><span className="hf-box" /><span className="hf-tag">Modern</span><span>Burn</span><small>All formats</small></div>
     </div>
     <div className="hf-foot"><span className="hf-box is-on" /><span>Show only these folders</span><N n={4} /></div>
   </figure>;
@@ -59,7 +59,7 @@ export function UpdatesFigure() {
 export function PickingFigure() {
   return <figure className="hf hf-picking" aria-label="The picker pool narrows from collections that are on, to search and colors, to your shortlist; each deck has an equal chance. Colors include by default; Exact colors matches only that combination.">
     <div className="hf-funnel">
-      <div className="hf-stage" style={{ width: "100%" }}><span>Collections that are on</span><b>184</b><N n={1} /></div>
+      <div className="hf-stage" style={{ width: "100%" }}><span>Pick format: Commander</span><b>184</b><N n={1} /></div>
       <div className="hf-stage" style={{ width: "74%" }}><span>Search and colors <Mana colors={["U", "B"]} /></span><b>47</b></div>
       <div className="hf-stage is-gold" style={{ width: "48%" }}><span>Your shortlist</span><b>3</b><N n={3} /></div>
       <div className="hf-result"><ArrowDown size={14} /><span className="hf-mini">{[3, 9, 20].map(i => <Card key={i} i={i} />)}</span><span><Dices size={15} /> 1 in 3 each</span><N n={4} /></div>

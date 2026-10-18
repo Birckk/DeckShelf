@@ -266,6 +266,102 @@ body {
   border: 1px solid #4c4538;
   font-size: 11px;
 }
+.active-filters > .active-filters-fold,
+.active-filters > .active-filters-clear {
+  background: none;
+  border-color: transparent;
+  color: #a5a5ae;
+  cursor: pointer;
+}
+.active-filters > .active-filters-fold:hover,
+.active-filters > .active-filters-clear:hover:not(:disabled) {
+  color: var(--gold);
+}
+.active-filters > .active-filters-fold {
+  border-color: #ffffff1c;
+}
+/* Source tags: chips in Filters, small buttons in captions and deck details. */
+.tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+.tag-chips > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid #ffffff1f;
+  border-radius: 4px;
+  background: #ffffff06;
+  color: #c9c9d0;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tag-chips > button small {
+  color: #85858f;
+  font-size: 10px;
+}
+.tag-chips > button:hover {
+  border-color: #ffffff3a;
+}
+.tag-chips > button[aria-pressed="true"] {
+  border-color: #cdb07966;
+  background: #b49a6424;
+  color: #ecd9ac;
+}
+.tag-chips > button[aria-pressed="true"] small {
+  color: #c4ad7a;
+}
+.tag-fold {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 9px;
+  font-size: 12px;
+}
+.tag-fold[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.collection-deck-bottom > .deck-tags {
+  display: flex;
+  gap: 5px;
+  min-width: 0;
+}
+.deck-tags > button {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border: 1px solid #ffffff14;
+  border-radius: 3px;
+  background: none;
+  color: #8f8f99;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.deck-tags > button:hover,
+.deck-tags > button[aria-pressed="true"] {
+  border-color: #cdb07955;
+  color: var(--gold);
+}
+.tag-list > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border: 1px solid #ffffff1c;
+  border-radius: 4px;
+  background: #ffffff04;
+  color: #babac2;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tag-list > button:hover,
+.tag-list > button[aria-pressed="true"] {
+  border-color: #cdb07966;
+  color: #ecd9ac;
+}
 .button-gold {
   background: linear-gradient(#f8e9c7, #d3bd8e);
   border: 1px solid #f8ebcd;
@@ -1653,3 +1749,36 @@ body:has(.studio-workspace) { min-width:320px; }
 .window-bar-menu { -webkit-app-region: no-drag; display: grid; place-items: center; width: 36px; height: 28px; border-radius: 5px; color: #b5b3ae; transition: background-color 0.15s, color 0.15s; }
 .window-bar-menu:hover { background: #ffffff12; color: #f3f1ec; }
 .window-bar-shown { --app-height: calc(100svh - 34px); }
+.format-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  color: var(--text-muted, #aaa7a0);
+  font-size: 12px;
+}
+.format-select select {
+  min-width: 0;
+  max-width: 190px;
+  padding: 6px 8px;
+  border: 1px solid #454441;
+  border-radius: 5px;
+  background: #202123;
+  color: #f3f1ec;
+  font: inherit;
+}
+.format-select select:focus-visible { outline: 2px solid #c9af7d; outline-offset: 2px; }
+.helix-format { position: absolute; z-index: 9; top: 14px; right: 18px; }
+.picker-scope-controls { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; }
+.picker-scope-count { color: #aaa7a0; font-size: 11px; white-space: nowrap; }
+.deck-format { position: absolute; z-index: 2; bottom: 8px; right: 8px; max-width: calc(100% - 16px); padding: 4px 7px; border-radius: 4px; background: #111214eb; color: #e9deca; font-size: 11px; line-height: 1.2; }
+.filter-fieldset > .format-select { display: flex; justify-content: space-between; }
+.source-folder-decks small { display: block; color: #aaa7a0; }
+.manager-search > .format-select { flex: 0 1 auto; border: 0; background: none; padding: 0; white-space: nowrap; }
+.manager-search > .format-select:focus-within { outline: none; }
+.manager-search > .format-select > span { display: none; }
+@media (max-width: 700px) {
+  .manager-search { flex-wrap: wrap; }
+  .manager-search > label:not(.format-select) { flex-basis: 100%; }
+  .helix-format { top: 88px; right: 0; left: 0; text-align: center; }
+}

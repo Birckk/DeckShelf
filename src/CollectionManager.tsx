@@ -1,3 +1,4 @@
+import { coverOf, formatOf } from './domain';
 import CollectionMenu, { type MenuItem } from './CollectionMenu';
 import CollectionDeckTile from "./CollectionDeckTile";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ChangeEvent } from "react";
@@ -59,6 +60,7 @@ import { CollectionLayoutSwitch } from "./CollectionLayoutSwitch";
 import "./collection-workspace.css";
 import CollectionOverview from "./CollectionOverview";
 import SourceSetup, { type FolderDiscovery } from "./SourceSetup";
+import FormatSelect from './FormatSelect';
 import "./collection.css";
 
 type Props = {
@@ -93,9 +95,10 @@ async function loadSource(
   kind: string,
   value: string,
   signal: AbortSignal,
+  formatScope = 'commander',
 ): Promise<CollectionSource> {
   const data = await jsonRequest(
-    `/api/sources?${new URLSearchParams({ kind, value })}`,
+    `/api/sources?${new URLSearchParams({ kind, value, formats: formatScope })}`,
     signal,
   );
   if (!validateSource(data))
@@ -114,6 +117,13 @@ async function loadDeck(
   if (!validateDeck(data) || data.id !== id)
     throw new Error("The source returned incomplete deck information.");
   return data;
+}
+async function loadFolders(kind: string, value: string, signal: AbortSignal, formatScope: 'commander' | 'all'): Promise<FolderDiscovery> {
+  const found = await jsonRequest(`/api/source-folders?${new URLSearchParams({ kind, value, formats: formatScope })}`, signal);
+  if (typeof found.name !== 'string' || !Array.isArray(found.folders) || found.folders.length > 80 ||
+    !found.folders.every((f: FolderDiscovery['folders'][number]) => f && validateSource(f.source) && typeof f.path === 'string' && typeof f.root === 'boolean'))
+    throw new Error('The source returned incomplete folder information.');
+  return found;
 }
 
 export default function CollectionManager({
@@ -140,9 +150,12 @@ export default function CollectionManager({
   useEffect(() => { onLocationChange(section, scope); }, [section, scope]);
   const [connecting, setConnecting] = useState(startPersonal);
   const [discovery, setDiscovery] = useState<FolderDiscovery | null>(null);
+  const [discoveryScope, setDiscoveryScope] = useState<'commander' | 'all'>('commander');
   const [value, setValue] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
+  const [formatScope, setFormatScope] = useState('commander');
+  const [browseFormat, setBrowseFormat] = useState('all');
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -208,6 +221,7 @@ export default function CollectionManager({
     const display = isSavedHere(row.id) && (!scopedSources.length || sourceIds.has(row.id)) && displayedHere(row.id);
     return (
       text.includes(search.toLowerCase()) &&
+      (browseFormat === 'all' || formatOf(deck || row).id === browseFormat) &&
       (status === "all" ||
         (status === "shown" && display) ||
         (status === "hidden" && isSavedHere(row.id) && !display) ||
@@ -282,12 +296,12 @@ export default function CollectionManager({
         navigate("manual");
         notify(`${deck.name} added to Individual decks.`);
       } else {
-        const found = await jsonRequest(`/api/source-folders?${new URLSearchParams({ kind: parsed.kind, value: parsed.value })}`, signal);
-        if (typeof found.name !== 'string' || !Array.isArray(found.folders) || found.folders.length > 80 ||
-          !found.folders.every((f: FolderDiscovery['folders'][number]) => f && validateSource(f.source) && typeof f.path === 'string' && typeof f.root === 'boolean'))
-          throw new Error('The source returned incomplete folder information.');
+        // Discovery starts with Commander; the folder step fetches the rest when widened.
+        const found = await loadFolders(parsed.kind, parsed.value, signal, 'commander');
         signal.throwIfAborted();
         setDiscovery(found);
+        setDiscoveryScope('commander');
+        setFormatScope('commander');
         setSelected([]);
         importedFolderKeys.current.clear();
       }
@@ -297,12 +311,40 @@ export default function CollectionManager({
       setBusy("");
     }
   }
+  async function changeFormatScope(format: string) {
+    if (!discovery || format === 'commander' || discoveryScope === 'all') {
+      setFormatScope(format);
+      return;
+    }
+    const signal = begin('Finding decks…');
+    try {
+      const parsed = parseSourceInput(value);
+      const found = await loadFolders(parsed.kind, parsed.value, signal, 'all');
+      signal.throwIfAborted();
+      setDiscovery(found);
+      setDiscoveryScope('all');
+      setFormatScope(format);
+    } catch (e) { report(e); }
+    finally { setBusy(''); }
+  }
+  function resetSourceForm() {
+    setDiscovery(null);
+    setDiscoveryScope('commander');
+    setFormatScope('commander');
+    setSelected([]);
+    setError('');
+    setFailures([]);
+  }
   async function addFolders(onlyFolders: boolean) {
     if (!discovery) return;
     const signal = begin('Adding selected decks…');
     try {
       const parsed = parseSourceInput(value);
-      const chosen = discovery.folders.map(f => ({ ...f.source, folderPath: f.path, connectionKey: parsed.key, connectionName: discovery.name })).filter(s => s.entries.some(e => selected.includes(e.id)));
+      const allFormats = formatScope !== 'commander' || discovery.folders.some(f => f.source.entries.some(e => selected.includes(e.id) && formatOf(e).id !== 'commander'));
+      const chosen = discovery.folders.map(f => {
+        const entries = f.source.entries.filter(e => allFormats || formatOf(e).id === 'commander');
+        return { ...f.source, entries, knownIds: entries.map(e => e.id), formatScope: allFormats ? 'all' as const : 'commander' as const, folderPath: f.path, connectionKey: parsed.key, connectionName: discovery.name };
+      }).filter(s => s.entries.some(e => selected.includes(e.id)));
       if (new Set([...sources.map(s => s.key), ...chosen.map(s => s.key)]).size > 50)
         throw new Error('Choose fewer folders. A collection can link up to 50 sources.');
       if (collection.added.length + selected.filter(id => !collection.added.some(d => d.id === id)).length > 1000)
@@ -402,7 +444,7 @@ export default function CollectionManager({
     if (!source) return;
     const signal = begin("Checking source…");
     try {
-      const found = await loadSource(source.kind, source.value, signal);
+      const found = await loadSource(source.kind, source.value, signal, source.formatScope || 'commander');
       const { loaded, errors } = await fetchDecks(
         found.entries.filter((e) => sourceIds.has(e.id)).map((e) => e.id),
         signal,
@@ -484,7 +526,7 @@ export default function CollectionManager({
       <header className="workspace-heading">
         <div><h1 ref={heading} tabIndex={-1}>My collection</h1><p>{onDisplay} on display</p></div>
         <button className="text-button workspace-back" aria-label="Back to collection" title="Back to collection" onClick={onClose}><ArrowLeft size={15} /><span>Back to collection</span></button>
-        <button className="button button-gold" disabled={!!busy} onClick={() => { setConnecting(true); setDiscovery(null); setSelected([]); setError(''); setFailures([]); }}><Plus size={16} /> Add decks</button>
+        <button className="button button-gold" disabled={!!busy} onClick={() => { setConnecting(true); resetSourceForm(); }}><Plus size={16} /> Add decks</button>
       </header>
       <div className="collection-manager">
         <div className="manager-body">
@@ -531,8 +573,9 @@ export default function CollectionManager({
             )}
             {connecting ? (
               <SourceSetup value={value} setValue={setValue} discovery={discovery}
+                formatScope={formatScope} setFormatScope={changeFormatScope}
                 selected={selected} setSelected={setSelected} busy={!!busy}
-                back={() => { if (discovery) { setDiscovery(null); setSelected([]); } else setConnecting(false); setError(''); setFailures([]); }}
+                back={() => { if (!discovery) setConnecting(false); resetSourceForm(); }}
                 connect={connect} save={addFolders} />
             ) : (
               <>
@@ -618,6 +661,7 @@ export default function CollectionManager({
                       onChange={(e) => setSearch(e.target.value)}
                     />
                   </label>
+                  <FormatSelect label="Collection format" value={browseFormat} onChange={setBrowseFormat} items={rows} all disabled={!!busy} />
                   <select
                     aria-label="Deck display status"
                     value={status}
@@ -684,7 +728,7 @@ export default function CollectionManager({
                         {rows.length
                           ? "No matching decks"
                           : source
-                            ? "No public Commander decks found"
+                            ? "No public decks in this format"
                             : "No decks here yet"}
                       </h4>
                       <p>
@@ -795,9 +839,10 @@ export default function CollectionManager({
 }
 function toEntry(deck: Deck): SourceEntry {
   return {
+    format: formatOf(deck),
     id: deck.id,
     name: deck.name,
-    image: deck.commanders[0].art,
+    image: coverOf(deck).art,
     colors: deck.colors,
   };
 }

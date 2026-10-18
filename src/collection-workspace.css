@@ -47,8 +47,7 @@ body:has(.collection-workspace) { min-width:320px; }
 .collection-workspace .manager-empty { grid-column:1/-1; }
 .workspace-tile { position:relative; min-width:0; cursor:pointer; }
 .workspace-tile-art { position:relative; }
-.workspace-tile-art > img, .workspace-tile-art > .art-fallback, .workspace-art-placeholder { width:100%; height:auto; aspect-ratio:1.15; object-fit:cover; border-radius:7px; display:block; }
-.workspace-art-placeholder { display:grid; place-content:center; text-align:center; background:#222328; color:#aaa6a0; padding:12px; }
+.workspace-tile-art > img, .workspace-tile-art > .art-fallback{ width:100%; height:auto; aspect-ratio:1.15; object-fit:cover; border-radius:7px; display:block; }
 .workspace-tile-art .mana-row { position:absolute; top:8px; right:8px; padding:4px; border-radius:4px; background:#17181bd9; }
 .workspace-tile-title { display:flex; align-items:flex-start; gap:8px; margin-top:10px; }
 .workspace-tile-title h4 { flex:1; font:500 15px/1.35 Outfit,sans-serif; margin:0; overflow-wrap:anywhere; }

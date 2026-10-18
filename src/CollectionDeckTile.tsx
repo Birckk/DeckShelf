@@ -1,3 +1,4 @@
+import { coverOf, formatOf } from './domain';
 import { ExternalLink } from 'lucide-react';
 import { Artwork, Mana } from './components';
 import type { Deck, SourceEntry } from './domain';
@@ -6,7 +7,7 @@ export default function CollectionDeckTile({ row, deck, layout, checked, member,
   row: SourceEntry; deck?: Deck; layout: string; checked: boolean; member: boolean; busy: boolean;
   note: string; toggle: (on: boolean) => void;
 }) {
-  const image = (layout === 'art' ? deck?.commanders[0].image : deck?.commanders[0].art) || row.image;
+  const image = (layout === 'art' ? (deck ? coverOf(deck).image : '') : (deck ? coverOf(deck).art : '')) || row.image;
   return <article className={`workspace-tile ${checked ? '' : 'is-hidden'}`} onClick={e => {
     if (!busy && !(e.target as HTMLElement).closest('a, input, label, button')) toggle(!checked);
   }}>
@@ -21,6 +22,6 @@ export default function CollectionDeckTile({ row, deck, layout, checked, member,
       <label className="workspace-select"><input type="checkbox" aria-label={`${member ? 'Show' : 'Select'} ${row.name}`} checked={checked} disabled={busy} onChange={e => toggle(e.target.checked)} /></label>
       </span>
     </div>
-    <p className="workspace-tile-note">{note}</p>
+    <p className="workspace-tile-note">{formatOf(deck || row).name}{note ? ` · ${note}` : ''}</p>
   </article>;
 }

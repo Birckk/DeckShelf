@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { cardImage, descriptionParts, matchesDeck, randomIndex, drawDistinct, parseCollection, validateDeck, EMPTY_FILTERS } from '../src/domain.ts';
+import { cardImage, descriptionParts, matchesDeck, randomIndex, drawDistinct, parseCollection, validateDeck, tagCounts, EMPTY_FILTERS } from '../src/domain.ts';
 import { normalizeDeck, descriptionText } from '../server/api.mjs';
 
 const decks = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)));
@@ -55,9 +55,21 @@ test('search finds commanders, descriptions, themes and tags; multiple terms mus
   assert.equal(matchesDeck(deck,f({query:'sample nonexistent'})),false);
 });
 test('filters compose and cannot escape the selected release or theme', () => {
-  assert.equal(matchesDeck(deck,f({colors:['U'],set:deck.set,tag:'Spellslinger'})),true);
+  assert.equal(matchesDeck(deck,f({colors:['U'],set:deck.set,tags:['Spellslinger']})),true);
   assert.equal(matchesDeck(deck,f({colors:['U'],set:'Another release'})),false);
-  assert.equal(matchesDeck(deck,f({tag:'Tokens'})),false);
+  assert.equal(matchesDeck(deck,f({tags:['Tokens']})),false);
+});
+test('several tags narrow the results; most-used tags come first', () => {
+  const tagged={...deck,tags:['Samurai','Equipment']};
+  assert.equal(matchesDeck(tagged,f({tags:['Samurai','Equipment']})),true);
+  assert.equal(matchesDeck(tagged,f({tags:['Samurai','Casual']})),false);
+  assert.deepEqual(tagCounts([tagged,{...deck,tags:['Equipment','Equipment']},{...deck,tags:[]}]),[['Equipment',2],['Samurai',1]]);
+});
+test('Archidekt deck tags are kept with the saved deck', () => {
+  const data=JSON.parse(readFileSync(new URL('./fixtures/archidekt-modern.json',import.meta.url),'utf8'));
+  // The shape Archidekt returns: `tag` is the numeric tag ID, `name` its label.
+  const tags=[{id:1171726,tag:149,deck:data.id,name:'Samurai',position:'M-500000'},{id:1171727,tag:27,deck:data.id,name:'Equipment',position:'M-510000'}];
+  assert.deepEqual(normalizeDeck({...data,deckTags:tags}).tags,['Samurai','Equipment']);
 });
 test('random choice handles zero and one and rejects the biased tail', () => {
   assert.throws(() => randomIndex(0));
@@ -88,8 +100,9 @@ test('source normalization preserves partner commanders and combines their ident
   assert.equal(result.description,'Example');
   assert.ok(validateDeck(result));
 });
-test('source normalization rejects non-Commander and unassigned decks', () => {
-  assert.throws(() => normalizeDeck({deckFormat:2,cards:[]}));
+test('source normalization accepts non-Commander decks and still requires assigned Commander leaders', () => {
+  assert.equal(normalizeDeck({deckFormat:2,cards:[]}).format.id, 'modern');
+  assert.throws(() => normalizeDeck({private:true,deckFormat:2,cards:[]}));
   assert.throws(() => normalizeDeck({deckFormat:3,cards:[]}));
 });
 test('Archidekt rich text becomes readable text, including embedded card names', () => {

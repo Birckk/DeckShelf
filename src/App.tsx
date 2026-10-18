@@ -1,5 +1,8 @@
+import { coverOf, formatOf, formatName } from './domain';
 import QuickChoiceControls from './QuickChoiceControls';
 import './recovery.css';
+import FormatSelect from './FormatSelect';
+import TagFilter from './TagFilter';
 import {
   useEffect,
   useMemo,
@@ -20,6 +23,7 @@ import {
   Search,
   SlidersHorizontal,
   Dices,
+  Tag,
   RefreshCw,
   X,
 } from "lucide-react";
@@ -31,7 +35,9 @@ import {
   EMPTY_COLLECTION,
   EMPTY_FILTERS,
   matchesDeck,
+  pickerDecks,
   parseCollection,
+  tagCounts,
   validateDeck,
   type Collection,
   type Deck,
@@ -52,6 +58,8 @@ import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 
 const catalog = seed as Deck[];
 const STORAGE_KEY = "commander-archive.collection.v1";
+// More chips than this fold behind a "+N more" button.
+const CHIPS_FOLDED = 2;
 type View = "cards" | "grid" | "picker";
 const HOME_VIEW: View = "grid";
 type CollectionLayout = "grid" | "art" | "list";
@@ -208,6 +216,7 @@ function App() {
   useEffect(() => setRefreshError(null), [detail?.id]);
   const [selecting, setSelecting] = useState(false);
   const [shortlist, setShortlist] = useState<string[]>([]);
+  const [pickerFormat, setPickerFormat] = useState('commander');
   const selectionAnchor = useRef<string | null>(null);
   function selectDeck(id: string, range: boolean) {
     const end = visible.findIndex(deck => deck.id === id);
@@ -217,24 +226,28 @@ function App() {
     selectionAnchor.current = id;
   }
   const eligible = useMemo(
-    () => shortlist.length ? visible.filter(d => shortlist.includes(d.id)) : visible,
-    [visible, shortlist],
+    () => pickerDecks(owned.filter(deck => matchesDeck(deck, { ...filters, format: pickerFormat })), pickerFormat, shortlist),
+    [owned, filters, shortlist, pickerFormat],
   );
+  const browsingEligible = shortlist.length ? visible.filter(deck => shortlist.includes(deck.id)) : visible;
   const shortlistNumbers = new Map(visible.filter(deck => shortlist.includes(deck.id)).map((deck, index) => [deck.id, index + 1]));
   const sets = useMemo(
-    () => [...new Set(owned.map((d) => d.set))].sort(),
+    () => [...new Set(owned.map((d) => d.set).filter(Boolean))].sort(),
     [owned],
   );
+  // Tags offered are those in the format being browsed or picked.
+  const tagFormat = view === 'picker' ? pickerFormat : filters.format;
   const tags = useMemo(
-    () => [...new Set(owned.flatMap((d) => d.tags))].sort(),
-    [owned],
+    () => tagCounts(owned.filter(deck => matchesDeck(deck, { ...EMPTY_FILTERS, format: tagFormat }))),
+    [owned, tagFormat],
   );
+  const [chipsOpen, setChipsOpen] = useState(false);
   const activeCount =
     Number(!!filters.query) +
     Number(!!filters.colors.length || filters.colorless) +
     Number(!!filters.set) +
-    Number(!!filters.tag) +
-    Number(!!filters.count);
+    filters.tags.length +
+    Number(!!filters.count) + Number(view !== 'picker' && filters.format !== 'commander');
   function changeFilters(next: Parameters<typeof setFilters>[0]) {
     if (help) {
       setHelp(null);
@@ -244,6 +257,9 @@ function App() {
   }
   function updateFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
     changeFilters((f) => ({ ...f, [key]: value }));
+  }
+  function toggleTag(tag: string) {
+    changeFilters(f => ({ ...f, tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag] }));
   }
   function openPrecons() {
     setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
@@ -279,6 +295,10 @@ function App() {
   }
   function selectView(next: View) {
     if (spinning) return;
+    if (next === 'picker' && view !== 'picker') {
+      const formats = [...new Set(browsingEligible.map(deck => formatOf(deck).id))];
+      setPickerFormat(filters.format && filters.format !== 'all' ? filters.format : formats.length === 1 ? formats[0] : 'commander');
+    }
     setView(next);
     window.scrollTo({ top: 0, behavior: "instant" });
   }
@@ -387,6 +407,17 @@ function App() {
               Exact colors
             </label>
           </div>);
+  const activeFilterChips = [
+    view !== 'picker' && filters.format !== 'commander' && <button key="format" disabled={spinning} onClick={() => updateFilter('format', 'commander')}>{filters.format === 'all' ? 'All formats' : formatName(filters.format || 'commander')}<X size={12} /></button>,
+    filters.query && <button key="query" disabled={spinning} onClick={() => updateFilter("query", "")}>“{filters.query}” <X size={12} /></button>,
+    filters.colors.length > 0 && <button key="colors" disabled={spinning} onClick={() => updateFilter("colors", [])}>
+      <Mana colors={filters.colors} size="mini" />{filters.exact ? "Exact colors" : "Includes all"} <X size={12} />
+    </button>,
+    filters.colorless && <button key="colorless" disabled={spinning} onClick={() => updateFilter("colorless", false)}>Colorless <X size={12} /></button>,
+    filters.set && <button key="set" disabled={spinning} onClick={() => updateFilter("set", "")}>{filters.set} <X size={12} /></button>,
+    ...filters.tags.map(tag => <button key={`tag:${tag}`} disabled={spinning} aria-label={`Remove tag ${tag}`} onClick={() => toggleTag(tag)}><Tag size={11} />{tag} <X size={12} /></button>),
+    filters.count && <button key="count" disabled={spinning} onClick={() => updateFilter("count", "")}>{filters.count} colors <X size={12} /></button>,
+  ].filter(Boolean);
   return (
     <CardBackContext.Provider value={collection.cardBack ?? "nest"}>
     <ArtworkContext.Provider value={!collection.hideArtwork}>
@@ -512,8 +543,8 @@ function App() {
             >
               <SlidersHorizontal size={17} /> Filters{" "}
               {(filters.set ||
-                filters.tag ||
-                filters.count ||
+                filters.tags.length > 0 ||
+                filters.count || (view !== 'picker' && filters.format !== 'commander') ||
                 filters.colorless || filters.colors.length > 0 || filters.exact) && <span className="filter-dot" />}
               <ChevronDown size={14} />
             </button>
@@ -542,6 +573,7 @@ function App() {
                   Combine with search and colors. Results update as you choose.
                 </p>
                 <fieldset disabled={spinning} className="filter-fieldset">
+                  {view !== 'picker' && <FormatSelect label="Format" value={filters.format || 'commander'} onChange={value => updateFilter('format', value)} items={owned} all />}
                   <label className="small-checkbox">
                     <input
                       type="checkbox"
@@ -576,26 +608,7 @@ function App() {
                       <ChevronDown size={14} />
                     </div>
                   </div>
-                  <div className="filter-group">
-                    <label className="filter-label" htmlFor="theme-filter">
-                      Theme / playstyle
-                    </label>
-                    <div className="select-wrap">
-                      <select
-                        id="theme-filter"
-                        value={filters.tag}
-                        onChange={(e) => updateFilter("tag", e.target.value)}
-                      >
-                        <option value="">Every way to play</option>
-                        {tags.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown size={14} />
-                    </div>
-                  </div>
+                  <TagFilter counts={tags} selected={filters.tags} onToggle={toggleTag} />
                   <div className="filter-group">
                     <label className="filter-label" htmlFor="color-count">
                       Number of colors
@@ -643,7 +656,7 @@ function App() {
               {view === "picker"
                 ? "Deck picker"
                 : view === "cards"
-                  ? "Commander cards"
+                  ? "Deck cards"
                   : "Your collection"}
             </h1>
             <div className={`results-toolbar ${`view-${view}`}`}>
@@ -654,7 +667,7 @@ function App() {
                     : <>{visible.length} of {owned.length}<span className="count-unit"> decks</span></>}
                 </span>
               </div>
-              <QuickChoiceControls view={view} selecting={selecting} total={shortlist.length} eligible={eligible.length} busy={spinning}
+              <QuickChoiceControls view={view} selecting={selecting} total={shortlist.length} eligible={view === 'picker' ? eligible.length : browsingEligible.length} busy={spinning}
                 hasVisible={visible.length > 0} allSelected={visible.length > 0 && visible.every(d => shortlist.includes(d.id))}
                 edit={() => { if (view === 'grid') setSelecting(value => !value); else { setSelecting(true); selectView('grid'); } }}
                 pick={() => { setSelecting(false); selectView('picker'); }}
@@ -709,50 +722,24 @@ function App() {
                 </div>
               )}
             </div>
-            {!!activeCount && (
+            {activeFilterChips.length > 0 && (
               <div className="active-filters" aria-label="Active filters">
-                {filters.query && (
-                  <button
-                    onClick={() => updateFilter("query", "")}
-                    disabled={spinning}
-                  >
-                    “{filters.query}” <X size={12} />
+                {chipsOpen || activeFilterChips.length <= CHIPS_FOLDED + 1 ? activeFilterChips : activeFilterChips.slice(0, CHIPS_FOLDED)}
+                {activeFilterChips.length > CHIPS_FOLDED + 1 && (
+                  <button className="active-filters-fold" aria-expanded={chipsOpen} onClick={() => setChipsOpen(v => !v)}>
+                    {chipsOpen ? "Fewer" : `+${activeFilterChips.length - CHIPS_FOLDED} more`}
                   </button>
                 )}
-                {filters.colors.length > 0 && (
-                  <button
-                    disabled={spinning}
-                    onClick={() => updateFilter("colors", [])}
-                  >
-                    <Mana colors={filters.colors} size="mini" />
-                    {filters.exact ? "Exact colors" : "Includes all"}{" "}
-                    <X size={12} />
+                {activeFilterChips.length > 1 && (
+                  <button className="active-filters-clear" disabled={spinning} onClick={() => setFilters(f => ({ ...EMPTY_FILTERS, format: view === 'picker' ? f.format : EMPTY_FILTERS.format }))}>
+                    Clear all
                   </button>
                 )}
-                {filters.colorless && (
-                  <button
-                    disabled={spinning}
-                    onClick={() => updateFilter("colorless", false)}
-                  >
-                    Colorless <X size={12} />
-                  </button>
-                )}
-                {(["set", "tag", "count"] as const)
-                  .filter((k) => filters[k])
-                  .map((k) => (
-                    <button
-                      key={k}
-                      disabled={spinning}
-                      onClick={() => updateFilter(k, "")}
-                    >
-                      {k === "count" ? `${filters[k]} colors` : filters[k]}{" "}
-                      <X size={12} />
-                    </button>
-                  ))}
               </div>
             )}
             {view === "picker" ? (
               <Picker
+                scopeControl={<div className="picker-scope-controls"><FormatSelect label="Pick format" value={pickerFormat} onChange={setPickerFormat} items={owned} disabled={spinning} /><span className="picker-scope-count" role="status">{eligible.length} eligible</span></div>}
                 decks={eligible}
                 spinning={spinning}
                 setSpinning={setSpinning}
@@ -783,6 +770,8 @@ function App() {
                       index={index}
                       selecting={selecting}
                       selected={shortlistNumbers.get(deck.id) || 0}
+                      activeTags={filters.tags}
+                      onTag={toggleTag}
                       onOpen={() => setDetail(deck)}
                       onSelect={shift => selectDeck(deck.id, shift)}
                     />
@@ -845,24 +834,24 @@ function App() {
             <div
               className={`detail-cards ${detail.commanders.length > 1 ? "partners" : ""}`}
             >
-              {detail.commanders.map((c) => (
+              {(detail.commanders.length ? detail.commanders : [coverOf(detail)]).map((c) => (
                 <div key={c.name}>
                   <Artwork src={c.image} alt={c.name} colors={detail.colors} eager />
-                  <span>Illustration by {c.artist || "artist unlisted"}</span>
+                  {detail.cover?.kind !== 'fallback' && <span>Illustration by {c.artist || "artist unlisted"}</span>}
                 </div>
               ))}
             </div>
             <div className="detail-copy">
-              <span className="detail-set">{detail.set}</span>
+              <span className="detail-set">{formatOf(detail).name}{detail.set ? ` · ${detail.set}` : ''}</span>
               <h2>{detail.name}</h2>
               <Mana colors={detail.colors} />
               <p className="detail-commander">
-                {detail.commanders.map((c) => c.name).join(" & ")}
+                {detail.commanders.map((c) => c.name).join(" & ") || (detail.cover?.kind === 'featured' ? `Featured card · ${coverOf(detail).name}` : 'No cover selected · Set a featured card on Archidekt')}
               </p>
               {detail.theme && <p className="detail-theme">{detail.theme}</p>}
-              {detail.tags.length > 0 && <div className="tag-list">
+              {detail.tags.length > 0 && <div className="tag-list" role="group" aria-label="Tags">
                 {detail.tags.map((t) => (
-                  <span key={t}>{t}</span>
+                  <button key={t} type="button" aria-pressed={filters.tags.includes(t)} title={`Show decks tagged ${t}`} onClick={() => { toggleTag(t); setDetail(null); }}><Tag size={11} />{t}</button>
                 ))}
               </div>}
               {detail.description && (
@@ -963,6 +952,8 @@ function DeckTile({
   index,
   selecting,
   selected,
+  activeTags,
+  onTag,
   onOpen,
   onSelect,
 }: {
@@ -970,6 +961,8 @@ function DeckTile({
   index: number;
   selecting: boolean;
   selected: number;
+  activeTags: string[];
+  onTag: (tag: string) => void;
   onOpen: () => void;
   onSelect: (shift: boolean) => void;
 }) {
@@ -988,11 +981,12 @@ function DeckTile({
       >
         {selected > 0 && <span className="shortlist-mark" aria-hidden="true">{String(selected).padStart(2, "0")}</span>}
         <Artwork
-          src={deck.commanders[0].image}
-          alt={deck.commanders[0].name}
+          src={coverOf(deck).image}
+          alt={coverOf(deck).name}
           colors={deck.colors}
           eager={index < 8}
         />
+        {formatOf(deck).id !== 'commander' && <span className="deck-format">{formatOf(deck).name}</span>}
       </button>
       <div className="collection-caption">
         <button className="collection-deck-title" onClick={e => selecting ? onSelect(e.shiftKey) : onOpen()} aria-pressed={selecting ? !!selected : undefined}>
@@ -1000,12 +994,13 @@ function DeckTile({
           <ExternalLink size={14} />
         </button>
         <div className="collection-deck-meta">
-          <span title={deck.set}>{deck.set.replace(" Commander", "")}</span>
+          <span title={deck.set ? `${formatOf(deck).name} · ${deck.set}` : formatOf(deck).name}>{formatOf(deck).id === 'commander' ? deck.set.replace(" Commander", "") : formatOf(deck).name}</span>
           <Mana colors={deck.colors} />
         </div>
         <div className="collection-deck-bottom">
-          <span>{deck.theme || deck.tags.slice(0, 2).join(" · ")}</span>
-
+          {deck.tags.length ? <span className="deck-tags">
+            {deck.tags.slice(0, 3).map(tag => <button key={tag} type="button" aria-pressed={activeTags.includes(tag)} title={`Show decks tagged ${tag}`} onClick={() => onTag(tag)}>{tag}</button>)}
+          </span> : <span>{deck.theme}</span>}
         </div>
       </div>
     </article>
