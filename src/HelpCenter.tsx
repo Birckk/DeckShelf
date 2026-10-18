@@ -192,7 +192,8 @@ export default function HelpCenter({ section, onSection, onClose, onGo, precons,
   return <main className="collection-workspace help-workspace" aria-label="Help">
     <header className="workspace-heading">
       <div><h1>Help</h1></div>
-      {/* Phones fold the section tree behind one menu button in the heading row, like a docs site. */}
+      {/* Phones fold the section tree behind one menu button in the heading row, like a docs site. It sits left of
+          the title where the tree sits on desktop, while Back keeps the right end. */}
       <button className="help-mobile-toggle" aria-label="Help sections" title="Help sections" aria-expanded={mobileNav} aria-controls="help-nav" onClick={() => setMobileNav(v => !v)}>
         {mobileNav ? <X size={18} /> : <Menu size={18} />}
       </button>

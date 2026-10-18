@@ -790,9 +790,10 @@
 @media(max-width:1100px) { .help-faq-list { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:850px) { .roadmap-stages { grid-template-columns:minmax(0,1fr); } .roadmap-stages::before { display:none; } }
 @media(max-width:700px) {
-  /* One slim heading row (Help, menu, back) and a plain page title, so the topic starts near the top. */
+  /* One slim heading row (menu, Help, back) and a plain page title, so the topic starts near the top.
+     The menu sits where the desktop tree does; its negative margin lines the icon up with the gutter. */
   .help-workspace .workspace-heading { gap:4px; padding-bottom:6px; }
-  .help-mobile-toggle { display:grid; place-items:center; width:36px; height:36px; border:0; border-radius:6px; background:none; color:#c9c7c1; cursor:pointer; }
+  .help-mobile-toggle { order:-1; margin-left:-9px; display:grid; place-items:center; width:36px; height:36px; border:0; border-radius:6px; background:none; color:#c9c7c1; cursor:pointer; }
   .help-mobile-toggle:hover, .help-mobile-toggle[aria-expanded="true"] { background:#ffffff0d; color:#e6d1a8; }
   .help-mobile-toggle:focus-visible { outline:2px solid #e2cd9c; outline-offset:-2px; }
   .help-body { display:block; }
@@ -825,6 +826,7 @@
   .help-nav a,
   .help-crumb { min-height:var(--tap); }
   .help-fold, .help-mobile-toggle { width:var(--tap); height:var(--tap); }
+  .help-mobile-toggle { margin-left:calc((18px - var(--tap)) / 2); }
   .help-workspace .workspace-back { min-width:var(--tap); }
   .source-folder summary { min-height:var(--tap); padding-block:12px; box-sizing:border-box; }
   .source-choice-footer > label { min-height:var(--tap); }
