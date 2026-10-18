@@ -563,3 +563,41 @@ for (const width of [1440, 390]) test('hidden collections stay out of bulk enabl
   await expect(page.locator('.workspace-tile').getByRole('button', { name: /^(Disable|Enable) / })).toHaveCount(0);
 
 });
+
+// #94: Show only these folders switched Individual decks off, so a pasted link stayed hidden.
+for (const width of [1440, 390]) test(`a deck added to a collection that is off offers Turn on, or switches it on from Settings, at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 1000 });
+  await page.evaluate(({ key, profile }) => localStorage.setItem(key, JSON.stringify(profile)), { key, profile: { ...fixture, disabledGroups: ['manual'] } });
+  await page.route('**/api/decks/*', route => route.fulfill({ json: decks.find(d => d.id === new URL(route.request().url()).pathname.split('/').pop()) }));
+  const paste = async (deck: typeof decks[number]) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Add decks', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Username, profile, folder or deck link' }).fill(`https://archidekt.com/decks/${deck.id}`);
+    await page.keyboard.press('Enter');
+  };
+  const switchFor = page.getByRole('switch', { name: 'Enable Individual decks', exact: true });
+  const notice = page.getByRole('region', { name: 'Notifications' });
+  await paste(decks[5]);
+  await expect(notice).toContainText(`${decks[5].name} added to Individual decks, which is off.`);
+  await expect(switchFor).not.toBeChecked();
+  await page.screenshot({ path: `qa/collection/added-while-off-${width}.png` });
+  await notice.getByRole('button', { name: 'Turn on', exact: true }).click();
+  await expect(switchFor).toBeChecked();
+  expect((await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key)).disabledGroups).toEqual([]);
+
+  // With the setting, the next pasted link switches the collection on by itself.
+  await switchFor.uncheck();
+  await page.goto('/settings');
+  const row = page.getByRole('button', { name: /^Switched-off collections/ });
+  if (await row.getAttribute('aria-expanded') === 'false') await row.click();
+  await page.getByRole('checkbox', { name: /Switch a collection back on when I add decks to it/ }).check();
+  await expect(row).toContainText('Switched on when you add decks');
+  await paste(decks[6]);
+  await expect(notice).toContainText(`${decks[6].name} added to Individual decks, now switched on.`);
+  await expect(notice.getByRole('button', { name: 'Turn on', exact: true })).toHaveCount(0);
+  await expect(switchFor).toBeChecked();
+  const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
+  expect(saved.addTurnsOn).toBe(true);
+  expect(saved.disabledGroups).toEqual([]);
+});

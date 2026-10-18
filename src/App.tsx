@@ -1031,14 +1031,14 @@ function App() {
         onGo={goToFeature}
         precons={{ present: !!collection.demo && !collection.demo.removed, open: openPrecons }}
         settings={{
-          value: { cardBack: collection.cardBack ?? "nest", hideArtwork: !!collection.hideArtwork, list: listSettings(collection), addNewDecks: !collection.followOff },
-          change: ({ hideArtwork, list, addNewDecks, ...rest }) => {
+          value: { cardBack: collection.cardBack ?? "nest", hideArtwork: !!collection.hideArtwork, list: listSettings(collection), addNewDecks: !collection.followOff, addTurnsOn: !!collection.addTurnsOn },
+          change: ({ hideArtwork, list, addNewDecks, addTurnsOn, ...rest }) => {
             if (addNewDecks !== undefined) sourceRefresh.invalidate();
-            setCollection(({ hideArtwork: was, list: wasList, followOff: wasOff, ...c }) => {
+            setCollection(({ hideArtwork: was, list: wasList, followOff: wasOff, addTurnsOn: wasTurnsOn, ...c }) => {
               // Only choices that differ from the defaults are saved.
               const nextList = list ? parseListSettings(list) : wasList;
               const off = addNewDecks === undefined ? wasOff : !addNewDecks;
-              return { ...c, ...rest, ...((hideArtwork ?? was) ? { hideArtwork: true as const } : {}), ...(nextList ? { list: nextList } : {}), ...(off ? { followOff: true as const } : {}) };
+              return { ...c, ...rest, ...((hideArtwork ?? was) ? { hideArtwork: true as const } : {}), ...(nextList ? { list: nextList } : {}), ...(off ? { followOff: true as const } : {}), ...((addTurnsOn ?? wasTurnsOn) ? { addTurnsOn: true as const } : {}) };
             });
           },
         }}

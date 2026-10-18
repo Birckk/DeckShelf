@@ -190,12 +190,13 @@ test('Show card backs instead of artwork stops every artwork request and survive
 test('Settings folds into one row per group that shows its value, opens from the keyboard and stays open', async ({ page }) => {
   await page.goto('/settings');
   const rows = page.locator('.settings-fold h3 button');
-  await expect(rows).toHaveCount(4);
-  expect(await rows.evaluateAll(els => els.map(el => el.getAttribute('aria-expanded')))).toEqual(['false', 'false', 'false', 'false']);
+  await expect(rows).toHaveCount(5);
+  expect(await rows.evaluateAll(els => els.map(el => el.getAttribute('aria-expanded')))).toEqual(['false', 'false', 'false', 'false', 'false']);
   await expect(rows.nth(0)).toContainText('Dragon nest');
   await expect(rows.nth(1)).toContainText('Commander artwork');
   await expect(rows.nth(2)).toContainText('6 columns · Colors on phones · Square thumbnail');
   await expect(rows.nth(3)).toContainText('Added automatically');
+  await expect(rows.nth(4)).toContainText('Stay off when you add decks');
   await rows.nth(2).focus();
   await page.keyboard.press('Enter');
   await expect(rows.nth(2)).toHaveAttribute('aria-expanded', 'true');

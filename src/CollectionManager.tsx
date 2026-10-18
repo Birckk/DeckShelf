@@ -48,6 +48,7 @@ import {
   showcaseDecks,
   hideGroups,
   isHidden,
+  switchOn,
   groupActive,
   enableGroup,
   enableGroups,
@@ -322,6 +323,14 @@ export default function CollectionManager({
       action: { label: "Show", run: () => { failuresRegion.current?.scrollIntoView({ block: "nearest" }); failuresRegion.current?.querySelector("summary")?.focus(); } },
     });
   }
+  // Adding never switches a collection on by itself unless Settings says so (#94).
+  // Otherwise the notice says it is off and offers Turn on.
+  const turnsOn = !!collection.addTurnsOn;
+  function notifyAdded(message: string, off: boolean, key: string, errors: string[] = []) {
+    if (!off) return finish(`${message}.`, errors);
+    if (turnsOn || errors.length) return finish(`${message}, ${turnsOn ? "now switched on" : "which is off"}.`, errors);
+    notify(`${message}, which is off.`, { action: { label: "Turn on", run: () => setCollection(c => switchOn(c, key)) } });
+  }
   function commitAsync(update: (c: Collection) => Collection, signal: AbortSignal) {
     setCollection(c => {
       if (signal.aborted) return c;
@@ -344,12 +353,13 @@ export default function CollectionManager({
           );
         const deck = await loadDeck(parsed.value, signal);
         signal.throwIfAborted();
-        commitAsync(c => ({
-          ...saveSnapshots(c, [deck], true),
-          manualIds: [...new Set([...(c.manualIds || []), deck.id])],
-        }), signal);
+        const off = groups.find(g => g.key === "manual")?.enabled === false;
+        commitAsync(c => {
+          const next = { ...saveSnapshots(c, [deck], true), manualIds: [...new Set([...(c.manualIds || []), deck.id])] };
+          return off && turnsOn ? switchOn(next, "manual") : next;
+        }, signal);
         navigate("manual");
-        notify(`${deck.name} added to Individual decks.`);
+        notifyAdded(`${deck.name} added to Individual decks`, off, "manual");
       } else {
         // Discovery starts with Commander; the folder step fetches the rest when widened.
         const found = await loadFolders(parsed.kind, parsed.value, signal, 'commander');
@@ -472,19 +482,16 @@ export default function CollectionManager({
         ...loaded,
         ...selected.filter((id) => saved.has(id)).map((id) => saved.get(id)!),
       ];
+      const offGroup = accepted.length && activeGroup?.enabled === false ? activeGroup : undefined;
       commitAsync(c => {
-        const next = saveSnapshots(c, accepted, true);
-        return scopedSources.length
-          ? setSourceSelection(next, scopedKeys, accepted.map(d => d.id), true, collectionDecks(next, catalog))
-          : next;
+        let next = saveSnapshots(c, accepted, true);
+        if (scopedSources.length) next = setSourceSelection(next, scopedKeys, accepted.map(d => d.id), true, collectionDecks(next, catalog));
+        return offGroup && turnsOn ? switchOn(next, offGroup.key) : next;
       }, signal);
       setSelected((ids) =>
         ids.filter((id) => !accepted.some((d) => d.id === id)),
       );
-      finish(
-        `${accepted.length} ${accepted.length === 1 ? "deck" : "decks"} selected${activeGroup?.enabled === false ? ". Enable this collection to show them." : "."}`,
-        errors,
-      );
+      notifyAdded(`${accepted.length} ${accepted.length === 1 ? "deck" : "decks"} selected${offGroup ? ` in ${offGroup.name}` : ""}`, !!offGroup, offGroup?.key || "", errors);
     } catch (e) {
       report(e);
     } finally {

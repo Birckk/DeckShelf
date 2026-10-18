@@ -56,7 +56,7 @@ const topics: Partial<Record<HelpSection, Topic>> = {
       { title: "Paste any Archidekt link", text: "A username, profile, folder or single deck. You see the folders and decks before anything is added." },
       { title: "Commander is the default", text: "The folder list starts with Commander decks. Switch its format to see the others. A pasted deck link adds that deck in its own format. Commander decks still need an assigned commander. Other decks use featured artwork from Archidekt." },
       { title: "Subfolders are separate", text: "Ticking a folder doesn’t include the folders inside it. Each has its own row; tick every one you want." },
-      { title: "Show only these folders", text: "Switches your other collections off once every deck has loaded. They stay saved, and Enable all brings them back." },
+      { title: "Show only these folders", text: "Switches your other collections off once every deck has loaded. They stay saved, and Enable all brings them back. A deck link you paste later goes into Individual decks, which is now off: press Turn on in the notice, or switch it on for good in Settings." },
     ],
     action: { label: "Add decks in My collection", target: "collection" },
   },

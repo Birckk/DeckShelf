@@ -4,7 +4,8 @@ import { Toaster, toast, useSonner } from "sonner";
 import { AlertTriangle, Check, Undo2 } from "lucide-react";
 import "./notices.css";
 
-// Results of actions, plus Undo where an action removes something (#57).
+// Results of actions, plus Undo where an action removes something (#57) or
+// Turn on where decks were added to a collection that is off (#94).
 // Results fade; problems stay until dismissed.
 export type NoticeTone = "done" | "problem";
 export type NoticeAction = { label: string; run: () => void };
@@ -23,7 +24,7 @@ export const notify: Notify = (message, { tone = "done", action } = {}) => {
     return;
   }
   results.add(message);
-  toast(message, { ...options, duration: action ? 9000 : 5500, icon: action ? <Undo2 size={15} /> : <Check size={15} /> });
+  toast(message, { ...options, duration: action ? 9000 : 5500, icon: action?.label === "Undo" ? <Undo2 size={15} /> : <Check size={15} /> });
 };
 
 // Clear results (not problems), e.g. before a confirmation they could cover.

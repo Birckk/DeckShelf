@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
-import { ChevronRight, Image, ImageOff, List as ListIcon, RectangleVertical, RefreshCw } from "lucide-react";
+import { ChevronRight, Image, ImageOff, List as ListIcon, Power, RectangleVertical, RefreshCw } from "lucide-react";
 import { LIST_COLUMNS, PHONE_LIST_COLUMNS, type CardBackStyle, type Color, type ListArt, type ListColumn, type ListSettings } from "./domain";
 import { CardBackArt } from "./placeholders/CardBackArt";
 import "./settings.css";
@@ -17,7 +17,7 @@ const styles: { id: CardBackStyle; name: string }[] = [
   { id: "wedges", name: "Art deco wedges" },
 ];
 
-export type Settings = { cardBack: CardBackStyle; hideArtwork: boolean; list: ListSettings; addNewDecks: boolean };
+export type Settings = { cardBack: CardBackStyle; hideArtwork: boolean; list: ListSettings; addNewDecks: boolean; addTurnsOn: boolean };
 
 const columnNames: Record<ListColumn, string> = { commander: "Commander", colors: "Colors", format: "Format", tags: "Tags", release: "Release", collection: "Collection" };
 const artStyles: { id: ListArt; name: string }[] = [
@@ -70,6 +70,15 @@ export default function SettingsSection({ value, onChange }: { value: Settings; 
         <input type="checkbox" checked={value.addNewDecks} onChange={e => onChange({ addNewDecks: e.target.checked })} />
         <span><strong>Add new decks automatically</strong>
           <span>Once a day, when you open DeckShelf, folders you added whole get their new Archidekt decks. Decks you switched off stay off. Folders where you picked single decks only show what’s new. Refresh works either way.</span></span>
+      </label>,
+    },
+    {
+      id: "switched-off", title: "Switched-off collections", Icon: Power,
+      summary: value.addTurnsOn ? "Switched on when you add decks" : "Stay off when you add decks",
+      body: <label className="artwork-toggle">
+        <input type="checkbox" checked={value.addTurnsOn} onChange={e => onChange({ addTurnsOn: e.target.checked })} />
+        <span><strong>Switch a collection back on when I add decks to it</strong>
+          <span>Show only these folders switches your other collections off, Individual decks included. A deck link you paste later goes into Individual decks and stays hidden. With this on, that collection switches on so the deck shows. Without it, the notice offers Turn on.</span></span>
       </label>,
     },
   ];

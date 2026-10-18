@@ -279,6 +279,11 @@ export function hideGroups(collection: Collection, keys: string[], hidden: boole
   return hidden ? next : enableGroups(next, keys, true, true);
 }
 
+// Adding decks to a collection that is off (#94): switch it on, and show it again if hidden.
+export function switchOn(collection: Collection, key: string): Collection {
+  return isHidden(collection, key) ? hideGroups(collection, [key], false) : enableGroup(collection, key, true);
+}
+
 export type HiddenEntry = { key: string; name: string; keys: string[]; scope: boolean; count: number };
 // One row per hidden connection, or per hidden folder when the rest of its connection is visible.
 export function hiddenEntries(collection: Collection, groups: ShowcaseGroup[]): HiddenEntry[] {

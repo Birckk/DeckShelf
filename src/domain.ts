@@ -175,6 +175,8 @@ export type Collection = {
   hideArtwork?: true;
   /** Settings turned off adding new decks from Archidekt folders automatically. */
   followOff?: true;
+  /** Settings switch a collection back on when decks are added to it (#94). */
+  addTurnsOn?: true;
   version: 1;
   hidden: string[];
   excluded: string[];
@@ -411,6 +413,7 @@ export function parseCollection(raw: string): Collection {
     ...(v.cardBack === "nest" || v.cardBack === "wedges" ? { cardBack: v.cardBack } : {}),
     ...(v.hideArtwork === true ? { hideArtwork: true as const } : {}),
     ...(v.followOff === true ? { followOff: true as const } : {}),
+    ...(v.addTurnsOn === true ? { addTurnsOn: true as const } : {}),
     ...(parseListSettings(v.list) ? { list: parseListSettings(v.list) } : {}),
     ...(v.archivedGroups !== undefined ? { archivedGroups: [...new Set(v.archivedGroups)] } : {}),
     // Fold the brief per-deck disable experiment into ordinary hidden choices.

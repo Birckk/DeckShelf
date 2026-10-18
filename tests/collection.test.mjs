@@ -17,6 +17,7 @@ import {
   removeSources,
   hideGroups,
   hiddenEntries,
+  switchOn,
 } from "../src/collection.ts";
 import { discoverSource } from "../server/sources.mjs";
 
@@ -430,6 +431,18 @@ test("deckCollections names every enabled collection a deck is shown from, in or
   assert.deepEqual(names.get("1"), ["Official Commander precons"]);
   assert.deepEqual(names.get("2"), ["Official Commander precons", "Individual decks"]);
   assert.equal(names.has("3"), false);
+});
+
+test("switchOn turns an off or hidden collection back on, and the setting survives a backup (#94)", () => {
+  const off = enableGroup(collection, "manual", false);
+  assert.equal(showcaseGroups(off, [], [deck]).find(g => g.key === "manual").enabled, false);
+  assert.equal(showcaseGroups(switchOn(off, "manual"), [], [deck]).find(g => g.key === "manual").enabled, true);
+  const hidden = hideGroups(collection, ["manual"], true);
+  const shown = switchOn(hidden, "manual");
+  assert.deepEqual(shown.archivedGroups, []);
+  assert.equal(showcaseGroups(shown, [], [deck]).find(g => g.key === "manual").enabled, true);
+  assert.equal(parseCollection(JSON.stringify({ ...collection, addTurnsOn: true })).addTurnsOn, true);
+  assert.equal("addTurnsOn" in parseCollection(JSON.stringify({ ...collection, addTurnsOn: "yes" })), false);
 });
 
 test("removing the old included precons switches the set off for good", async () => {
