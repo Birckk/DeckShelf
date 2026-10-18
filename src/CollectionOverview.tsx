@@ -68,6 +68,7 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
             <CollectionMenu name={group.name} busy={busy} items={[
               { label: group.kind === 'demo' ? 'Hide precons' : 'Hide', icon: <EyeOff size={14} />, run: () => hide(keys) },
               ...(['account', 'folder'].includes(group.kind) ? [{ label: 'Remove', icon: <Trash2 size={14} />, run: () => remove(keys, group.name, group.ids.length) }] : []),
+              ...(group.kind === 'included' ? [{ label: 'Remove', icon: <Trash2 size={14} />, run: () => remove(keys, group.name, 0) }] : []),
             ]} />
           </div>}
           {expanded && children.length > 0 && <div className="overview-folder-summary">{children.map(folder => <button key={folder.key} disabled={busy} onClick={() => navigate(folder.key)}><Folder size={12} /><span>{collection.sources?.find(s => s.key === folder.key)?.folderPath || folder.name}</span><small>{folder.enabled ? folder.ids.filter(id => !collection.hidden.includes(id)).length : 0}/{folder.available} active</small></button>)}</div>}

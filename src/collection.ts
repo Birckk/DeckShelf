@@ -424,6 +424,17 @@ export function updateDemo(collection: Collection, found: Deck[], checkedAt: str
   };
 }
 
+// The bundled test set from before the precons catalog. Old profiles still have it on;
+// removing it only switches it off, since its decks were never saved snapshots.
+export function removeStarter(collection: Collection): Collection {
+  return {
+    ...collection,
+    starter: false,
+    disabledGroups: (collection.disabledGroups || []).filter(k => k !== "starter"),
+    archivedGroups: (collection.archivedGroups || []).filter(k => k !== "starter"),
+  };
+}
+
 export function removeDemo(collection: Collection): Collection {
   return collection.demo ? { ...collection, demo: { ...collection.demo, removed: true } } : collection;
 }

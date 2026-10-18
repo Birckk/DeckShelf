@@ -431,3 +431,15 @@ test("deckCollections names every enabled collection a deck is shown from, in or
   assert.deepEqual(names.get("2"), ["Official Commander precons", "Individual decks"]);
   assert.equal(names.has("3"), false);
 });
+
+test("removing the old included precons switches the set off for good", async () => {
+  const { removeStarter, collectionDecks, hideGroups } = await import("../src/collection.ts");
+  const catalog = [{ id: "legacy-1", name: "Old test deck" }];
+  const before = hideGroups({ version: 1, hidden: [], excluded: [], added: [], disabledGroups: ["starter"] }, ["starter"], true);
+  const after = removeStarter(before);
+  assert.equal(after.starter, false);
+  assert.deepEqual(after.disabledGroups, []);
+  assert.deepEqual(after.archivedGroups, []);
+  assert.deepEqual(collectionDecks(after, catalog), []);
+  assert.equal(showcaseGroups(after, catalog, []).some(g => g.key === "starter"), false);
+});

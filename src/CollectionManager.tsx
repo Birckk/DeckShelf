@@ -54,6 +54,7 @@ import {
   onlyGroup,
   sourceDeckIds,
   removeSources,
+  removeStarter,
   addDemo,
   updateDemo,
   importFolderSelection,
@@ -550,7 +551,7 @@ export default function CollectionManager({
   }
   // Remove acts at once and offers Undo instead of asking first (#57).
   function remove(keys: string[], name: string, count: number) {
-    const after = removeSources(collection, keys, catalog);
+    const after = keys.includes("starter") ? removeStarter(collection) : removeSources(collection, keys, catalog);
     setCollection(after);
     navigate("overview");
     notify(`Removed ${name}${count ? ` and its ${count} saved ${count === 1 ? "deck" : "decks"}` : ""}.`, { action: { label: "Undo", run: undoTo(collection, after) } });
@@ -584,6 +585,7 @@ export default function CollectionManager({
     ] : []),
     ...(!headerHidden && headerKeys.length ? [{ label: section === "demo" ? "Hide precons" : "Hide", icon: <EyeOff size={14} />, run: () => hide(headerKeys) }] : []),
     ...(scopedSources.length ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(scopedKeys, headerName, sourceIds.size) }] : []),
+    ...(section === "starter" ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(["starter"], headerName, 0) }] : []),
   ];
   const deckRows = shown.map((row) => {
     const deck = saved.get(row.id);
