@@ -58,7 +58,7 @@ for (const [width, height] of [[1920, 1080], [1500, 900], [390, 844], [320, 844]
       await page.screenshot({ path: `.codex-shots/${surface}-small-${width}.png` });
       await page.keyboard.press('ArrowRight');
       await expect(slider).toHaveAttribute('aria-valuetext', 'Medium');
-      if (width > 320) expect((await firstTile.boundingBox())!.width).toBeGreaterThan(smallWidth);
+      expect((await firstTile.boundingBox())!.width).toBeGreaterThan(smallWidth);
       await expect(sort.locator('option')).toHaveText(['Collection order', 'Name', 'Commander', 'Release', 'Colors', 'Format', 'Collection name']);
       if (width <= 700) await controls.getByRole('button', { name: 'Size and sort' }).click();
       for (const [name, layout] of [['Details', 'grid'], ['Cards only', 'art'], ['Compact', 'compact'], ['List', 'list']]) {
@@ -109,6 +109,29 @@ for (const [width, height] of [[1920, 1080], [1500, 900], [390, 844], [320, 844]
     }
   });
 }
+
+for (const width of [390, 320]) test(`S/M/L change the column count on phones at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 844 });
+  for (const surface of ['shelf', 'manager']) {
+    if (surface === 'manager') await openManager(page, true);
+    const controls = page.locator('.shared-view-controls');
+    const grid = page.locator(surface === 'manager' ? '.workspace-decks' : '.collection-grid');
+    const slider = controls.getByRole('slider', { name: 'Collection item size' });
+    for (const [name, expected] of [['Details', [3, 2, 1]], ['Cards only', [3, 2, 1]], ['Compact', [4, 3, 2]]] as const) {
+      await controls.getByRole('button', { name, exact: true }).click();
+      await controls.getByRole('button', { name: 'Size and sort' }).click();
+      await slider.focus();
+      const columns = [];
+      for (const key of ['Home', 'ArrowRight', 'ArrowRight']) {
+        await page.keyboard.press(key);
+        columns.push(await grid.evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length));
+      }
+      expect(columns).toEqual(expected);
+      await controls.getByRole('button', { name: 'Size and sort' }).click();
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+  }
+});
 
 test('layout and size persist independently across visits and reloads without changing collection data', async ({ page }) => {
   await page.getByRole('button', { name: 'Details', exact: true }).click();

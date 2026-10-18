@@ -48,7 +48,7 @@ import { Artwork, ArtworkContext, Mana, ManaSymbol, Modal } from "./components";
 import { applyUpdate, useOnline, useUpdateReady } from "./pwa";
 import { onMenuCommand } from "./WindowBar";
 import { DeckTable, ListSettingsContext, tableDeck } from "./DeckTable";
-import CollectionViewControls, { collectionTileSize, sortCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
+import CollectionViewControls, { collectionPhoneColumns, collectionTileSize, sortCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
 import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
 import ShufflePicker from "./ShufflePicker";
@@ -746,6 +746,7 @@ function App() {
                   style={
                     {
                       "--collection-card-min": `${collectionTileSize(display.layout, display.size)}px`,
+                      "--phone-columns": collectionPhoneColumns(display.layout, display.size),
                     } as CSSProperties
                   }
                 >

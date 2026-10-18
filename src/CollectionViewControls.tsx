@@ -8,6 +8,11 @@ const COLLECTION_SIZES = [150, 210, 280];
 const COMPACT_SIZES = [110, 150, 200];
 export const collectionTileSize = (layout: CollectionLayout, size: number) =>
   (layout === "compact" ? COMPACT_SIZES : COLLECTION_SIZES)[size];
+/* Phones are too narrow for pixel minimums to tell S/M/L apart, so each step is a column count. */
+const PHONE_COLUMNS = [3, 2, 1];
+const COMPACT_PHONE_COLUMNS = [4, 3, 2];
+export const collectionPhoneColumns = (layout: CollectionLayout, size: number) =>
+  (layout === "compact" ? COMPACT_PHONE_COLUMNS : PHONE_COLUMNS)[size];
 type Display = { layout: CollectionLayout; size: number };
 
 export function useCollectionDisplay(key: string, fallback: Display["layout"] = "art") {

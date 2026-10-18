@@ -969,7 +969,6 @@ option {
     min-width: 53px;
   }
   .collection-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
     padding-top: 12px;
   }
@@ -1220,12 +1219,6 @@ option {
   }
   .collection-view-controls .sort-label {
     margin-left: auto;
-  }
-  .collection-grid {
-    grid-template-columns: repeat(
-      auto-fill,
-      minmax(min(100%, var(--collection-card-min)), 1fr)
-    );
   }
 }
 
@@ -1680,12 +1673,26 @@ body:has(.studio-workspace) { min-width:320px; }
 .window-bar-menu:hover { background: #ffffff12; color: #f3f1ec; }
 .window-bar-shown { --app-height: calc(100svh - 34px); }
 
-/* Compact keeps at least two squares per row on the narrowest phones. */
-.collection-grid.collection-layout-compact {
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(min(var(--collection-card-min), calc(50% - 6px)), 1fr)
-  );
+/* Phones set S/M/L as a column count (collectionPhoneColumns); pixel minimums would collapse them. */
+@media (max-width: 550px) {
+  .collection-grid {
+    grid-template-columns: repeat(var(--phone-columns, 2), minmax(0, 1fr));
+  }
+  /* Small Details fits three across: a two-line name and the set/colors line, no tags. */
+  .collection-layout-grid.collection-size-0 .collection-tile {
+    padding: 5px;
+  }
+  .collection-layout-grid.collection-size-0 .collection-deck-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    min-height: 0;
+    font-size: 12px;
+  }
+  .collection-layout-grid.collection-size-0 .collection-deck-bottom {
+    display: none;
+  }
 }
 .format-select {
   display: inline-flex;

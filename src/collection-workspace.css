@@ -40,8 +40,8 @@ body:has(.collection-workspace) { min-width:320px; }
 .collection-workspace .overview-expand { margin-bottom:10px; }
 .collection-workspace .workspace-decks { max-height:none; overflow:visible; }
 .workspace-decks:not(.layout-list) { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(var(--manager-card-size),100%),1fr)); gap:24px 18px; align-items:start; }
-/* Compact keeps at least two squares per row on the narrowest phones. */
-.workspace-decks.layout-compact { grid-template-columns:repeat(auto-fill,minmax(min(var(--manager-card-size),calc(50% - 9px)),1fr)); }
+/* Phones set S/M/L as a column count (collectionPhoneColumns); pixel minimums would collapse them. */
+@media (max-width:550px) { .workspace-decks:not(.layout-list) { grid-template-columns:repeat(var(--phone-columns,2),minmax(0,1fr)); } }
 .collection-workspace .manager-footer { border-top:1px solid #ffffff18; }
 .collection-workspace .manager-empty { grid-column:1/-1; }
 .workspace-tile { position:relative; min-width:0; cursor:pointer; }

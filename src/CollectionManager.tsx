@@ -57,7 +57,7 @@ import {
 } from "./collection";
 import precons from "./data/precons.json";
 import CollectionNavigator from "./CollectionNavigator";
-import CollectionViewControls, { collectionTileSize, sortCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
+import CollectionViewControls, { collectionPhoneColumns, collectionTileSize, sortCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
 import "./collection-workspace.css";
 import CollectionOverview from "./CollectionOverview";
 import SourceSetup, { type FolderDiscovery } from "./SourceSetup";
@@ -736,6 +736,7 @@ export default function CollectionManager({
                 </div>
                 <div className={`manager-list workspace-decks layout-${layout}`} style={{
                   "--manager-card-size": `${collectionTileSize(layout, size)}px`,
+                  "--phone-columns": collectionPhoneColumns(layout, size),
                 } as CSSProperties}>
 
                   {deckViews}
