@@ -1183,45 +1183,6 @@ option {
 .collection-layout-compact .collection-card > .art-fallback {
   object-fit: cover;
 }
-.collection-layout-list {
-  grid-template-columns: 1fr;
-  gap: 6px;
-}
-.collection-layout-list .collection-tile {
-  display: grid;
-  grid-template-columns: var(--collection-thumbnail) minmax(0, 1fr);
-  gap: 16px;
-  padding: 8px 12px;
-  align-items: center;
-  border-radius: 8px;
-}
-.collection-layout-list .collection-tile:hover {
-  transform: none;
-}
-.collection-layout-list .collection-caption {
-  display: grid;
-  grid-template-columns: minmax(180px, 1.1fr) minmax(150px, 1fr) minmax(
-      140px,
-      0.8fr
-    );
-  align-items: center;
-  gap: 18px;
-  padding: 0;
-}
-.collection-layout-list .collection-deck-title {
-  min-height: 0;
-  font-size: 15px;
-  justify-content: flex-start;
-}
-.collection-layout-list .collection-deck-meta {
-  margin: 0;
-  gap: 7px;
-}
-.collection-layout-list .collection-deck-bottom {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
 .collection-size-1 .collection-deck-title {
   font-size: 16px;
 }
@@ -1231,20 +1192,6 @@ option {
 @media (max-width: 850px) {
   .collection-view-controls {
     gap: 12px;
-  }
-  .collection-layout-list .collection-caption {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 7px 14px;
-  }
-  .collection-layout-list .collection-deck-meta {
-    grid-column: 1;
-  }
-  .collection-layout-list .collection-deck-bottom {
-    grid-column: 2;
-    grid-row: 1 / 3;
-  }
-  .collection-layout-list .collection-deck-bottom > span {
-    display: none;
   }
 }
 @media (max-width: 550px) {
@@ -1274,29 +1221,6 @@ option {
       auto-fill,
       minmax(min(100%, var(--collection-card-min)), 1fr)
     );
-  }
-  .collection-layout-list {
-    grid-template-columns: 1fr;
-  }
-  .collection-layout-list .collection-tile {
-    gap: 10px;
-    padding: 8px;
-  }
-  .collection-layout-list .collection-caption {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 7px;
-  }
-  .collection-layout-list .collection-deck-title {
-    font-size: 14px;
-  }
-  .collection-layout-list .collection-deck-meta {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-  .collection-layout-list .collection-deck-bottom {
-    justify-content: flex-end;
   }
 }
 

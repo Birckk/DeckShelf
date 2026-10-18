@@ -1,6 +1,7 @@
 import { coverOf, formatOf } from './domain';
 import CollectionMenu, { type MenuItem } from './CollectionMenu';
-import CollectionDeckTile from "./CollectionDeckTile";
+import CollectionDeckTile, { DeckLink, ShownCheckbox } from "./CollectionDeckTile";
+import { DeckTable, tableDeck, tableEntry } from "./DeckTable";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ChangeEvent } from "react";
 import {
   ArrowLeft,
@@ -222,7 +223,7 @@ export default function CollectionManager({
       .join(" ")
       .toLowerCase();
     const display = isSavedHere(row.id) && (!scopedSources.length || sourceIds.has(row.id)) && displayedHere(row.id);
-    return (
+  return (
       text.includes(search.toLowerCase()) &&
       (browseFormat === 'all' || formatOf(deck || row).id === browseFormat) &&
       (status === "all" ||
@@ -540,6 +541,32 @@ export default function CollectionManager({
     ...(!headerHidden && headerKeys.length ? [{ label: section === "demo" ? "Hide precons" : "Hide", icon: <EyeOff size={14} />, run: () => hide(headerKeys) }] : []),
     ...(scopedSources.length ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(scopedKeys, headerName, sourceIds.size) }] : []),
   ];
+  const deckRows = shown.map((row) => {
+    const deck = saved.get(row.id);
+    const member = isSavedHere(row.id);
+    const checked = rowChecked(row.id);
+    const missing =
+      !!source &&
+      !!deck &&
+      !source.entries.some((e) => e.id === row.id);
+    const toggle = (on: boolean) => member
+      ? setCollection(c => scopedSources.length ? setSourceSelection(c, scopedKeys, [row.id], on, decks) : setShown(c, [row.id], on))
+      : setSelected(ids => on ? [...new Set([...ids, row.id])] : ids.filter(id => id !== row.id));
+    const status = missing ? 'No longer listed · saved copy kept' : !member ? 'Not added' : !displayedHere(row.id) && checked ? (headerHidden ? 'Hidden · selection kept' : 'Collection off · selection kept') : '';
+    return { row, deck, member, checked, toggle, status, busy: !!busy };
+  });
+  const deckViews = layout === "list" && deckRows.length
+    ? <DeckTable label="Decks in this collection" sort={sort} onSort={setSort} size={size} lead="Shown" trail="Archidekt"
+        rows={deckRows.map(item => ({
+          deck: item.deck ? tableDeck(item.deck) : tableEntry(item.row),
+          className: `workspace-tile ${item.checked ? "" : "is-hidden"}`,
+          onActivate: () => { if (!busy) item.toggle(!item.checked); },
+          title: <h4>{item.deck?.name || item.row.name}</h4>,
+          note: item.status || undefined,
+          lead: <ShownCheckbox {...item} />,
+          trail: <span className="workspace-tile-controls"><DeckLink {...item} /></span>,
+        }))} />
+    : deckRows.map(item => <CollectionDeckTile key={item.row.id} layout={layout} {...item} />);
   return (
     <main className="collection-workspace" aria-label="My collection">
       <header className="workspace-heading">
@@ -707,26 +734,9 @@ export default function CollectionManager({
                 </div>
                 <div className={`manager-list workspace-decks layout-${layout}`} style={{
                   "--manager-card-size": `${collectionTileSize(layout, size)}px`,
-                  "--manager-thumbnail": `${[48, 66, 86][size]}px`,
                 } as CSSProperties}>
 
-                  {shown.map((row) => {
-                    const deck = saved.get(row.id);
-                    const member = isSavedHere(row.id);
-                    const checked = rowChecked(row.id);
-                    const displaying = member && checked;
-                    const missing =
-                      !!source &&
-                      !!deck &&
-                      !source.entries.some((e) => e.id === row.id);
-                    const toggle = (on: boolean) => member
-                      ? setCollection(c => scopedSources.length ? setSourceSelection(c, scopedKeys, [row.id], on, decks) : setShown(c, [row.id], on))
-                      : setSelected(ids => on ? [...new Set([...ids, row.id])] : ids.filter(id => id !== row.id));
-                    return <CollectionDeckTile key={row.id} row={row} deck={deck} layout={layout} checked={checked} member={member} busy={!!busy}
-                      toggle={toggle}
-                      note={missing ? 'No longer listed · saved copy kept' : !member ? 'Not added' : !displayedHere(row.id) && displaying ? (headerHidden ? 'Hidden · selection kept' : 'Collection off · selection kept') : deck?.commanders.map(c => c.name).join(' & ') || ''}
-                      />;
-                  })}
+                  {deckViews}
                   {!shown.length && (
                     <div className="manager-empty">
                       <Library size={26} />

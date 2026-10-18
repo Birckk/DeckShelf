@@ -195,7 +195,7 @@ for (const width of [1440, 390, 320]) test(`workspace layouts, artwork selection
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('target', '_blank');
     await expect(row.locator('.workspace-tile-actions')).toHaveCount(0);
-    await row.locator('.workspace-tile-art > img').click();
+    await row.locator('.workspace-tile-art > img, .deck-table-art img').click();
     await expect(checkbox).not.toBeChecked();
     await checkbox.focus();
     await page.keyboard.press('Space');

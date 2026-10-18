@@ -60,11 +60,6 @@ body:has(.collection-workspace) { min-width:320px; }
 .layout-art .workspace-tile-title h4, .layout-compact .workspace-tile-title h4, .layout-art .workspace-tile-note, .layout-compact .workspace-tile-note { display:none; }
 .layout-art .workspace-tile-title, .layout-compact .workspace-tile-title { position:absolute; right:3px; bottom:5px; margin:0; }
 .layout-art .workspace-tile-art .mana-row { display:none; }
-.layout-list .workspace-tile { display:grid; grid-template-columns:var(--manager-thumbnail) minmax(0,1fr); gap:5px 14px; align-items:center; padding:12px 0; border-bottom:1px solid #ffffff12; }
-.layout-list .workspace-tile-art { grid-row:1/3; }
-.layout-list .workspace-tile-title { margin:0; }
-.layout-list .workspace-tile-note { grid-column:2; margin:0; }
-.layout-list .workspace-tile-art .mana-row { position:static; padding:3px 0 0; background:none; }
 .collection-workspace .manager-selection { position:sticky; bottom:8px; z-index:2; background:#24252a; padding:12px; border:1px solid #ffffff24; border-radius:6px; }
 .collection-workspace .manager-restore { flex-wrap:wrap; padding:20px 0; }
 @media(max-width:700px) {
@@ -189,7 +184,6 @@ body:has(.collection-workspace) { min-width:320px; }
 .workspace-tile-title { gap:5px; }
 .layout-art .workspace-tile-title, .layout-compact .workspace-tile-title { bottom:6px; right:6px; padding:3px; gap:4px; align-items:center; border-radius:4px; background:#17181bea; }
 .layout-art .workspace-deck-link, .layout-compact .workspace-deck-link { margin:0; }
-@media(max-width:550px) { .layout-list .workspace-tile { gap:6px 10px; } }
 
 /* Narrow tiles keep readable captions; the two existing actions share the artwork. */
 .workspace-tile { container-type:inline-size; }
@@ -199,8 +193,6 @@ body:has(.collection-workspace) { min-width:320px; }
 .layout-grid .workspace-tile-controls { position:absolute; right:6px; top:calc(100cqw / 1.15 - 38px); padding:3px; gap:4px; border-radius:4px; background:#17181bea; }
 .layout-grid .workspace-tile-controls .workspace-deck-link { margin:0; }
 .layout-grid .workspace-tile-title h4 { width:100%; }
-.layout-list .workspace-tile-title { flex-wrap:wrap; }
-.layout-list .workspace-tile-title h4 { flex-basis:100%; }
 
 /* Folder actions must wrap at the available content width, including beside the sidebar. */
 .collection-workspace .manager-group-control { flex-wrap:wrap; min-width:0; gap:6px 10px; }

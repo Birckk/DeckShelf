@@ -335,3 +335,18 @@ test('a scope stays explicit and empty when its collection is switched off', asy
   await expect(page.locator('.spin-button')).toBeDisabled();
   await expect(page.locator('.picker-scope-count')).toHaveText('0 eligible');
 });
+
+test('List adds a Format column only when the results hold a format other than Commander', async ({ page }) => {
+  await init(page);
+  await page.getByRole('button', { name: 'List', exact: true }).click();
+  const table = page.getByRole('table');
+  await expect(table.getByRole('columnheader', { name: 'Format' })).toHaveCount(0);
+  await browse(page, 'all');
+  await expect(table.locator('tbody tr')).toHaveCount(5);
+  await expect(table.getByRole('columnheader', { name: 'Format' })).toBeVisible();
+  const modern = table.locator('tbody tr', { hasText: 'Modern deck' });
+  await expect(modern.locator('.deck-table-format')).toHaveText('Modern');
+  // Decks without commanders show a dash, and their featured card stands in as the thumbnail.
+  await expect(modern.locator('.deck-table-commander')).toHaveText('—');
+  await expect(modern.locator('.deck-table-art img')).toHaveCount(1);
+});

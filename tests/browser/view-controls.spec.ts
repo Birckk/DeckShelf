@@ -59,7 +59,7 @@ for (const [width, height] of [[1920, 1080], [1500, 900], [390, 844], [320, 844]
       await page.keyboard.press('ArrowRight');
       await expect(slider).toHaveAttribute('aria-valuetext', 'Medium');
       if (width > 320) expect((await firstTile.boundingBox())!.width).toBeGreaterThan(smallWidth);
-      await expect(sort.locator('option')).toHaveText(['Collection order', 'Name: A–Z', 'Newest releases', 'Number of colors']);
+      await expect(sort.locator('option')).toHaveText(['Collection order', 'Name', 'Commander', 'Release', 'Colors']);
       if (width <= 700) await controls.getByRole('button', { name: 'Size and sort' }).click();
       for (const [name, layout] of [['Details', 'grid'], ['Cards only', 'art'], ['Compact', 'compact'], ['List', 'list']]) {
         await controls.getByRole('button', { name, exact: true }).click();
@@ -69,13 +69,15 @@ for (const [width, height] of [[1920, 1080], [1500, 900], [390, 844], [320, 844]
         if (surface === 'manager') {
           const checkbox = tiles.first().getByRole('checkbox');
           const link = tiles.first().getByRole('link');
+          // Tiles put the link before the checkbox; the List table starts each row with its checkbox.
+          const [toCheckbox, toLink] = layout === 'list' ? ['Shift+Tab', 'Tab'] : ['Tab', 'Shift+Tab'];
           await link.focus();
-          await page.keyboard.press('Tab');
+          await page.keyboard.press(toCheckbox);
           await expect(checkbox).toBeFocused();
           expect(await checkbox.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('solid');
           // WebKit's default keyboard navigation skips links, so focus the link directly there.
           if (browserName === 'webkit') await link.focus();
-          else await page.keyboard.press('Shift+Tab');
+          else await page.keyboard.press(toLink);
           await expect(link).toBeFocused();
           expect(await link.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('solid');
           if (layout === 'grid' || layout === 'list') {
@@ -83,7 +85,9 @@ for (const [width, height] of [[1920, 1080], [1500, 900], [390, 844], [320, 844]
             const tile = await tiles.first().boundingBox();
             const actions = await tiles.first().locator('.workspace-tile-controls').boundingBox();
             if (layout === 'grid') expect(title!.width).toBeCloseTo(tile!.width, 0);
-            expect(title!.y >= actions!.y + actions!.height || title!.y + title!.height <= actions!.y).toBe(true);
+            // Tiles stack the title and actions; table rows keep them in separate columns.
+            if (layout === 'list') expect(title!.x + title!.width).toBeLessThanOrEqual(actions!.x);
+            else expect(title!.y >= actions!.y + actions!.height || title!.y + title!.height <= actions!.y).toBe(true);
           }
         }
         await page.evaluate(() => { (document.activeElement as HTMLElement)?.blur(); scrollTo(0, 0); });
@@ -193,4 +197,98 @@ test('switching to a layout with other artwork starts each picture fresh', async
     await expect(images.first()).toBeVisible();
     expect(await images.evaluateAll(imgs => imgs.filter(img => img.hasAttribute('data-old')).length)).toBe(0);
   }
+});
+
+for (const width of [1500, 390]) test(`List is a sortable table on both pages at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 });
+  const phone = width <= 700;
+  const byName = decks.map(d => d.name).sort((a, b) => a.localeCompare(b));
+  for (const surface of ['shelf', 'manager']) {
+    if (surface === 'manager') await openManager(page, phone);
+    await page.getByRole('button', { name: 'List', exact: true }).click();
+    const table = page.getByRole('table');
+    const rows = table.locator('tbody tr');
+    await expect(rows).toHaveCount(decks.length);
+    await expect(table.getByRole('columnheader', { name: 'Name' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Colors' })).toBeVisible();
+    // Phones keep artwork, name and colors; the commander moves under the name and release drops.
+    for (const column of ['Commander', 'Release']) {
+      if (phone) await expect(table.getByRole('columnheader', { name: column })).toBeHidden();
+      else await expect(table.getByRole('columnheader', { name: column })).toBeVisible();
+    }
+    const commander = decks[0].commanders[0].name;
+    if (phone) await expect(rows.first().locator('.deck-table-name')).toContainText(commander);
+    else await expect(rows.first().locator('.deck-table-commander')).toHaveText(commander);
+
+    // Headers, the field menu and its direction button share one sort; a second header click reverses it.
+    // Phones fold the menu away, so read it without requiring it to be visible.
+    const sort = page.locator('select[aria-label="Sort decks"]');
+    const direction = page.locator('.sort-direction');
+    const nameHeader = table.getByRole('columnheader', { name: 'Name' });
+    await nameHeader.getByRole('button').click();
+    await expect(sort).toHaveValue('name');
+    await expect(nameHeader).toHaveAttribute('aria-sort', 'ascending');
+    await expect(rows.first()).toContainText(byName[0]);
+    await nameHeader.getByRole('button').click();
+    await expect(sort).toHaveValue('name');
+    await expect(direction).toHaveText('Z–A');
+    await expect(nameHeader).toHaveAttribute('aria-sort', 'descending');
+    await expect(rows.first()).toContainText(byName.at(-1)!);
+    if (!phone) {
+      const byCommander = [...decks].sort((a, b) => a.commanders[0].name.localeCompare(b.commanders[0].name));
+      const commanderHeader = table.getByRole('columnheader', { name: 'Commander' });
+      await commanderHeader.getByRole('button').click();
+      await expect(sort).toHaveValue('commander');
+      await expect(commanderHeader).toHaveAttribute('aria-sort', 'ascending');
+      await expect(rows.first()).toContainText(byCommander[0].commanders[0].name);
+      await commanderHeader.getByRole('button').click();
+      await expect(rows.first()).toContainText(byCommander.at(-1)!.commanders[0].name);
+    }
+    if (phone) await page.getByRole('button', { name: 'Size and sort' }).click();
+    // Picking a field starts at its natural order; the direction button names and flips it.
+    const colorsHeader = table.getByRole('columnheader', { name: 'Colors' });
+    await sort.selectOption('colors');
+    await expect(nameHeader).not.toHaveAttribute('aria-sort');
+    await expect(colorsHeader).toHaveAttribute('aria-sort', 'ascending');
+    await page.getByRole('button', { name: 'Sort order: Fewest', exact: true }).click();
+    await expect(colorsHeader).toHaveAttribute('aria-sort', 'descending');
+    await expect(direction).toHaveText('Most');
+    await sort.selectOption('collection');
+    await expect(direction).toHaveCount(0);
+    await expect(rows.first()).toContainText(decks[0].name);
+    if (phone) await page.getByRole('button', { name: 'Size and sort' }).click();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+    if (surface === 'shelf') {
+      // A row click selects while choosing a few, and the shortlist number shows in the row.
+      await page.getByRole('button', { name: 'Choose a few', exact: true }).click();
+      await rows.nth(1).locator('.deck-table-colors').click();
+      await expect(rows.nth(1)).toHaveClass(/is-shortlisted/);
+      await expect(rows.nth(1).locator('.shortlist-mark')).toHaveText('01');
+      await expect(page.getByRole('button', { name: `Select ${decks[1].name}`, exact: true })).toHaveAttribute('aria-pressed', 'true');
+      await page.getByRole('button', { name: 'Clear selection', exact: true }).click();
+    } else {
+      // A row click toggles its checkbox, and Select all follows.
+      const box = rows.first().getByRole('checkbox', { name: `Show ${decks[0].name}`, exact: true });
+      const all = page.getByRole('checkbox', { name: 'Select all', exact: true });
+      await rows.first().locator('h4').click();
+      await expect(box).not.toBeChecked();
+      await expect(rows.first()).toHaveClass(/is-hidden/);
+      expect(await all.evaluate(el => (el as HTMLInputElement).indeterminate)).toBe(true);
+      await rows.first().locator('h4').click();
+      await expect(box).toBeChecked();
+      await expect(rows.first().getByRole('link', { name: `Open ${decks[0].name} on Archidekt`, exact: true })).toHaveAttribute('target', '_blank');
+    }
+  }
+});
+
+test('List shows Tags only when a deck in the results has them', async ({ page }) => {
+  await page.getByRole('button', { name: 'List', exact: true }).click();
+  const tags = page.getByRole('table').getByRole('columnheader', { name: 'Tags' });
+  await expect(tags).toBeVisible();
+  await expect(page.getByRole('table').locator('tbody tr').first().locator('.deck-table-tags')).toHaveText(decks[0].tags.slice(0, 3).join(' · '));
+  await page.evaluate(({ key, fixture }) => localStorage.setItem(key, JSON.stringify({ ...fixture, added: fixture.added.map(d => ({ ...d, tags: [] })) })), { key: collectionKey, fixture });
+  await page.reload();
+  await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(decks.length);
+  await expect(tags).toHaveCount(0);
 });

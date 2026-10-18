@@ -45,6 +45,7 @@ import {
 import { Artwork, ArtworkContext, Mana, ManaSymbol, Modal } from "./components";
 import { applyUpdate, useOnline, useUpdateReady } from "./pwa";
 import { onMenuCommand } from "./WindowBar";
+import { DeckTable, tableDeck } from "./DeckTable";
 import CollectionViewControls, { collectionTileSize, compareCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
 import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
@@ -675,6 +676,22 @@ function App() {
                   decks={visible}
                   openDeck={setDetail}
                 />
+              ) : display.layout === "list" ? (
+                <DeckTable label="Your collection" sort={sort} onSort={setSort} size={display.size}
+                  rows={visible.map((deck, index) => {
+                    const selected = shortlistNumbers.get(deck.id) || 0;
+                    const act = (shift: boolean) => selecting ? selectDeck(deck.id, shift) : setDetail(deck);
+                    return {
+                      deck: tableDeck(deck),
+                      className: `collection-tile ${selected ? "is-shortlisted" : ""}`,
+                      onActivate: event => act(event.shiftKey),
+                      title: <button type="button" className="deck-table-title" onClick={e => act(e.shiftKey)}
+                        aria-pressed={selecting ? !!selected : undefined}
+                        aria-label={`${selecting ? "Select" : "View"} ${deck.name}`}>{deck.name}</button>,
+                      mark: selected,
+                      eager: index < 16,
+                    };
+                  })} />
               ) : (
                 <div
                   key={visible.map((d) => d.id).join(",")}
@@ -682,7 +699,6 @@ function App() {
                   style={
                     {
                       "--collection-card-min": `${collectionTileSize(display.layout, display.size)}px`,
-                      "--collection-thumbnail": `${[48, 66, 86][display.size]}px`,
                     } as CSSProperties
                   }
                 >

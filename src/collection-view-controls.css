@@ -30,3 +30,8 @@
   .shared-view-controls .collection-layout-switch button { flex:1 1 0; padding-inline:0; }
   .shared-view-controls .collection-layout-switch button > span { display:none; }
 }
+
+.shared-view-controls .sort-field { display:inline-flex; align-items:center; gap:4px; }
+.shared-view-controls .sort-direction { display:inline-flex; align-items:center; gap:4px; min-height:24px; padding:2px 7px; border:1px solid #37363a; border-radius:4px; background:#171719; color:#c3bdaf; font-size:11px; white-space:nowrap; cursor:pointer; }
+.shared-view-controls .sort-direction:hover { color:#e8d3a5; border-color:#5a5547; }
+
