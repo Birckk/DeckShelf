@@ -18,15 +18,15 @@ async function read(path, signal) {
     signal: AbortSignal.any([signal, AbortSignal.timeout(20000)]),
   });
   if (!response.ok)
-    throw new Error(
+    throw Object.assign(new Error(
       response.status === 404 || response.status === 403
         ? "Source not found or not public. Check the Archidekt link."
         : "Archidekt is unavailable right now. Your saved collection is unchanged.",
-    );
+    ), { status: response.status });
   return response.json();
 }
 
-export async function discoverSource(kind, value, { strict = false, verifyCount = false, signal: outerSignal, firstPage, formatScope = 'commander' } = {}) {
+export async function discoverSource(kind, value, { strict = false, verifyCount = false, signal: outerSignal, firstPage, formatScope = 'commander', withUpdatedAt = false } = {}) {
   if (!['commander', 'all'].includes(formatScope) || (strict && formatScope !== 'commander')) throw new Error('Choose Commander or All formats.');
   if (
     !["account", "folder"].includes(kind) ||
@@ -108,6 +108,8 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
         name: row.name,
         image,
         colors: [..."WUBRG"].filter((c) => Number(row.colors?.[c]) > 0),
+        // Only the MCP server's deck cache asks for this; saved sources stay as they were.
+        ...(withUpdatedAt && typeof row.updatedAt === "string" ? { updatedAt: row.updatedAt } : {}),
       });
     }
     if (entries.size > 1000)
@@ -160,7 +162,7 @@ export async function accountExists(username, signal) {
 }
 
 // Discovery is a preview. It never changes a visitor's saved source selections.
-export async function discoverFolders(kind, value, { signal: outerSignal, formatScope = 'commander' } = {}) {
+export async function discoverFolders(kind, value, { signal: outerSignal, formatScope = 'commander', withUpdatedAt = false } = {}) {
   if (!['commander', 'all'].includes(formatScope)) throw new Error('Choose Commander or All formats.');
   if (!['account', 'folder'].includes(kind) ||
       !(kind === 'folder' ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(value))
@@ -193,7 +195,7 @@ export async function discoverFolders(kind, value, { signal: outerSignal, format
       const data = await read(`/api/decks/folders/${item.id}/?page=1`, signal);
       if (kind === 'account' && data.owner?.username?.toLowerCase() !== value.toLowerCase())
         throw new Error('Archidekt returned a folder for a different account.');
-      const source = await discoverSource('folder', item.id, { signal, firstPage: data, verifyCount: true, formatScope });
+      const source = await discoverSource('folder', item.id, { signal, firstPage: data, verifyCount: true, formatScope, withUpdatedAt });
       if (!Array.isArray(data.subfolders)) throw new Error('Could not read the complete folder listing. Try a smaller folder link.');
       return { item, source, children: data.subfolders };
     }));

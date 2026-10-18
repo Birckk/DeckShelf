@@ -53,7 +53,8 @@ export async function fetchDeck(id, { refresh = false, store = cache, limit = 10
       headers:{ 'User-Agent':'DeckShelf/1.0 (personal deck showcase)', Accept:'application/json' },
       signal:signal ? AbortSignal.any([signal, AbortSignal.timeout(20000)]) : AbortSignal.timeout(20000),
     });
-    if (!response.ok) throw new Error(response.status === 404 ? 'Deck not found. Check the link and make sure the deck is public.' : 'Archidekt is unavailable right now. Please try again later.');
+    // The status lets the MCP server back off when Archidekt limits requests (429).
+    if (!response.ok) throw Object.assign(new Error(response.status === 404 ? 'Deck not found. Check the link and make sure the deck is public.' : 'Archidekt is unavailable right now. Please try again later.'), { status: response.status });
     const data = await response.json();
     signal?.throwIfAborted();
     if (String(data.id) !== id) throw new Error('The source returned an unexpected deck.');

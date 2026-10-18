@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServer } from '../server/mcp.mjs';
@@ -27,7 +29,9 @@ function rawDeck(deck) {
     ],
   };
 }
-const row = deck => ({ id: Number(deck.id), name: deck.name, deckFormat: 3, private: false, owner,
+const modern = fixture('archidekt-modern.json');
+const edited = {};
+const row = deck => ({ id: Number(deck.id), name: deck.name, deckFormat: 3, private: false, owner, updatedAt: edited[deck.id] || '2026-10-01T00:00:00Z',
   colors: Object.fromEntries(deck.colors.map(c => [c, 1])) });
 const tree = {
   1916319: [1916320, 1916321],
@@ -54,12 +58,15 @@ function stubArchidekt(t, respond = () => {}) {
       return ['Birckk', 'EmptyAccount'].includes(decodeURIComponent(url.pathname.slice(3))) ? { ok: true, status: 200 } : { ok: false, status: 404 };
     if (url.pathname === '/api/decks/v3/') {
       const mine = url.searchParams.get('ownerUsername') === 'Birckk';
-      const rows = mine ? [...decks.map(row), { ...row(decks[0]), id: Number(NO_COMMANDER), name: 'Unfinished brew' }] : [];
+      const rows = mine ? [...decks.map(row), { ...row(decks[0]), id: Number(NO_COMMANDER), name: 'Unfinished brew', updatedAt: edited[NO_COMMANDER] || '2026-10-01T00:00:00Z' }] : [];
+      // Without the Commander filter Archidekt also lists other formats.
+      if (mine && !url.searchParams.has('deckFormat')) rows.push({ ...row({ id: String(modern.id), name: modern.name, colors: ['R'] }), deckFormat: 2 });
       return json({ count: rows.length, next: null, results: rows });
     }
     let match = /^\/api\/decks\/folders\/(\d+)\/$/.exec(url.pathname);
     if (match) return tree[match[1]] ? json(folderResponse(match[1])) : { ok: false, status: 404 };
     match = /^\/api\/decks\/(\d+)\/$/.exec(url.pathname);
+    if (match?.[1] === String(modern.id)) return json(modern);
     if (match?.[1] === NO_COMMANDER) return json({ ...rawDeck(decks[0]), id: Number(NO_COMMANDER), cards: [] });
     const deck = match && decks.find(d => d.id === match[1]);
     return deck ? json(rawDeck(deck)) : { ok: false, status: 404 };
@@ -67,16 +74,16 @@ function stubArchidekt(t, respond = () => {}) {
   return calls;
 }
 
-async function connectClient(t) {
+async function connectClient(t, options) {
   const [serverSide, clientSide] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'deckshelf-test', version: '1.0.0' });
-  await Promise.all([createServer().connect(serverSide), client.connect(clientSide)]);
+  await Promise.all([createServer(options).connect(serverSide), client.connect(clientSide)]);
   t.after(() => client.close());
   return client;
 }
 
-async function connect(t) {
-  const client = await connectClient(t);
+async function connect(t, options) {
+  const client = await connectClient(t, options);
   return async (name, args) => {
     const result = await client.callTool({ name, arguments: args });
     return result.isError ? { error: result.content[0].text } : result.structuredContent;
@@ -106,7 +113,7 @@ test('find_collection reads a username, a folder tree and the bundled precons', 
   const account = await call('find_collection', { source: 'Birckk' });
   assert.deepEqual(account.source, { name: 'Birckk', url: 'https://archidekt.com/u/Birckk' });
   assert.equal(account.count, 30);
-  assert.deepEqual(account.decks[0], { id: '27088578', name: 'TEST - Calling All Angels - Copy B', commander: 'Giada, Font of Hope', colors: ['W'] });
+  assert.deepEqual(account.decks[0], { id: '27088578', name: 'TEST - Calling All Angels - Copy B', format: 'Commander', commander: 'Giada, Font of Hope', colors: ['W'] });
   assert.deepEqual(account.unavailable.map(d => d.id), [NO_COMMANDER]);
   assert.match(account.unavailable[0].reason, /no assigned commander/);
 
@@ -214,9 +221,19 @@ test('deck_details shows commanders, artists, description and main-deck card cou
   assert.equal(details.description, 'Angels, led by [[Giada, Font of Hope]].');
   assert.equal(details.cardCount, 100, 'maybeboard cards are not counted');
   assert.equal(details.set, 'Foundations Commander');
+  assert.equal(details.format, 'Commander');
   assert.equal(details.url, 'https://archidekt.com/decks/27088578');
   assert.equal((await call('deck_details', { deck: '27088578' })).name, details.name);
   assert.match((await call('deck_details', { deck: '27000000' })).error, /not found/);
+});
+
+test('deck_details names the format of a non-Commander deck', async t => {
+  const modern = fixture('archidekt-modern.json');
+  stubArchidekt(t, url => url.pathname === `/api/decks/${modern.id}/` ? jsonResponse(modern) : undefined);
+  const call = await connect(t);
+  const details = await call('deck_details', { deck: String(modern.id) });
+  assert.equal(details.format, 'Modern');
+  assert.deepEqual(details.commanders, []);
 });
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
@@ -314,6 +331,36 @@ test('cancellation reaches account discovery, direct folders, descendant discove
   }
 });
 
+test('concurrent calls share deck requests, and cancelling one leaves the other running', async t => {
+  const calls = stubArchidekt(t);
+  const client = await connectClient(t);
+  const [listed, picked] = await Promise.all([
+    client.callTool({ name: 'find_collection', arguments: { source: 'Birckk' } }),
+    client.callTool({ name: 'pick_deck', arguments: { source: 'Birckk' } }),
+  ]);
+  assert.equal(listed.structuredContent.count, 30);
+  assert.equal(picked.structuredContent.total, 30);
+  const details = calls.filter(url => isDetail(new URL(url)));
+  assert.equal(details.length, new Set(details).size, 'each deck is requested once');
+
+  let aborted = 0;
+  const slow = stubArchidekt(t, (url, { signal }) => isDetail(url) && url.pathname.includes(decks[0].id)
+    ? new Promise((resolve, reject) => {
+      const timer = setTimeout(() => resolve(jsonResponse(rawDeck(decks[0]))), 50);
+      signal.addEventListener('abort', () => { clearTimeout(timer); aborted++; reject(signal.reason); }, { once: true });
+    }) : undefined);
+  const fresh = await connectClient(t);
+  const controller = new AbortController();
+  const cancelled = assert.rejects(fresh.callTool({ name: 'deck_details', arguments: { deck: decks[0].id } }, undefined, { signal: controller.signal }));
+  const kept = fresh.callTool({ name: 'deck_details', arguments: { deck: decks[0].id } });
+  await flush();
+  controller.abort();
+  await cancelled;
+  assert.equal((await kept).structuredContent.id, decks[0].id);
+  assert.equal(aborted, 0, 'the shared request survives while someone still waits');
+  assert.equal(slow.filter(url => isDetail(new URL(url))).length, 1);
+});
+
 test('SDK default request timeout cancels upstream work without progress', async t => {
   let aborted = 0;
   const calls = stubArchidekt(t, (url, { signal }) => isDetail(url) ? waitForAbort(signal, () => aborted++) : undefined);
@@ -367,4 +414,104 @@ test('SDK progress timeout policies extend only when requested and respect the t
       }
     });
   }
+});
+
+test('format chooses Commander by default, another format, or all, and never fetches other formats', async t => {
+  const calls = stubArchidekt(t);
+  const call = await connect(t);
+  const details = () => calls.filter(url => isDetail(new URL(url))).map(url => /decks\/(\d+)/.exec(url)[1]);
+
+  const only = await call('find_collection', { source: 'Birckk', format: 'modern' });
+  assert.deepEqual(only.decks.map(d => [d.id, d.format]), [[String(modern.id), 'Modern']]);
+  assert.deepEqual(details(), [String(modern.id)], 'Commander decks are not fetched for a Modern request');
+  const all = await call('find_collection', { source: 'Birckk', format: 'all' });
+  assert.equal(all.count, 31);
+  assert.equal((await call('find_collection', { source: 'Birckk' })).count, 30, 'Commander by default');
+
+  const none = await call('find_collection', { source: 'Birckk', format: 'Pauper' });
+  assert.equal(none.count, 0);
+  assert.match(none.note, /None of the 32 public decks here are Pauper decks/);
+  assert.match((await call('pick_deck', { source: 'Birckk', format: 'Pauper' })).error, /no public Pauper decks to pick from/);
+  assert.match((await call('pick_deck', { source: 'Birckk', format: 'Modern', count: 4 })).picks[0].format, /Modern/);
+
+  const before = calls.length;
+  assert.match((await call('pick_deck', { source: 'Birckk', format: 'Modrn' })).error, /Unknown format "Modrn"/);
+  assert.equal(calls.length, before, 'an unknown format is rejected before fetching');
+  assert.match((await call('pick_deck', { source: 'precons', format: 'Modern' })).error, /precons are all Commander/);
+
+  const link = `https://archidekt.com/decks/${modern.id}`;
+  assert.equal((await call('find_collection', { source: link })).decks[0].format, 'Modern', 'a deck link accepts any format');
+  assert.match((await call('pick_deck', { source: link, format: 'Commander' })).error, /This is a Modern deck/);
+});
+
+test('the disk cache skips unchanged and unreadable decks in a new session and refetches edited ones', async t => {
+  const dir = mkdtempSync(join(tmpdir(), 'deckshelf-mcp-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const cacheFile = join(dir, 'cache.json');
+  const calls = stubArchidekt(t);
+  const details = () => calls.filter(url => isDetail(new URL(url))).length;
+
+  const first = await connect(t, { cacheFile });
+  assert.equal((await first('find_collection', { source: 'Birckk' })).count, 30);
+  assert.equal(details(), 31);
+
+  const second = await connect(t, { cacheFile });
+  assert.equal((await second('pick_deck', { source: 'Birckk', count: 4 })).total, 30);
+  assert.equal(details(), 31, 'unchanged decks, readable or not, are not asked for again');
+  assert.match((await second('find_collection', { source: 'Birckk' })).unavailable[0].reason, /no assigned commander/, 'the remembered reason is kept');
+
+  edited[decks[1].id] = '2099-01-01T00:00:00Z';
+  t.after(() => { delete edited[decks[1].id]; });
+  const third = await connect(t, { cacheFile });
+  await third('find_collection', { source: 'Birckk' });
+  assert.equal(details(), 32, 'only the edited deck is read again');
+  assert.ok(calls.at(-1).includes(decks[1].id));
+
+  edited[NO_COMMANDER] = '2099-01-01T00:00:00Z';
+  t.after(() => { delete edited[NO_COMMANDER]; });
+  await (await connect(t, { cacheFile }))('find_collection', { source: 'Birckk' });
+  assert.equal(details(), 33, 'editing an unreadable deck makes it worth reading again');
+  assert.ok(calls.at(-1).includes(NO_COMMANDER));
+
+  writeFileSync(cacheFile, '{not json');
+  const damaged = await connect(t, { cacheFile });
+  assert.equal((await damaged('find_collection', { source: 'Birckk' })).count, 30, 'a damaged cache is a cold start');
+  assert.equal(JSON.parse(readFileSync(cacheFile, 'utf8')).version, 1, 'and is rewritten');
+});
+
+test('a limited cold load backs off and retries, then stops with a note when Archidekt keeps refusing', async t => {
+  const backoff = { first: 5, max: 10, total: 40 };
+  let refusals = 5;
+  stubArchidekt(t, url => isDetail(url) && refusals > 0 ? (refusals--, { ok: false, status: 429 }) : undefined);
+  const recovered = await connect(t, { backoff });
+  const all = await recovered('find_collection', { source: 'Birckk' });
+  assert.equal(all.count, 30, 'every deck is read after the pauses');
+  assert.equal(all.note, undefined);
+
+  t.mock.restoreAll();
+  stubArchidekt(t, url => isDetail(url) && url.pathname.includes(decks[5].id) ? { ok: false, status: 429 } : undefined);
+  const stuck = await connect(t, { backoff });
+  const partial = await stuck('find_collection', { source: 'Birckk' });
+  assert.ok(partial.count >= 5 && partial.count < 30);
+  assert.ok(partial.unavailable.some(d => d.id === decks[5].id && /limiting requests/.test(d.reason)));
+  assert.match(partial.note, /Archidekt limited requests, so \d+ decks were not read yet/);
+
+  t.mock.restoreAll();
+  stubArchidekt(t, url => url.pathname === '/api/decks/v3/' ? { ok: false, status: 429 } : undefined);
+  const listing = await connect(t, { backoff });
+  assert.match((await listing('pick_deck', { source: 'Birckk' })).error, /limiting requests right now/);
+});
+
+test('outages and limits are not remembered as unreadable decks', async t => {
+  const dir = mkdtempSync(join(tmpdir(), 'deckshelf-mcp-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const cacheFile = join(dir, 'cache.json');
+  let down = true;
+  const calls = stubArchidekt(t, url => down && isDetail(url) ? { ok: false, status: 503 } : undefined);
+  const outage = await connect(t, { cacheFile });
+  assert.equal((await outage('find_collection', { source: 'Birckk' })).count, 0);
+  down = false;
+  const later = await connect(t, { cacheFile });
+  assert.equal((await later('find_collection', { source: 'Birckk' })).count, 30, 'every deck is asked for again');
+  assert.equal(calls.filter(url => isDetail(new URL(url))).length, 62);
 });

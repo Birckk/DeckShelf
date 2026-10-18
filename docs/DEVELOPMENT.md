@@ -48,9 +48,14 @@ same odds as the app. It never sees or changes a saved DeckShelf collection.
 
 | Tool | Input | Returns |
 | --- | --- | --- |
-| `find_collection` | username, profile/folder/deck link, or `precons`; optional `includeSubfolders` | source name and each deck's id, name, commander and colours; unavailable decks with reasons |
-| `pick_deck` | source, optional `includeSubfolders`, `colors`, `exact`, `colorless`, `query`, `count` (1–4) | the picks with Archidekt links and how many decks were eligible; unavailable decks with reasons |
-| `deck_details` | deck link or ID | commanders and artists, set, tags, description and card count |
+| `find_collection` | username, profile/folder/deck link, or `precons`; optional `format`, `includeSubfolders` | source name and each deck's id, name, format, commander and colours; unavailable decks with reasons |
+| `pick_deck` | source, optional `format`, `includeSubfolders`, `colors`, `exact`, `colorless`, `query`, `count` (1–4) | the picks with Archidekt links and how many decks were eligible; unavailable decks with reasons |
+| `deck_details` | deck link or ID | format, commanders and artists, set, tags, description and card count |
+
+Collections are Commander decks unless `format` names another Archidekt format ("Modern",
+"Pauper", "1v1 Commander" …) or "all"; a single deck link accepts any format unless one is
+given. The listing names each deck's format, so decks in other formats are never fetched,
+and an unknown format is rejected before any request.
 
 A folder link reads only its direct decks by default. Set `includeSubfolders: true`
 to include descendants explicitly (on either collection tool); when subfolders are
@@ -63,8 +68,21 @@ a tool error containing `error`, `total` (successfully loaded decks) and `unavai
 with each failed deck's reason, in both structured content and JSON text. If all
 deck loads fail, the error says so instead of claiming the filters matched nothing.
 
-Deck metadata is cached in memory for an hour, as in the web server; a large
-library takes a while on the first call because decks are read two at a time.
+Decks are cached on disk in `%LOCALAPPDATA%\DeckShelf\mcp-cache.json` (`~/.cache/DeckShelf/mcp-cache.json` elsewhere;
+set `DECKSHELF_MCP_CACHE` to move it), so a new agent session reads only the library
+listing and the decks edited since they were cached. Archidekt's listing gives each
+deck's `updatedAt`; decks read without a listing (a single link or `deck_details`)
+are trusted for an hour. A deck that cannot be read (no commander, deleted, private) is
+remembered the same way, until its listing shows an edit; outages, 429s and timeouts are
+not. A damaged cache is ignored and rewritten. Bump `VERSION` in
+`server/deck-cache.mjs` when `normalizeDeck`'s output changes shape.
+
+The first load of a large library is the slow part: decks are read two at a time, and
+Archidekt answers 429 (no `Retry-After`) after roughly 50 quick requests. The server
+then pauses (5 s, doubling to 30 s) and retries, waiting at most a minute per call;
+whatever is left is listed as unavailable with a `note` to ask again, and the next call
+continues from the cache. Claude Code allows stdio tool calls 30 minutes of idle time;
+Claude Desktop's limit is unverified, and a timed-out first load still keeps what it read.
 Cancellation propagates through source discovery and active deck requests and
 stops subsequent batches, even when the client did not request progress.
 
