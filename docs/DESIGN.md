@@ -33,6 +33,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 
 ## Layout and density
 
+- Page edges, the gap under the header, sidebar width, text measure, touch size and breakpoints come from `src/layout.css`. Every view pads with `--gutter` (32, 24 from 1100px, 16 from 550px), so the header, Collection, Cards, picker, My collection and Help line up. Use the six breakpoints listed there (1500 min, 1100, 850, 700, 550, 380); a new width needs a reason tied to content and a comment. Components keep their own inner spacing. `tests/layout.test.mjs` and `tests/browser/layout.spec.ts` enforce this.
 - The cards and collection should dominate the page. Keep navigation, filters, and controls compact.
 - Show a simple deck total by default. Show the full collection total when results differ, and a separate picker count only when exclusions make it different.
 - Keep shared navigation, search, and deck counts anchored across views. Avoid an isolated extra row of Collection controls with wasted space; reserve scrollbar space so switching views does not shift the page sideways.
@@ -203,3 +204,8 @@ Owner decisions for #34, after comparing variants in the app:
 - Stop on each: one long spin to the first chosen deck, a short hold, then shorter turns on to the others in the order they come up on the spiral. Each chosen deck stays lit with its Player label and joins a list at the top. A slow crawl past each deck, lighting decks as one spin passes them, and dealing on top of the helix were tried and rejected.
 - Results show as a row of full cards labelled Player 1–4, with name and mana symbols under each; two by two on narrow stages. Fan and table layouts may come back as settings later.
 - Shuffle-and-deal belongs in its own presentation, not on the helix (#76).
+
+### Phone pre-pass feedback (October 17)
+
+- Cards has no Pick a deck button of its own. Picking is reached from the view switch, and a shortlist from Quick choice's Picker; a second entry under the arrows only added clutter.
+- On phones Help keeps one slim heading row: Help, a menu button that folds out the section tree (as on docs sites like Obsidian Help) and Back. The open menu replaces the page (☰ turns into ✕), so a phone shows either the tree or the topic, never both. The page title follows the row directly, with a plain icon instead of a boxed one. No separate section-picker row.

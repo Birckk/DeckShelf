@@ -433,6 +433,8 @@ export default function CollectionManager({
       const parsed = parseCollection(await file.text());
       if (request !== restoreRequest.current) return;
       setRestorePreview(parsed);
+      // A recent export toast can cover the confirmation actions on a phone.
+      notify("");
       setError("");
     } catch (e) {
       if (request === restoreRequest.current) report(e);

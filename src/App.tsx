@@ -758,7 +758,6 @@ function App() {
                 <CardStudio
                   decks={visible}
                   openDeck={setDetail}
-                  chooseDeck={() => selectView("picker")}
                 />
               ) : (
                 <div

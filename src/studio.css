@@ -21,7 +21,7 @@ body {
 }
 .studio-header {
   height: 66px;
-  padding: 0 32px;
+  padding: 0 var(--gutter);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -97,9 +97,7 @@ body {
   font-size: 10px;
 }
 .studio-workspace {
-  max-width: 1900px;
-  margin: auto;
-  padding: 20px 32px 32px;
+  padding: var(--page-top) var(--gutter) 32px;
 }
 .studio-workspace main {
   padding: 0;
@@ -258,9 +256,6 @@ body {
 .sort-label select {
   font-size: 11px;
 }
-.separator-dot {
-  color: #66666c;
-}
 .studio-workspace .active-filters {
   margin: 8px 0;
   gap: 6px;
@@ -290,7 +285,7 @@ body {
 .studio-stage {
   height: calc(var(--card-height) + 46px);
   position: relative;
-  margin: 0 -32px;
+  margin: 0 calc(-1 * var(--gutter));
   overflow: hidden;
   isolation: isolate;
   touch-action: pan-y;
@@ -441,14 +436,6 @@ body {
   font-weight: 500;
   margin-right: 7px;
 }
-.studio-pick {
-  justify-self: end;
-  font-size: 14px;
-  height: 47px;
-  padding: 10px 22px;
-  border-radius: 10px;
-  gap: 12px;
-}
 .collection-grid {
   display: grid;
   grid-template-columns: repeat(
@@ -558,22 +545,6 @@ body {
   white-space: nowrap;
   overflow: hidden;
 }
-.collection-eligibility {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
-  font-size: 10px;
-  padding: 2px 0 2px 4px;
-  color: #a9a9b1;
-}
-.collection-eligibility:hover,
-.collection-eligibility.is-excluded {
-  color: var(--gold);
-}
-.deck-excluded .collection-card {
-  opacity: 0.65;
-}
 .advanced-filters {
   position: absolute;
   top: calc(100% + 10px);
@@ -637,9 +608,7 @@ body {
 .filter-label {
   color: #e2dfd9;
 }
-.select-wrap select,
-.add-source input,
-.search-field {
+.select-wrap select {
   background: #121317;
   border-color: #ffffff20;
   color: #dedde2;
@@ -648,17 +617,14 @@ option {
   background: #1c1d20;
   color: #eeedf0;
 }
-.collection-dialog > p,
 .about-copy > p,
 .detail-commander,
 .source-description {
   color: #b1b1bb;
 }
-.collection-row small,
 .source-note,
 .source-note span,
-.detail-facts,
-.collection-dialog > .backup-note {
+.detail-facts {
   color: #9999a4;
 }
 .tag-list > span {
@@ -693,18 +659,9 @@ option {
 .helix-stage:after {
   background: linear-gradient(0deg, #111215 3%, #111215b3 25%, transparent);
 }
-.helix-console {
-  background: linear-gradient(120deg, #252327, #17181c);
-}
-.helix-source {
-  background: #1b1c20;
-}
-.helix-live,
 .helix-motion-controls > label,
 .helix-intro p,
-.helix-selection-note,
-.helix-gesture,
-.helix-chance {
+.helix-gesture {
   color: #a4a4ae;
 }
 .helix-intro h2 {
@@ -713,10 +670,9 @@ option {
 .helix-stage {
   height: clamp(420px, calc(var(--app-height) - 240px), 860px);
 }
-@media (max-width: 1150px) {
+@media (max-width: 1100px) {
   .studio-header {
     grid-template-columns: auto 1fr auto;
-    padding: 0 24px;
     gap: 14px;
   }
   .studio-header .brand {
@@ -791,10 +747,7 @@ option {
     padding: 7px 16px;
   }
   .studio-workspace {
-    padding: 16px 24px 24px;
-  }
-  .studio-stage {
-    margin: 0 -24px;
+    padding-bottom: 24px;
   }
   .card-studio {
     --card-height: clamp(280px, calc(var(--app-height) - 425px), 480px);
@@ -803,10 +756,10 @@ option {
     display: none;
   }
   .studio-controls {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    justify-items: center;
   }
   .studio-pagination {
-    justify-self: start;
     gap: 16px;
   }
   .helix-stage {
@@ -815,7 +768,6 @@ option {
 }
 @media (max-width: 550px) {
   .studio-header {
-    padding: 12px 16px 0;
     gap: 3px;
   }
   .studio-header .brand {
@@ -840,9 +792,6 @@ option {
     flex: 1;
     font-size: 12px;
     gap: 7px;
-  }
-  .studio-workspace {
-    padding: 12px 16px 24px;
   }
   .studio-search {
     padding: 0 12px;
@@ -885,7 +834,6 @@ option {
     gap: 8px;
   }
   .studio-stage {
-    margin: 0 -16px;
     height: calc(var(--card-height) + 30px);
   }
   .card-studio {
@@ -919,15 +867,6 @@ option {
   .studio-pagination > span {
     font-size: 12px;
     min-width: 53px;
-  }
-  .studio-pick {
-    height: 42px;
-    font-size: 12px;
-    padding: 10px 12px;
-    gap: 7px;
-  }
-  .studio-pick > svg:last-child {
-    display: none;
   }
   .collection-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -965,9 +904,6 @@ option {
   }
   .collection-deck-bottom > span {
     max-width: 100%;
-  }
-  .collection-eligibility {
-    padding: 0;
   }
   .helix-stage {
     height: clamp(430px, calc(var(--app-height) - 194px), 720px);
@@ -1281,8 +1217,7 @@ option {
 .collection-layout-grid.collection-size-2 .collection-deck-meta {
   font-size: 12px;
 }
-.collection-layout-grid.collection-size-2 .collection-deck-bottom > span,
-.collection-layout-grid.collection-size-2 .collection-eligibility {
+.collection-layout-grid.collection-size-2 .collection-deck-bottom > span {
   font-size: 11px;
 }
 
@@ -1477,11 +1412,6 @@ option {
 }
 
 /* Small, useful labels; let the card artwork supply the character. */
-.helix-live {
-  font-size: 11px;
-  letter-spacing: 0.2px;
-  color: #aaa9a3;
-}
 /* Compact browsing chrome: keep the artwork prominent and labels readable. */
 html { scrollbar-gutter: stable; }
 .collection-display-toolbar { justify-content: flex-end; padding: 0; }
@@ -1507,7 +1437,6 @@ html { scrollbar-gutter: stable; }
 .studio-theme .helix-intro { top: 18px; }
 .studio-workspace .result-count { font-size: 11px; line-height: 16px; }
 .studio-workspace .result-count > span { display: inline; }
-.studio-workspace .separator-dot { margin-inline: 6px; }
 @media (max-width: 850px) {
   .studio-header { height: auto; padding-top: 6px; row-gap: 0; }
   .studio-nav { height: 42px; }
@@ -1548,6 +1477,10 @@ html { scrollbar-gutter: stable; }
 .detail-actions .refresh-source { margin: 0; }
 .detail-copy .original-link { min-height: 44px; font-size: 13px; }
 .detail-copy .source-note { font-size: 12px; color: #aaa6b3; margin: 18px 0 0; }
+@media (pointer: coarse) {
+  .studio-caption > button { min-height:var(--tap); }
+  .studio-pagination button { min-width:var(--tap); min-height:var(--tap); }
+}
 @media (max-width: 700px) {
   .deck-detail { padding: 22px; gap: 22px; }
   .detail-copy h2 { font-size: 27px; }
@@ -1594,14 +1527,14 @@ html { scrollbar-gutter: stable; }
 }
 
 body:has(.studio-workspace) { min-width:320px; }
-@media(max-width:360px) {
+@media(max-width:380px) {
  .studio-header .studio-nav { gap:2px; }
  .studio-header .studio-nav button { padding-inline:7px; gap:5px; }
  .studio-header .brand { font-size:18px; gap:6px; }
  .studio-header .brand img { width:23px; }
 }
 
-@media(max-width:360px) { .studio-color-controls { padding-inline:6px; gap:6px; } .inline-colors { gap:1px; } .inline-colors .color-button { width:29px; } .studio-color-controls .switch-label { padding-left:8px; gap:6px; } }
+@media(max-width:380px) { .studio-color-controls { padding-inline:6px; gap:6px; } .inline-colors { gap:1px; } .inline-colors .color-button { width:29px; } .studio-color-controls .switch-label { padding-left:8px; gap:6px; } }
 /* Phone controls unfold only when needed; the decks lead the page. */
 .desktop-color-controls, .display-tools { display: contents; }
 .phone-color-controls, .display-options-toggle { display: none; }
@@ -1687,7 +1620,7 @@ body:has(.studio-workspace) { min-width:320px; }
   .has-winner .helix-reveal { bottom: 160px; }
   .has-winner .revealed-card { width: min(208px, calc((var(--app-height) - 400px) * 0.718)); min-width: 150px; }
 }
-@media (max-width: 370px) {
+@media (max-width: 380px) {
   /* The narrowest phones keep the compact sizes; close plus entry still equal the idle entry. */
   .studio-workspace .result-count > .count-unit { display: none; }
   .shortlist-controls button { padding: 0 6px; }

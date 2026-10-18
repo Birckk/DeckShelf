@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type ComponentType, type MouseEvent, type ReactNode } from "react";
 import {
-  ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronRight, Dices, Eye, ExternalLink, Folder, FolderOpen, HardDrive,
-  HardDriveDownload, Info, LayoutGrid, Library, Link2, ListChecks, Map as MapIcon, MessageCircleQuestion, Puzzle,
-  RefreshCw, Search,
+  ArrowLeft, ArrowRight, BookOpen, ChevronRight, Dices, Eye, ExternalLink, Folder, FolderOpen, HardDrive,
+  HardDriveDownload, Info, LayoutGrid, Library, Link2, ListChecks, Map as MapIcon, Menu, MessageCircleQuestion, Puzzle,
+  RefreshCw, Search, X,
 } from "lucide-react";
 import { CardFanIcon } from "./CardFanIcon";
 import CollectionGuide from "./CollectionGuide";
@@ -187,12 +187,13 @@ export default function HelpCenter({ section, onSection, onClose, onGo, precons 
   return <main className="collection-workspace help-workspace" aria-label="Help">
     <header className="workspace-heading">
       <div><h1>Help</h1></div>
+      {/* Phones fold the section tree behind one menu button in the heading row, like a docs site. */}
+      <button className="help-mobile-toggle" aria-label="Help sections" title="Help sections" aria-expanded={mobileNav} aria-controls="help-nav" onClick={() => setMobileNav(v => !v)}>
+        {mobileNav ? <X size={18} /> : <Menu size={18} />}
+      </button>
       <button className="text-button workspace-back" aria-label="Back to collection" title="Back to collection" onClick={onClose}><ArrowLeft size={15} /><span>Back to collection</span></button>
     </header>
     <div className="help-body">
-      <button className="help-mobile-toggle button button-outline" aria-expanded={mobileNav} aria-controls="help-nav" onClick={() => setMobileNav(v => !v)}>
-        <entry.Icon size={15} /><span>{parent ? `${parent.label} / ` : ""}{entry.label}</span><ChevronDown size={15} />
-      </button>
       <nav id="help-nav" className={mobileNav ? "help-nav is-open" : "help-nav"} aria-label="Help sections">
         <ul>
           {helpSections.filter(s => !parentOf(s)).map(s => {

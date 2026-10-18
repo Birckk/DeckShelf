@@ -1,5 +1,5 @@
 import { useRef, useState, type CSSProperties, type PointerEvent } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink, Dices } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import type { Deck } from "./domain";
 import { tiltCard, resetTilt } from "./Atmosphere";
 import { Artwork } from "./components";
@@ -7,11 +7,9 @@ import { Artwork } from "./components";
 export default function CardStudio({
   decks,
   openDeck,
-  chooseDeck,
 }: {
   decks: Deck[];
   openDeck: (deck: Deck) => void;
-  chooseDeck: () => void;
 }) {
   const [selected, setSelected] = useState(decks[0]?.id);
   const pointer = useRef<{
@@ -89,8 +87,10 @@ export default function CardStudio({
           if (!e.currentTarget.hasPointerCapture(e.pointerId))
             pointer.current = null;
         }}
-        onLostPointerCapture={() => {
-          pointer.current = null;
+        onLostPointerCapture={(e) => {
+          // Touch starts with implicit capture on the card; transferring it to
+          // the stage must not cancel the drag when the card releases capture.
+          if (e.target === e.currentTarget) pointer.current = null;
         }}
         onDragStart={(e) => e.preventDefault()}
         onClickCapture={(e) => {
@@ -169,10 +169,6 @@ export default function CardStudio({
             <ChevronRight size={22} />
           </button>
         </div>
-        <button className="button button-gold studio-pick" onClick={chooseDeck}>
-          <Dices size={21} />
-          Pick a deck <ChevronRight size={17} />
-        </button>
       </div>
     </section>
   );

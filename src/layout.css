@@ -1,0 +1,25 @@
+/* Layout system: the page edges, shared widths and breakpoints every view uses.
+
+   Breakpoints (max-width unless marked). Media queries can't read custom properties,
+   so these numbers are the whole set; tests/layout.test.mjs rejects any other width.
+     wide     min 1500px  extra room for the picker and large figures
+     laptop   1100px      header and page gutter tighten to 24px
+     tablet   850px       view tabs move under the brand; toolbars wrap
+     compact  700px       phones in landscape and small tablets: sidebars fold into menus
+     phone    550px       16px gutter, phone header and controls
+     narrow   380px       the smallest phones squeeze labels
+   Content-driven exceptions live beside their component with a comment (Help's 1280px figure).
+
+   Every top-level view (header, Collection, Cards, picker, My collection, Help) pads its
+   sides with --gutter, so their edges line up; full-bleed stages cancel it with a negative
+   margin of the same size. Components keep their own inner spacing. */
+:root {
+  --gutter: 32px;
+  --page-top: 20px;   /* header to the first row of a view */
+  --sidebar: 260px;   /* section trees in My collection and Help */
+  --measure: 620px;   /* readable text column, about 75 characters */
+  --tap: 44px;        /* minimum touch target on coarse pointers */
+}
+@media (max-width: 1100px) { :root { --gutter: 24px; } }
+@media (max-width: 850px) { :root { --page-top: 16px; } }
+@media (max-width: 550px) { :root { --gutter: 16px; --page-top: 12px; } }

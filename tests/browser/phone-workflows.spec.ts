@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 import seed from '../../src/data/decks.json' with { type: 'json' };
+import precons from '../../src/data/precons.json' with { type: 'json' };
+import folderFixture from '../fixtures/collection-folders.json' with { type: 'json' };
+import deckFixture from '../fixtures/collection-decks.json' with { type: 'json' };
 const key = 'commander-archive.collection.v1';
 const decks = seed.slice(0, 4);
 const sources = [0, 1].map(i => ({
@@ -158,4 +161,250 @@ for (const width of [320, 390]) test(`a filtered, fully selected quick choice fi
   }));
   for (const s of segments) { expect(s.width).toBeGreaterThanOrEqual(28); expect(s.fits).toBe(true); expect(s.right).toBeLessThanOrEqual(width-16+1); }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+});
+
+// #45: touch workflows outside the separately maintained manager layout and picker.
+const phoneSizes = [
+  { width: 390, height: 844 },
+  { width: 360, height: 740 },
+  { width: 844, height: 390 },
+];
+const reviewSizes = [...phoneSizes, { width: 1920, height: 1080 }, { width: 1500, height: 900 }];
+
+for (const viewport of reviewSizes) test.describe(`owner phone pre-pass ${viewport.width}x${viewport.height}`, () => {
+  const touch = viewport.width < 1000;
+  test.use({ viewport, isMobile: touch, hasTouch: touch, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+
+  async function fits(page: import('@playwright/test').Page) {
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width);
+  }
+  async function target(locator: import('@playwright/test').Locator) {
+    if (touch) {
+      const box = (await locator.boundingBox())!;
+      expect(box.height).toBeGreaterThanOrEqual(44);
+      expect(box.width).toBeGreaterThanOrEqual(40);
+    }
+  }
+  async function shot(page: import('@playwright/test').Page, view: string) {
+    await fits(page);
+    if (process.env.PHONE_SHOTS) {
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        await Promise.all([...document.images].filter(img => {
+          const r = img.getBoundingClientRect();
+          return r.bottom > 0 && r.top < innerHeight && !img.complete;
+        }).map(img => new Promise<void>(resolve => {
+          img.addEventListener('load', () => resolve(), { once: true });
+          img.addEventListener('error', () => resolve(), { once: true });
+          setTimeout(resolve, 2000);
+        })));
+      });
+      await page.screenshot({ path: `.codex-shots/${viewport.width}x${viewport.height}-${view}.png` });
+    }
+  }
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(({ key, fixture }) => {
+      if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(fixture));
+    }, { key, fixture });
+  });
+
+  test('username discovery, folder and individual choices import through touch-sized controls', async ({ page }) => {
+    await page.route('**/api/source-folders?*', route => route.fulfill({ json: folderFixture }));
+    await page.route('**/api/decks/*', route => route.fulfill({ json: deckFixture.find(d => d.id === new URL(route.request().url()).pathname.split('/').pop()) }));
+    await page.goto('/');
+    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Add decks', exact: true }).click();
+    await page.locator('#collection-source-input').fill('Birckk');
+    await shot(page, 'add-username');
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Which folders do you want to show?' })).toBeFocused();
+    await shot(page, 'add-folders');
+    await target(page.getByRole('button', { name: 'Change source', exact: true }));
+    await target(page.getByRole('button', { name: 'Select all', exact: true }));
+    await target(page.getByRole('button', { name: 'Clear', exact: true }));
+    const firstFolder = page.locator('.source-folder').first();
+    const summary = firstFolder.locator('summary');
+    await target(summary);
+    await summary.click();
+    const individual = firstFolder.locator('.source-folder-decks input').first();
+    await individual.check();
+    await expect(individual).toBeChecked();
+    const nextFolder = page.locator('.source-folder-choice input').nth(1);
+    await nextFolder.check();
+    await expect(individual).toBeChecked();
+    await expect(page.getByRole('button', { name: 'Add 6 decks', exact: true })).toBeEnabled();
+    await page.getByRole('button', { name: 'Select all', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Add 30 decks', exact: true })).toBeEnabled();
+    await shot(page, 'add-selected');
+    await page.getByRole('button', { name: 'Add 30 decks', exact: true }).click();
+    await expect(page.locator('.workspace-heading')).toContainText('30 on display');
+    // The heading can render before React's passive effect persists the collection.
+    await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)!).sources.length, key))
+      .toBe(fixture.sources.length + folderFixture.folders.length);
+    const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
+    expect(saved.sources).toHaveLength(fixture.sources.length + folderFixture.folders.length);
+    for (const folder of folderFixture.folders) {
+      expect(saved.sources.find((s: { key: string }) => s.key === folder.source.key).selectedIds).toEqual(folder.source.knownIds);
+    }
+    await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
+    await expect(page.locator('.result-count')).toContainText('30 decks');
+    await fits(page);
+  });
+
+  test('long details scroll independently, keep close reachable, and restore focus and page scrolling', async ({ page, browserName }) => {
+    const long = { ...decks[0], description: 'Long Commander description with a card reference [[Sol Ring]]. '.repeat(120) + 'End of the saved description.' };
+    await page.addInitScript(({ key, long }) => {
+      const saved = JSON.parse(localStorage.getItem(key)!);
+      saved.added[0] = long;
+      localStorage.setItem(key, JSON.stringify(saved));
+    }, { key, long });
+    await page.goto('/');
+    const trigger = page.getByRole('button', { name: `View ${long.name}`, exact: true });
+    // WebKit pointer clicks need not focus buttons; use keyboard activation to test focus restoration.
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog', { name: 'Deck details', exact: true });
+    await shot(page, 'details-top');
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+    expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    await dialog.evaluate(el => { el.scrollTop = el.scrollHeight; });
+    const link = dialog.getByRole('link', { name: /View deck on/ });
+    await expect(link).toBeInViewport({ ratio: 1 });
+    await expect(link).toHaveAttribute('href', long.url);
+    await expect(dialog.getByRole('button', { name: 'Close dialog' })).toBeInViewport({ ratio: 1 });
+    await shot(page, 'details-bottom');
+    await link.focus();
+    await expect(link).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(dialog.getByRole('button', { name: 'Refresh snapshot' })).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    // WebKit's default keyboard navigation skips links, but they remain programmatically focusable.
+    await expect(browserName === 'webkit' ? dialog.getByRole('button', { name: 'Close dialog' }) : link).toBeFocused();
+    await trigger.focus();
+    await expect(trigger).not.toBeFocused();
+    await dialog.getByRole('button', { name: 'Close dialog' }).click();
+    await expect(trigger).toBeFocused();
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
+
+  test('large catalogue Cards, List and Details stay navigable', async ({ page, browserName }) => {
+    await page.addInitScript(({ key, catalogue }) => localStorage.setItem(key, JSON.stringify({ version: 1, starter: false, added: catalogue, manualIds: catalogue.map(d => d.id), hidden: [], excluded: [] })), { key, catalogue: precons.decks });
+    await page.goto('/');
+    await expect(page.locator('.result-count')).toContainText('184 decks');
+    for (const layout of ['List', 'Details']) {
+      await page.getByRole('button', { name: layout, exact: true }).click();
+      await shot(page, `gallery-${layout.toLowerCase()}`);
+      const last = page.locator('.collection-tile').last().getByRole('button', { name: /^View / });
+      await last.scrollIntoViewIfNeeded();
+      await last.click();
+      await expect(page.getByRole('dialog', { name: 'Deck details' })).toBeVisible();
+      await page.getByRole('button', { name: 'Close dialog' }).click();
+      await page.evaluate(() => scrollTo(0, 0));
+    }
+    await page.getByRole('group', { name: 'Collection view' }).getByRole('button', { name: 'Cards', exact: true }).click();
+    const carousel = page.getByRole('region', { name: /card carousel/ });
+    await shot(page, 'cards');
+    await target(page.locator('.studio-caption > button'));
+    await target(page.getByRole('button', { name: 'Previous deck', exact: true }));
+    await target(page.getByRole('button', { name: 'Next deck', exact: true }));
+    await page.getByRole('button', { name: 'Next deck', exact: true }).click();
+    await expect(page.locator('.studio-pagination')).toContainText('02 / 184');
+    await page.getByRole('button', { name: 'Previous deck', exact: true }).click();
+    await expect(page.locator('.studio-pagination')).toContainText('01 / 184');
+    // Native touch swipes need Chromium's DevTools protocol; other engines keep the button and key checks.
+    if (touch && browserName === 'chromium') {
+      await carousel.locator('.studio-stage').scrollIntoViewIfNeeded();
+      const box = (await carousel.locator('.studio-card.is-current').boundingBox())!;
+      const client = await page.context().newCDPSession(page);
+      const x = box.x + box.width / 2, y = Math.max(20, box.y) + 30;
+      await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+      for (const dx of [15, 35, 65]) await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x - dx, y }] });
+      await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await expect(page.locator('.studio-pagination')).toContainText('02 / 184');
+      await client.detach();
+    }
+    await carousel.locator('.studio-card.is-current').focus();
+    await page.keyboard.press('End');
+    await expect(page.locator('.studio-pagination')).toContainText('184 / 184');
+    await page.locator('.studio-caption > button').click();
+    await expect(page.getByRole('dialog', { name: 'Deck details' })).toBeVisible();
+    await page.getByRole('button', { name: 'Close dialog' }).click();
+    await fits(page);
+  });
+
+  test('Help navigation and guide work with touch targets and no horizontal overflow', async ({ page }) => {
+    await page.goto('/help/start');
+    await shot(page, 'help-start');
+    await target(page.getByRole('button', { name: 'Back to collection', exact: true }));
+    for (const step of [2, 3]) {
+      await page.getByRole('button', { name: 'Next', exact: true }).click();
+      await expect(page.getByLabel(`Page ${step} of 3`)).toBeVisible();
+      await shot(page, `help-guide-${step}`);
+    }
+    if (viewport.width <= 760) await page.locator('.help-mobile-toggle').click();
+    const nav = page.getByRole('navigation', { name: 'Help sections' });
+    for (const action of await nav.locator('a,button').all()) await target(action);
+    await shot(page, 'help-navigation');
+    await nav.getByRole('button', { name: 'Collapse Core' }).click();
+    await expect(nav.getByRole('link', { name: 'Adding your decks', exact: true })).toHaveCount(0);
+    await nav.getByRole('button', { name: 'Expand Core' }).click();
+    await nav.getByRole('link', { name: 'Adding your decks', exact: true }).click();
+    await expect(page).toHaveURL(/\/help\/adding$/);
+    if (viewport.width <= 760) await expect(nav).toBeHidden();
+    await target(page.locator('.help-crumb'));
+    for (const section of ['adding', 'showing', 'updates', 'picking', 'saving', 'core', 'faq', 'features', 'roadmap', 'about', 'project']) {
+      await page.goto(`/help/${section}`);
+      await shot(page, `help-${section}`);
+    }
+    await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test('backup download bytes restore only after confirmation and cancel keeps saved choices', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    const exportButton = page.getByRole('button', { name: 'Export backup', exact: true });
+    const restoreButton = page.getByRole('button', { name: 'Restore backup', exact: true });
+    await exportButton.scrollIntoViewIfNeeded();
+    await target(exportButton);
+    await target(restoreButton);
+    const pending = page.waitForEvent('download');
+    await exportButton.click();
+    const download = await pending;
+    expect(download.suggestedFilename()).toBe('deckshelf-collection.json');
+    const stream = (await download.createReadStream())!;
+    const chunks = [];
+    for await (const chunk of stream) chunks.push(chunk);
+    const buffer = Buffer.concat(chunks);
+    const exported = JSON.parse(buffer.toString());
+    expect(exported.version).toBe(1);
+    expect(exported.sources).toEqual(fixture.sources);
+    const saved = await page.evaluate(key => localStorage.getItem(key), key);
+    async function chooseBackup() {
+      const chooser = page.waitForEvent('filechooser');
+      await restoreButton.click();
+      await (await chooser).setFiles({ name: 'deckshelf-collection.json', mimeType: 'application/json', buffer });
+    }
+    await chooseBackup();
+    const region = page.getByRole('region', { name: 'Restore collection backup' });
+    await expect(region).toBeFocused();
+    await expect(page.locator('.toast')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Restore this backup', exact: true })).toBeInViewport({ ratio: 1 });
+    await target(page.getByRole('button', { name: 'Cancel restore' }));
+    await shot(page, 'backup-confirmation');
+    expect(await page.evaluate(key => localStorage.getItem(key), key)).toBe(saved);
+    await page.getByRole('button', { name: 'Cancel restore' }).click();
+    expect(await page.evaluate(key => localStorage.getItem(key), key)).toBe(saved);
+    await chooseBackup();
+    await expect(region).toBeFocused();
+    await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
+    await expect(region).toHaveCount(0);
+    const restored = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
+    expect(restored).toEqual(exported);
+    await fits(page);
+  });
 });

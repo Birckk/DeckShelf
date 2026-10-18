@@ -7,24 +7,6 @@
   background: #101a16;
   isolation: isolate;
 }
-.helix-toolbar {
-  position: relative;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 13px 22px;
-  border-bottom: 1px solid #ffffff09;
-}
-.helix-live {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 8px;
-  letter-spacing: 1.8px;
-  color: #a6b69b;
-}
 .helix-motion-controls {
   display: flex;
   align-items: center;
@@ -54,11 +36,6 @@
   text-align: center;
   z-index: 4;
   pointer-events: none;
-}
-.helix-intro .eyebrow {
-  font-size: 7px;
-  letter-spacing: 2px;
-  color: #b1b89b;
 }
 .helix-intro h2 {
   font-family: var(--display);
@@ -273,24 +250,8 @@
 .is-spinning .helix-card {
   border-color: #dfc69466;
 }
-.helix-console {
-  position: relative;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 24px 29px;
-  background: linear-gradient(120deg, #26302077, #16211a);
-  border-top: 1px solid #c5b58123;
-}
 .helix-selection {
   min-width: 0;
-}
-.helix-selection > .eyebrow {
-  font-size: 8px;
-  letter-spacing: 1.8px;
-  color: #c9b27e;
 }
 .helix-selection h3 {
   font-family: var(--display);
@@ -300,45 +261,6 @@
   letter-spacing: -0.3px;
   margin: 7px 0 10px;
   color: #eee6d3;
-}
-.helix-selection-note {
-  font-size: 10px;
-  line-height: 1.7;
-  color: #9cae91;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-.helix-selection-note > .mana-row {
-  flex-shrink: 0;
-}
-.helix-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 11px;
-  flex-shrink: 0;
-}
-.helix-actions .spin-button {
-  min-width: 191px;
-  gap: 10px;
-  height: 43px;
-}
-.helix-chance {
-  font-size: 8px;
-  color: #91a084;
-}
-.helix-actions > .text-button {
-  font-size: 9px;
-}
-.helix-source {
-  display: flex;
-  justify-content: center;
-  padding: 15px 18px;
-  background: #172219;
-  border-top: 1px solid #ffffff08;
-  color: #cdb781;
-  font-size: 10px;
 }
 .helix-reveal {
   position: absolute;
@@ -418,45 +340,20 @@
   .helix-card-caption > .mana-row {
     bottom: 40px;
   }
-  .helix-console {
-    gap: 15px;
-    padding: 23px;
-  }
   .helix-selection h3 {
     font-size: 25px;
-  }
-  .helix-actions .spin-button {
-    min-width: 165px;
-    font-size: 10px;
   }
   .helix-intro h2 {
     font-size: 28px;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 850px) {
   .helix-stage {
     height: 560px;
-  }
-  .helix-console {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 19px;
-  }
-  .helix-actions {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
   }
   .helix-intro p {
     max-width: 280px;
     margin: auto;
-  }
-  .helix-toolbar {
-    padding: 15px;
-  }
-  .helix-live {
-    font-size: 7px;
-    letter-spacing: 1px;
   }
   .helix-motion-controls {
     gap: 10px;
@@ -502,11 +399,6 @@
   .helix-card-caption > .mana-row {
     bottom: 39px;
   }
-  .helix-card-top {
-    font-size: 4px;
-    top: 8px;
-    left: 9px;
-  }
   .helix-card .mini .mana {
     width: 9px;
     height: 9px;
@@ -522,27 +414,15 @@
     font-size: 28px;
     margin: 9px 0;
   }
-  .helix-intro .eyebrow {
-    font-size: 6px;
-    letter-spacing: 1.4px;
-  }
   .helix-intro p {
     font-size: 9px;
     max-width: 245px;
-  }
-  .helix-toolbar {
-    gap: 8px;
-    padding: 15px 12px;
   }
   .helix-motion-controls > label {
     font-size: 8px;
   }
   .helix-motion-controls .text-button > span {
     display: none;
-  }
-  .helix-live {
-    font-size: 6px;
-    letter-spacing: 1.3px;
   }
   .helix-motion-controls {
     gap: 11px;
@@ -551,31 +431,8 @@
     font-size: 8px;
     bottom: 17px;
   }
-  .helix-console {
-    padding: 20px 17px;
-    gap: 17px;
-  }
   .helix-selection h3 {
     font-size: 25px;
-  }
-  .helix-selection-note {
-    font-size: 9px;
-  }
-  .helix-selection > .eyebrow {
-    font-size: 7px;
-  }
-  .helix-actions {
-    align-items: center;
-    gap: 12px;
-  }
-  .helix-actions .spin-button {
-    min-width: 165px;
-    font-size: 10px;
-  }
-  .helix-chance {
-    font-size: 7px;
-    max-width: 88px;
-    line-height: 1.6;
   }
   .revealed-card {
     width: 208px;
@@ -583,14 +440,6 @@
   .helix-reveal {
     gap: 25px;
   }
-}
-@media (prefers-reduced-motion: reduce) {
-  .helix-live > span {
-    animation: none;
-  }
-}
-.reduced-motion .helix-live > span {
-  animation: none;
 }
 .reduced-motion .helix-intro {
   transition: none;

@@ -1,6 +1,3 @@
-.manager-mobile-nav {
-  display: none;
-}
 .collection-overview {
   width: 100%;
 }
@@ -38,9 +35,6 @@
 .overview-group.is-paused {
   background: #16171a;
   border-color: #ffffff10;
-}
-.overview-group.is-paused .overview-previews {
-  opacity: 0.4;
 }
 .overview-group-top {
   display: flex;
@@ -113,70 +107,6 @@
 .overview-switch > span {
   min-width: 18px;
 }
-.overview-previews {
-  display: flex;
-  align-items: center;
-  width: 99px;
-  flex-shrink: 0;
-  min-height: 46px;
-  color: #62646d;
-}
-.overview-previews > img,
-.overview-previews > .art-fallback {
-  width: 45px;
-  height: 38px;
-  object-fit: cover;
-  border-radius: 4px;
-  border: 2px solid #191a1e;
-}
-.overview-previews > :not(:first-child) {
-  margin-left: -17px;
-}
-.overview-previews .art-fallback :is(span, small) {
-  display: none;
-}
-.overview-catalog {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 23px 0 0;
-  margin-top: 8px;
-}
-.overview-catalog > svg {
-  margin-top: 3px;
-  color: #bdb09a;
-  flex-shrink: 0;
-}
-.overview-catalog > div {
-  flex: 1;
-}
-.overview-catalog h4 {
-  margin: 0 0 7px;
-  font-family: Outfit, sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-}
-.overview-catalog p {
-  margin: 0 0 8px;
-  font-size: 11px;
-  color: #9b9ca6;
-  line-height: 1.6;
-}
-.overview-catalog a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  color: #b7afa2;
-}
-.overview-note {
-  border-top: 1px solid #ffffff14;
-  padding-top: 14px;
-  margin-top: 20px;
-  font-size: 11px;
-  color: #9698a3;
-  line-height: 1.7;
-}
 .manager-toolbar {
   display: flex;
   align-items: center;
@@ -201,21 +131,6 @@
   .overview-group-title {
     font-size: 15px;
   }
-  .overview-previews {
-    width: 76px;
-  }
-  .overview-previews > :not(:first-child) {
-    margin-left: -27px;
-  }
-  .overview-catalog {
-    flex-wrap: wrap;
-  }
-  .overview-catalog > div {
-    flex-basis: 80%;
-  }
-  .overview-catalog > button {
-    margin-left: 32px;
-  }
   .manager-group-control {
     flex-wrap: wrap;
   }
@@ -231,23 +146,11 @@
   color: #e4e2df;
   font-size: 13px;
 }
-.manager-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex: 1;
-  min-width: 0;
-}
-.manager-heading p,
 .manager-section-heading p {
   margin: 0;
   color: #aaaab3;
   font-size: 12px;
   line-height: 1.6;
-}
-.manager-heading p span {
-  padding: 0 7px;
 }
 .manager-body {
   display: grid;
@@ -296,18 +199,6 @@
   font-size: 10px;
   margin-top: 3px;
 }
-.manager-nav-label {
-  display: block;
-  color: #7f808b;
-  font-size: 11px;
-  margin: 26px 10px 8px;
-}
-.manager-nav-hint {
-  font-size: 11px;
-  color: #93939e;
-  line-height: 1.7;
-  margin: 10px;
-}
 .manager-content {
   padding: 14px 20px;
   min-width: 0;
@@ -324,7 +215,6 @@
   font-size: 19px;
   margin: 0 0 3px;
 }
-.manager-heading .button,
 .collection-manager .button {
   font-size: 12px;
   padding: 10px 14px;
@@ -404,109 +294,6 @@
   scrollbar-width: thin;
   scrollbar-color: #45464d transparent;
 }
-.manager-columns,
-.manager-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 60px 60px;
-  gap: 8px;
-  align-items: center;
-}
-.manager-columns {
-  position: sticky;
-  top: 0;
-  background: #1b1c20;
-  z-index: 1;
-  padding: 9px 0;
-  border-bottom: 1px solid #ffffff17;
-  font-size: 10px;
-  color: #9596a0;
-}
-.manager-columns span:not(:first-child) {
-  text-align: center;
-}
-.manager-row {
-  padding: 11px 0;
-  border-bottom: 1px solid #ffffff0d;
-}
-.manager-deck {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  min-width: 0;
-}
-.manager-deck > img,
-.manager-deck > .art-fallback,
-.manager-art-placeholder {
-  width: 68px;
-  height: 54px;
-  flex-shrink: 0;
-  object-fit: cover;
-  border-radius: 4px;
-  background: #23242b;
-}
-.manager-deck > .art-fallback :is(span, small) {
-  display: none;
-}
-.manager-art-placeholder {
-  display: grid;
-  place-items: center;
-  color: #82838c;
-}
-.manager-deck > div:last-child {
-  min-width: 0;
-}
-.manager-deck a {
-  font-family: Outfit, sans-serif;
-  font-size: 14px;
-  line-height: 1.3;
-  color: #e1e0e3;
-  text-decoration: none;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.manager-deck a svg {
-  flex-shrink: 0;
-  opacity: 0.35;
-}
-.manager-deck a:hover {
-  text-decoration: underline;
-}
-.manager-deck small {
-  display: block;
-  font-size: 10px;
-  color: #9c9da8;
-  margin: 3px 0 6px;
-  line-height: 1.4;
-}
-.manager-deck .mana-row {
-  gap: 3px;
-}
-.manager-deck .mana {
-  width: 13px;
-  height: 13px;
-}
-.manager-row.is-hidden .manager-deck {
-  opacity: 0.55;
-}
-.manager-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 32px;
-  gap: 4px;
-  cursor: pointer;
-}
-.manager-toggle input {
-  appearance: auto;
-  width: 16px;
-  height: 16px;
-  accent-color: #d8c08d;
-  cursor: pointer;
-}
-.manager-toggle span {
-  display: none;
-}
 .manager-selection {
   position: sticky;
   bottom: 0;
@@ -549,28 +336,6 @@
   color: #a7a8b2;
   max-width: 480px;
 }
-.manager-kinds {
-  display: flex;
-  gap: 10px;
-  margin: 24px 0;
-}
-.manager-kinds button {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 17px 10px;
-  border: 1px solid #ffffff1c;
-  border-radius: 5px;
-  font-size: 12px;
-  color: #a6a7b0;
-}
-.manager-kinds button[aria-pressed="true"] {
-  border-color: #d8c08d88;
-  color: #e4cfa6;
-  background: #d8c08d08;
-}
 .manager-connect > label {
   display: block;
   font-size: 12px;
@@ -587,21 +352,6 @@
 }
 .manager-connect > .manager-note {
   font-size: 11px;
-}
-.manager-connect-foot {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  margin-top: 36px;
-  padding-top: 20px;
-  border-top: 1px solid #ffffff12;
-  color: #a5a6ae;
-  font-size: 11px;
-  line-height: 1.6;
-}
-.manager-connect-foot svg {
-  flex-shrink: 0;
-  color: #c4ba9f;
 }
 .manager-progress {
   display: flex;
@@ -654,7 +404,6 @@
     display: flex;
     flex-direction: column;
   }
-  .manager-heading,
   .manager-footer {
     flex-shrink: 0;
   }
@@ -690,15 +439,6 @@
     padding: 8px 14px;
     gap: 12px;
   }
-  .manager-heading {
-    justify-content: flex-end;
-  }
-  .manager-heading > div {
-    display: none;
-  }
-  .manager-heading p {
-    font-size: 10px;
-  }
   .manager-body {
     display: block;
   }
@@ -718,46 +458,17 @@
   .manager-nav button > span {
     max-width: 140px;
   }
-  .manager-nav button span small,
-  .manager-nav-label,
-  .manager-nav-hint {
+  .manager-nav button span small {
     display: none;
   }
   .manager-content {
     padding: 12px 14px;
-  }
-  .manager-columns,
-  .manager-row {
-    grid-template-columns: minmax(0, 1fr) 42px 38px;
-    gap: 4px;
-  }
-  .manager-deck {
-    gap: 8px;
-  }
-  .manager-deck > img,
-  .manager-deck > .art-fallback,
-  .manager-art-placeholder {
-    width: 48px;
-    height: 48px;
-  }
-  .manager-deck a {
-    font-size: 13px;
-  }
-  .manager-deck a svg {
-    display: none;
   }
   .manager-list {
     max-height: 360px;
   }
   .manager-bulk {
     gap: 12px;
-  }
-  .manager-kinds {
-    gap: 7px;
-  }
-  .manager-kinds button {
-    flex-direction: column;
-    padding: 12px;
   }
   .manager-input-line {
     flex-direction: column;
@@ -789,26 +500,6 @@
   .manager-nav {
     display: none;
   }
-  .manager-mobile-nav {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 14px;
-    background: #141519;
-    border-bottom: 1px solid #ffffff12;
-    font-size: 11px;
-    color: #aaaab3;
-  }
-  .manager-mobile-nav select {
-    width: 100%;
-    background: #1b1c20;
-    color: #e5dfd3;
-    border: 1px solid #ffffff24;
-    border-radius: 4px;
-    padding: 10px;
-    font: inherit;
-    font-size: 13px;
-  }
 }
 .overview-intro .button { flex-shrink: 0; }
 @media (max-width: 700px) { .overview-intro { flex-wrap: wrap; } }
@@ -835,7 +526,7 @@
 .guide-progress span { width:6px; height:6px; border-radius:50%; background:#55545b; }
 .guide-progress span.active { background:#ead5a5; }
 .guide-actions { display:flex; justify-content:space-between; gap:12px; margin-top:20px; }
-@media(max-width:480px) { .collection-guide { padding:0 16px 20px; } .collection-guide h3 { font-size:23px; } .guide-actions .button { font-size:12px; padding:10px; } .guide-picture { height:270px; } .guide-art-card { height:135px; } .guide-picture-2 .guide-art-card { height:175px; } }
+@media(max-width:550px) { .collection-guide { padding:0 16px 20px; } .collection-guide h3 { font-size:23px; } .guide-actions .button { font-size:12px; padding:10px; } .guide-picture { height:270px; } .guide-art-card { height:135px; } .guide-picture-2 .guide-art-card { height:175px; } }
 
 .modal:has(.collection-manager) > .modal-head { padding: 16px 20px; }
 .source-setup { max-width: 740px; width: 100%; margin: 0 auto; }
@@ -873,7 +564,6 @@
 @media(max-width:700px) {
   .modal:has(.collection-manager) > .modal-head { padding: 12px 14px; gap: 8px; }
   .modal:has(.collection-manager) > .modal-head .modal-title { white-space: nowrap; }
-  .manager-heading .button { padding: 10px; }
   .source-setup h3 { font-size: 23px; }
   .source-folder-choice { padding: 12px; gap: 8px; }
   .source-folder-art img { width: 32px; height: 40px; }
@@ -886,15 +576,13 @@
 .about-points li { padding-left:4px; }
 .about-points li::marker { color:#d8c398; }
 .about-points strong { color:#ece9ef; font-weight:500; }
-.about-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
 .about-copy .about-credits { font-size:12px; color:#aaa6b3; line-height:1.6; }
-@media(max-width:480px) { .about-copy { padding:22px; } .guide-actions .button { font-size:13px; } }
+@media(max-width:550px) { .about-copy { padding:22px; } .guide-actions .button { font-size:13px; } }
 
 /* Help: a workspace like My collection with a bordered menu on the logo's edge. Text stays at a readable
    measure (about 620px, ~75 characters); wide screens fill with each topic's figure, not longer lines.
-   Side padding and breakpoints follow .studio-header so the menu and Back line up with the header. */
-.collection-workspace.help-workspace { max-width:none; padding-inline:32px; }
-.help-body { display:grid; grid-template-columns:240px minmax(0,1fr); border-top:1px solid #ffffff18; }
+   Side padding and the menu width come from layout.css, so the menu and Back line up with the header. */
+.help-body { display:grid; grid-template-columns:var(--sidebar) minmax(0,1fr); border-top:1px solid #ffffff18; }
 .help-nav { padding:18px 16px 30px 0; border-right:1px solid #ffffff14; }
 .help-nav > ul { position:sticky; top:16px; }
 .help-nav ul { list-style:none; margin:0; padding:0; display:grid; gap:2px; }
@@ -914,7 +602,7 @@
 .help-group > ul { margin-left:23px; padding-left:8px; border-left:1px solid #ffffff12; }
 .help-mobile-toggle { display:none; }
 /* The content block grows to 1480px and centres in the space beside the menu, so large screens stay balanced. */
-.help-content { padding:24px 0 40px 48px; min-width:0; width:100%; max-width:1528px; margin-inline:auto; box-sizing:border-box; }
+.help-content { padding:24px 0 40px var(--gutter); min-width:0; }
 .help-crumb { display:inline-flex; align-items:center; gap:5px; margin:0 0 8px; font-size:12px; color:#aaa69c; text-decoration:none; }
 .help-crumb:hover { color:#e6d1a8; }
 .help-content a:focus-visible, .help-content summary:focus-visible { outline:2px solid #e2cd9c; outline-offset:2px; border-radius:3px; }
@@ -927,7 +615,7 @@
 .help-action { margin-top:22px; }
 
 /* Topic spread: text on the left, its figure beside it; stacked under the lead on narrower screens. */
-.help-topic { display:grid; grid-template-columns:minmax(0,620px) minmax(340px,1fr); grid-template-areas:"lead figure" "body figure"; column-gap:56px; row-gap:22px; align-items:start; }
+.help-topic { display:grid; grid-template-columns:minmax(0,var(--measure)) minmax(340px,1fr); grid-template-areas:"lead figure" "body figure"; column-gap:56px; row-gap:22px; align-items:start; }
 .help-topic > .help-lead { grid-area:lead; }
 .help-topic-figure { grid-area:figure; position:sticky; top:16px; max-width:820px; width:100%; justify-self:center; }
 .help-topic-body { grid-area:body; }
@@ -950,7 +638,7 @@
 .help-tile-text span { font-size:13px; line-height:1.5; color:#aeacb6; }
 
 /* Start here: the visual tour beside a short list of common tasks. */
-.help-start-layout { display:grid; grid-template-columns:minmax(0,620px) minmax(280px,1fr); gap:56px; align-items:start; }
+.help-start-layout { display:grid; grid-template-columns:minmax(0,var(--measure)) minmax(280px,1fr); gap:56px; align-items:start; }
 .help-tasks { max-width:560px; width:100%; justify-self:center; }
 .help-start .collection-guide { margin:0; padding:0; }
 .help-tasks h3, .help-faq-list h3 { margin:0 0 10px; font:500 15px Outfit,sans-serif; color:#d9d5cc; }
@@ -1036,7 +724,6 @@
 .hf-coll-head, .hf-coll-foot { display:flex; align-items:center; justify-content:space-between; gap:6px; }
 .hf-coll-head span:first-child { color:#ece9ef; font-size:12px; }
 .hf-coll-foot { color:#aeacb6; font-size:11px; }
-.hf-n-pos { justify-content:flex-end; }
 .hf-menu { display:grid; gap:2px; padding:5px; border:1px solid #ffffff1c; border-radius:6px; background:#222327; font-size:11px; }
 .hf-menu span { display:flex; align-items:center; justify-content:space-between; gap:6px; padding:4px 6px; }
 .hf-danger { color:#e3a49a; }
@@ -1097,22 +784,27 @@
 @media(max-width:1280px) {
   .help-topic { grid-template-columns:minmax(0,680px); grid-template-areas:"lead" "figure" "body"; }
   .help-topic-figure { position:static; max-width:600px; justify-self:start; }
-  .help-start-layout { grid-template-columns:minmax(0,620px); gap:32px; }
+  .help-start-layout { grid-template-columns:minmax(0,var(--measure)); gap:32px; }
   .help-tasks { justify-self:start; }
 }
-@media(max-width:1150px) { .collection-workspace.help-workspace { padding-inline:24px; } .help-content { padding-left:32px; } }
 @media(max-width:1100px) { .help-faq-list { grid-template-columns:minmax(0,1fr); } }
-@media(max-width:900px) { .roadmap-stages { grid-template-columns:minmax(0,1fr); } .roadmap-stages::before { display:none; } }
-@media(max-width:760px) {
+@media(max-width:850px) { .roadmap-stages { grid-template-columns:minmax(0,1fr); } .roadmap-stages::before { display:none; } }
+@media(max-width:700px) {
+  /* One slim heading row (Help, menu, back) and a plain page title, so the topic starts near the top. */
+  .help-workspace .workspace-heading { gap:4px; padding-bottom:6px; }
+  .help-mobile-toggle { display:grid; place-items:center; width:36px; height:36px; border:0; border-radius:6px; background:none; color:#c9c7c1; cursor:pointer; }
+  .help-mobile-toggle:hover, .help-mobile-toggle[aria-expanded="true"] { background:#ffffff0d; color:#e6d1a8; }
+  .help-mobile-toggle:focus-visible { outline:2px solid #e2cd9c; outline-offset:-2px; }
   .help-body { display:block; }
-  .help-mobile-toggle { display:flex; width:100%; margin:14px 0 0; justify-content:flex-start; }
-  .help-mobile-toggle > span { flex:1; text-align:left; }
-  .help-mobile-toggle[aria-expanded="true"] > svg:last-child { transform:rotate(180deg); }
   .help-nav { display:none; padding:8px 0; border-right:0; border-bottom:1px solid #ffffff12; }
-  .help-nav.is-open { display:block; }
+  /* Like a docs site on a phone: the open menu replaces the page instead of pushing it down. */
+  .help-nav.is-open { display:block; border-bottom:0; }
+  .help-nav.is-open + .help-content { display:none; }
   .help-nav > ul { position:static; }
-  .help-content { padding:18px 0 30px; }
-  .help-content > h2 { font-size:22px; }
+  .help-content { padding:14px 0 30px; }
+  .help-crumb { margin-bottom:2px; }
+  .help-content > h2 { font-size:22px; gap:8px; margin-bottom:12px; }
+  .help-title-icon { width:auto; height:auto; background:none; border:0; }
   .hf { padding:14px; }
   .hf-colls, .hf-tiles { gap:7px; }
   .hf-coll { padding:6px; }
@@ -1122,5 +814,21 @@
   .hf-flow > :nth-child(4), .hf-flow > :nth-child(5) { display:none; }
   .hf-about { padding:8px; }
 }
-@media(max-width:550px) { .collection-workspace.help-workspace { padding-inline:16px; } .help-lead { font-size:14px; } }
+@media(max-width:550px) { .help-lead { font-size:14px; } }
 @media(prefers-reduced-motion:reduce) { .feature-row, .help-tiles a, .help-fold svg { transition:none; } }
+
+/* Keep the compact desktop controls, with room for a finger on touch screens. */
+@media (pointer: coarse) {
+  .collection-workspace .source-setup .text-button:not(.workspace-back),
+  .collection-workspace .manager-footer .text-button:not(.workspace-back),
+  .help-workspace .workspace-back,
+  .help-nav a,
+  .help-crumb { min-height:var(--tap); }
+  .help-fold, .help-mobile-toggle { width:var(--tap); height:var(--tap); }
+  .help-workspace .workspace-back { min-width:var(--tap); }
+  .source-folder summary { min-height:var(--tap); padding-block:12px; box-sizing:border-box; }
+  .source-choice-footer > label { min-height:var(--tap); }
+  .manager-restore { align-items:flex-start; }
+  .manager-restore > .button,
+  .manager-restore > .icon-button { min-width:var(--tap); min-height:var(--tap); }
+}
