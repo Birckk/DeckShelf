@@ -16,7 +16,6 @@ export const roadmap: { stage: RoadmapStage; issue: number; title: string; summa
   { stage: "later", issue: 5, title: "Clearer saving and backups", summary: "Easier to find, and clearer about what stays in this browser." },
   { stage: "later", issue: 22, title: "Formats beyond Commander", summary: "Modern, Pauper and other decks, each under its own format." },
   { stage: "exploring", issue: 78, title: "Picker settings", summary: "Choose how picked decks are laid out and how the pick plays out." },
-  { stage: "exploring", issue: 76, title: "Shuffle and deal", summary: "Pick by gathering your decks into one pile, shuffling and dealing." },
   { stage: "exploring", issue: 7, title: "Moxfield decks", summary: "Read-only imports, if Moxfield offers a supported way." },
   { stage: "exploring", issue: 6, title: "Sync between devices", summary: "The same shelf and choices on your phone and computer." },
 ];

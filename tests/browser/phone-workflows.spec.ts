@@ -131,17 +131,22 @@ for (const width of [320, 1440]) test(`restore confirmation comes into view and 
   await expect(page.getByRole('button',{name:'Restore this backup',exact:true})).toBeInViewport({ratio:1});
 });
 
-for (const width of [320, 1440]) test(`picker motion controls sit under the pick button at ${width}px`, async ({page}) => {
+for (const width of [320, 1440]) test(`picker motion controls sit under the pick button, or in Options on phones, at ${width}px`, async ({page}) => {
   await page.setViewportSize({width,height:740});
   await page.addInitScript(({key,fixture})=>localStorage.setItem(key,JSON.stringify(fixture)),{key,fixture});
   await page.goto('/');
   await page.getByRole('group',{name:'Collection view'}).getByRole('button',{name:'Pick a deck',exact:true}).click();
   const motion=page.getByRole('group',{name:'Picker motion'});
-  await expect(motion).toHaveCount(1);
   const stage=page.getByRole('region',{name:'Random deck picker'});
-  await expect(stage.getByRole('group',{name:'Picker motion'})).toBeVisible();
-  const pick=(await stage.getByRole('button',{name:'Pick a deck',exact:true}).boundingBox())!, box=(await motion.boundingBox())!;
-  expect(box.y).toBeGreaterThanOrEqual(pick.y+pick.height);
+  if (width<=550) {
+    await expect(motion).toHaveCount(0);
+    await stage.getByRole('button',{name:/^Picker options/}).click();
+    await expect(stage.getByRole('group',{name:'Picker options'}).getByRole('group',{name:'Picker motion'})).toBeVisible();
+  } else {
+    await expect(stage.getByRole('group',{name:'Picker motion'})).toBeVisible();
+    const pick=(await stage.getByRole('button',{name:'Pick a deck',exact:true}).boundingBox())!, box=(await motion.boundingBox())!;
+    expect(box.y).toBeGreaterThanOrEqual(pick.y+pick.height);
+  }
   await expect(motion).toBeInViewport({ratio:1});
   await expect(page.getByRole('button',{name:/drift$/})).toBeVisible();
   await expect(page.getByRole('checkbox',{name:'Instant pick'})).toBeVisible();

@@ -51,6 +51,8 @@ import { DeckTable, ListSettingsContext, tableDeck } from "./DeckTable";
 import CollectionViewControls, { collectionTileSize, sortCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
 import { CardFanIcon } from "./CardFanIcon";
 import Picker from "./HelixPicker";
+import ShufflePicker from "./ShufflePicker";
+import { savedPresentation, savePresentation, type Presentation } from "./PickerControls";
 import CardStudio from "./CardStudio";
 import HelpCenter, { helpSectionFromPath, type FeatureTarget, type HelpSection } from "./HelpCenter";
 import { CardBackContext } from "./placeholders/CardBackArt";
@@ -103,6 +105,8 @@ function App() {
   const [storageLocked, setStorageLocked] = useState(!!loaded.error);
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
   const [view, setView] = useState<View>(HOME_VIEW);
+  // Helix or shuffle-and-deal (#76), remembered like the player count.
+  const [presentation, setPresentation] = useState(savedPresentation);
   const [display, setDisplay] = useCollectionDisplay("commander-archive.display.v1");
   const [pickerWinner, setPickerWinner] = useState<Deck | null>(null);
   const revealed = !!pickerWinner;
@@ -223,6 +227,7 @@ function App() {
     () => pickerDecks(owned.filter(deck => matchesDeck(deck, { ...filters, format: pickerFormat })), pickerFormat, shortlist),
     [owned, filters, shortlist, pickerFormat],
   );
+  const pickerScope = <div className="picker-scope-controls"><FormatSelect label="Pick format" value={pickerFormat} onChange={setPickerFormat} items={owned} disabled={spinning} /><span className="picker-scope-count" role="status">{eligible.length} eligible</span></div>;
   const browsingEligible = shortlist.length ? visible.filter(deck => shortlist.includes(deck.id)) : visible;
   const shortlistNumbers = new Map(visible.filter(deck => shortlist.includes(deck.id)).map((deck, index) => [deck.id, index + 1]));
   const sets = useMemo(
@@ -698,16 +703,21 @@ function App() {
                 )}
               </div>
             )}
-            {view === "picker" ? (
-              <Picker
-                scopeControl={<div className="picker-scope-controls"><FormatSelect label="Pick format" value={pickerFormat} onChange={setPickerFormat} items={owned} disabled={spinning} /><span className="picker-scope-count" role="status">{eligible.length} eligible</span></div>}
-                decks={eligible}
-                spinning={spinning}
-                setSpinning={setSpinning}
-                openDeck={setDetail}
-                onWinner={setPickerWinner}
-              />
-            ) : visible.length ? (
+            {view === "picker" ? (() => {
+              const PickerView = presentation === "shuffle" ? ShufflePicker : Picker;
+              return (
+                <PickerView
+                  key={presentation}
+                  presentation={{ value: presentation, onChange: (next: Presentation) => { setPresentation(next); savePresentation(next); } }}
+                  scopeControl={pickerScope} scopeLabel={formatName(pickerFormat)}
+                  decks={eligible}
+                  spinning={spinning}
+                  setSpinning={setSpinning}
+                  openDeck={setDetail}
+                  onWinner={setPickerWinner}
+                />
+              );
+            })() : visible.length ? (
               view === "cards" ? (
                 <CardStudio
                   decks={visible}

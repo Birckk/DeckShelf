@@ -195,10 +195,10 @@
   }
 }
 
-/* Two by two on narrow stages. */
+/* Two by two on narrow stages. As specific as the row rule above, or the row wins. */
 @container (max-width: 560px) {
-  .seats-3 .reveal-seats,
-  .seats-4 .reveal-seats {
+  .helix-reveal.is-multi.seats-3 .reveal-seats,
+  .helix-reveal.is-multi.seats-4 .reveal-seats {
     --cols: 2;
     --rows: 2;
     --gap: 14px;

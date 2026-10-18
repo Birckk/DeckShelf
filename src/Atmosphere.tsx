@@ -16,6 +16,23 @@ const light: Record<string, string> = {
   R: "210, 88, 61",
   G: "74, 152, 113",
 };
+// The reveal's one soft glow, centred on and sized by its card. Its mana colours
+// used to light fixed corners of the window, which never lined up with the card.
+export function RevealGlow({ deck }: { deck: Deck }) {
+  const gold = "234, 214, 163";
+  return (
+    <div
+      className="reveal-glow"
+      aria-hidden="true"
+      style={
+        {
+          "--aura-one": light[deck.colors[0]] || gold,
+          "--aura-two": light[deck.colors.at(-1) || ""] || gold,
+        } as CSSProperties
+      }
+    />
+  );
+}
 export function Atmosphere({
   deck,
   revealed,
@@ -45,15 +62,8 @@ export function Atmosphere({
         <div
           key={item.id}
           className={`atmosphere-layer ${index === layers.length - 1 ? "active" : ""}`}
-          style={
-            {
-              "--aura-one": light[item.colors[0]] || "159, 163, 176",
-              "--aura-two": light[item.colors.at(-1) || ""] || "159, 163, 176",
-            } as CSSProperties
-          }
         >
           {artwork && coverOf(item).art && <img src={cardImage(coverOf(item).art)} crossOrigin="anonymous" alt="" />}
-          <div className="atmosphere-colors" />
         </div>
       ))}
       <div className="atmosphere-vignette" />

@@ -415,7 +415,8 @@ for (const width of [1440, 390, 320]) test(`clearing a shortlist keeps the scene
   await page.getByRole('button', { name: 'Picker', exact: true }).click();
   const stage = page.getByRole('region', { name: 'Random deck picker' });
   const before = await stage.boundingBox();
-  const motion = await page.getByRole('group', { name: 'Picker motion' }).boundingBox();
+  // Phones keep the motion options in the picker's Options menu.
+  const motion = width > 700 ? await page.getByRole('group', { name: 'Picker motion' }).boundingBox() : null;
   await page.screenshot({ path: `qa/collection/picker-clear-${width}.png`, fullPage: true });
   await page.getByRole('button', { name: 'Clear selection', exact: true }).click();
   const after = (await stage.boundingBox())!;

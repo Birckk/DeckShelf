@@ -23,6 +23,9 @@ import {
   type Stop,
 } from "./helix";
 import { PlayerCount, savePlayers, savedPlayers } from "./PlayerCount";
+import { usePickerMotion } from "./PickerMotion";
+import { PickerBar, useCompactPicker, type PresentationControl } from "./PickerControls";
+import { RevealGlow } from "./Atmosphere";
 
 // One spin passes every chosen deck front-centre in order, then reveals them.
 type Run = {
@@ -66,8 +69,13 @@ export default function HelixPicker({
   openDeck,
   onWinner,
   scopeControl,
+  scopeLabel = "",
+  presentation,
 }: {
   scopeControl?: ReactNode;
+  scopeLabel?: string;
+  // Helix or shuffle-and-deal, chosen in the picker bar.
+  presentation?: PresentationControl;
   decks: Deck[];
   spinning: boolean;
   setSpinning: (v: boolean) => void;
@@ -78,12 +86,10 @@ export default function HelixPicker({
   const [chain, setChain] = useState<Deck[]>([]);
   const [players, setPlayers] = useState(savedPlayers);
   const winner = picks[0] ?? null;
-  const [systemReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const { systemReduced, instantPick, setInstantPick } = usePickerMotion();
   const [paused, setPaused] = useState(systemReduced);
-  const [instantPick, setInstantPick] = useState(
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-  );
   const [dragging, setDragging] = useState(false);
+  const compact = useCompactPicker();
   const stage = useRef<HTMLDivElement>(null);
   const reveal = useRef<HTMLDivElement>(null);
   const nodes = useRef<(HTMLButtonElement | null)[]>([]);
@@ -402,7 +408,15 @@ export default function HelixPicker({
       className={`helix-picker ${spinning ? "is-spinning" : ""} ${winner ? "has-winner" : ""} ${chain.length ? "is-chaining" : ""} ${systemReduced ? "reduced-motion" : ""}`}
       aria-label="Random deck picker"
     >
-      <div className="helix-format">{scopeControl}</div>
+      <PickerBar
+        compact={compact}
+        presentation={presentation}
+        scope={scopeControl}
+        players={playerCount}
+        motion={motionControls}
+        summary={[`${seats} ${seats === 1 ? "player" : "players"}`, scopeLabel].filter(Boolean).join(" · ")}
+        disabled={spinning}
+      />
         <span className="sr-only" role="status">
           {spinning
             ? seats > 1 ? `Picking ${seats} decks…` : "Picking a deck…"
@@ -514,7 +528,7 @@ export default function HelixPicker({
                   >
                     {multi && <span className="seat-label">{seatName(index)}</span>}
                     <div className="reveal-card-wrap">
-                      <div className="reveal-glow" aria-hidden="true" />
+                      <RevealGlow deck={deck} />
                       <button
                         className="revealed-card"
                         aria-label={multi ? `View ${seatName(index)}'s deck ${deck.name}` : `View winning deck ${deck.name}`}
@@ -588,7 +602,7 @@ export default function HelixPicker({
             `${count} eligible ${count === 1 ? "deck" : "decks"}`
           )}
         </div>
-        {playerCount}
+        {!compact && playerCount}
         <div className="helix-dock-actions">
           <button
             className="button button-gold spin-button"
@@ -631,7 +645,7 @@ export default function HelixPicker({
             Only {count} {count === 1 ? "deck matches" : "decks match"}, so this picks {count}.
           </p>
         )}
-        {motionControls}
+        {!compact && motionControls}
       </div>
     </section>
   );

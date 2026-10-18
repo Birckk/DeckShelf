@@ -85,7 +85,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Small pools repeat in deck order on each strand: A, B, C, D, then repeat. Do not group repetitions into runs of the same deck.
 - Visual repetitions never alter the unique eligible pool or its equal selection odds.
 - Variation belongs in the actual spin's distance and duration. Respect reduced-motion settings throughout.
-- The reveal has one soft glow centred on and sized by the card. Do not put a filter on the helix: it flattens the 3D and makes every card jump. Dim the spiral by easing card opacity instead, both into a result and back out.
+- The reveal has one soft glow centred on and sized by the card, in every presentation and for every seat. It carries the deck's mana colours; no other coloured light goes with a result (fixed corner lights in the window background never lined up with the card, so they were removed). Do not put a filter on the helix: it flattens the 3D and makes every card jump. Dim the spiral by easing card opacity instead, both into a result and back out.
 
 ## Before shipping a visual change
 
@@ -162,7 +162,7 @@ The concrete rules above reflect this project's owner feedback; the references s
 - Quick choice is one segmented group styled like the view switch, in the order close (✕), entry (Choose a few / Select cards / N selected), All while editing, then the gold Picker at the far edge. Every segment shares one height; close is icon-only everywhere.
 - The deck count always holds the left edge. Quick choice is only as wide as its segments: left-aligned directly beside the count on desktop, right-aligned on phones. Do not float it in an empty slot or stretch it to fill the row. When active, close takes its space from the entry, so close plus entry cover the idle Choose a few width; actions extend away from the aligned edge (right on desktop, left on phones). Owner decision after comparing six in-app variants.
 - Segments keep comfortable padding on typical phones (360px and up); only the narrowest phones (370px and below) use compact sizes and shorten a filtered count to "49 of 184". Segments never shrink below their content.
-- Pause drift and Instant pick sit under the Pick a deck button inside the stage at every width, hidden while a result shows.
+- Pause drift and Instant pick sit under the Pick a deck button inside the stage, hidden while a result shows. Phones keep them in the picker's Options menu (see Picker controls, October 18).
 - The view switch is the same bordered segmented group at every width.
 - Search focus outlines the whole search bar in muted gold. The icon, hint text and Filters share the bar's exact vertical centre.
 - Header logo, results row and quick-choice position are identical across views; no per-view header or toolbar overrides.
@@ -213,7 +213,17 @@ Owner decisions for #34, after comparing variants in the app:
 - Seat icons above the Pick button set 1–4 players. The count is remembered and never exceeds the pool; larger counts are disabled with the reason stated. One player keeps the single-deck reveal.
 - Stop on each: one long spin to the first chosen deck, a short hold, then shorter turns on to the others in the order they come up on the spiral. Each chosen deck stays lit with its Player label and joins a list at the top. A slow crawl past each deck, lighting decks as one spin passes them, and dealing on top of the helix were tried and rejected.
 - Results show as a row of full cards labelled Player 1–4, with name and mana symbols under each; two by two on narrow stages. Fan and table layouts may come back as settings later.
-- Shuffle-and-deal belongs in its own presentation, not on the helix (#76).
+- Shuffle-and-deal belongs in its own presentation, not on the helix (#76). Owner's picks after comparing variants (October 18): it is a picker setting (Helix or Shuffle, remembered like the player count), the eligible decks gather from a collection grid, and the result is #34's seat row. A separate Shuffle mode beside Pick a deck, an abstract pile of card backs and cards left angled on the table were rejected.
+
+### Picker controls (October 18)
+
+Owner feedback on #76: the glow was off-centre, the phone picker looked crowded, and Pick format moved around between views and presentations.
+
+- Every picker presentation shares one frame: the same height, a bar across the top of the stage and the dock at the bottom. The bar holds the Picker dropdown (Helix or Shuffle) on the left and the Pick format dropdown with the eligible count on the right. The dock holds the player count, the Pick button and the motion options, in that order. Nothing moves when switching presentation or picking.
+- Phones (550px and below) and phones in landscape (500px tall and below) fold the bar, the player count and the motion options into one Options button at the top right of the stage. It names the current choice (for example "2 players · Commander") and opens a small panel, where Helix and Shuffle are two buttons (owner liked this); Escape or a tap outside closes it. The stage then keeps only the Pick button below.
+- In landscape the stage fills the screen once scrolled to, and picking scrolls it into view.
+- The Pick button keeps one width while it reads "Choosing your deck…". The shuffle's table keeps its size through the deal, flip and result.
+- Instant pick is shared by both presentations for the session; switching keeps it.
 
 ### Phone pre-pass feedback (October 17)
 

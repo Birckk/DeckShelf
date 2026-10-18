@@ -8,6 +8,8 @@
      compact  700px       phones in landscape and small tablets: sidebars fold into menus
      phone    550px       16px gutter, phone header and controls
      narrow   380px       the smallest phones squeeze labels
+     short    max-height 500px  phones in landscape: the picker fills the screen once scrolled to
+                          and, as on phones, folds its controls into one Options menu
    Content-driven exceptions live beside their component with a comment (Help's 1280px figure).
 
    Every top-level view (header, Collection, Cards, picker, My collection, Help) pads its

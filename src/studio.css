@@ -763,8 +763,12 @@ option {
 .helix-intro h2 {
   color: #e8e2d6;
 }
+/* Every picker presentation is this tall; the tiers below change it. */
+:root {
+  --picker-stage: clamp(420px, calc(var(--app-height) - 240px), 860px);
+}
 .helix-stage {
-  height: clamp(420px, calc(var(--app-height) - 240px), 860px);
+  height: var(--picker-stage);
 }
 @media (max-width: 1100px) {
   .studio-header {
@@ -858,8 +862,8 @@ option {
   .studio-pagination {
     gap: 16px;
   }
-  .helix-stage {
-    height: clamp(430px, calc(var(--app-height) - 310px), 720px);
+  :root {
+    --picker-stage: clamp(430px, calc(var(--app-height) - 310px), 720px);
   }
 }
 @media (max-width: 550px) {
@@ -1001,8 +1005,8 @@ option {
   .collection-deck-bottom > span {
     max-width: 100%;
   }
-  .helix-stage {
-    height: clamp(430px, calc(var(--app-height) - 194px), 720px);
+  :root {
+    --picker-stage: clamp(430px, calc(var(--app-height) - 194px), 720px);
   }
   .helix-picker {
     margin-top: 5px;
@@ -1027,7 +1031,8 @@ option {
   text-align: center;
 }
 .helix-dock .spin-button {
-  min-width: 180px;
+  /* Wide enough for "Choosing your deck…", so the button keeps its size while picking. */
+  min-width: 192px;
   height: 43px;
   border-radius: 10px;
   gap: 10px;
@@ -1100,7 +1105,7 @@ option {
     padding: 10px;
   }
   .helix-dock .spin-button {
-    min-width: 143px;
+    min-width: 178px;
     font-size: 12px;
   }
   .helix-dock .helix-selection {
@@ -1295,21 +1300,6 @@ option {
   opacity: 0.17;
   transform: scale(1.05);
 }
-.atmosphere-colors {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(
-      ellipse at 14% 65%,
-      rgba(var(--aura-one), 0.19),
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse at 87% 24%,
-      rgba(var(--aura-two), 0.15),
-      transparent 52%
-    );
-}
 .atmosphere-vignette {
   position: absolute;
   inset: 0;
@@ -1346,12 +1336,19 @@ option {
   display: grid;
   place-items: center;
 }
-/* One soft glow, centred on and sized by the card, on the card's own timing. */
+/* One soft glow, centred on and sized by the card, on the card's own timing.
+   It carries the deck's mana colours (src/Atmosphere.tsx RevealGlow). */
 .reveal-glow {
   position: absolute;
   inset: -24% -52%;
   border-radius: 50%;
-  background: radial-gradient(closest-side, #ead6a330, #ead6a310 58%, transparent);
+  background: radial-gradient(
+    closest-side,
+    #ead6a330,
+    rgba(var(--aura-one), 0.16) 34%,
+    rgba(var(--aura-two), 0.07) 64%,
+    transparent
+  );
   pointer-events: none;
   animation: reveal-glow 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -1474,6 +1471,8 @@ html { scrollbar-gutter: stable; }
 .studio-workspace .results-toolbar { padding: 10px 2px 8px; min-height: 46px; align-items: flex-start; }
 .studio-workspace .results-toolbar > div:first-child { padding-top: 6px; }
 .studio-theme .helix-intro { top: 18px; }
+/* Narrower stages put the title below the picker bar, so it never runs into its controls. */
+@media (max-width: 1100px) { .studio-theme .helix-intro { top: 54px; } }
 .studio-workspace .result-count { font-size: 11px; line-height: 16px; }
 .studio-workspace .result-count > span { display: inline; }
 @media (max-width: 850px) {
@@ -1707,7 +1706,44 @@ body:has(.studio-workspace) { min-width:320px; }
   font: inherit;
 }
 .format-select select:focus-visible { outline: 2px solid #c9af7d; outline-offset: 2px; }
-.helix-format { position: absolute; z-index: 9; top: 14px; right: 18px; }
+/* One picker bar across the top of the stage in every presentation and at every width
+   (src/PickerControls.tsx): presentation on the left, pick format on the right. Phones
+   and phones in landscape fold it, the player count and the motion options into one
+   Options menu, leaving the Pick button alone at the bottom. */
+.picker-bar { position: absolute; z-index: 9; top: 12px; left: 14px; right: 14px; display: flex; align-items: center; gap: 12px; min-height: 34px; pointer-events: none; }
+.picker-bar > * { pointer-events: auto; }
+.picker-bar-scope, .picker-options { margin-left: auto; }
+.picker-options { position: relative; }
+.picker-options-trigger { display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 11px; border: 1px solid #ffffff20; border-radius: 6px; background: #191a1de6; backdrop-filter: blur(8px); color: #dcd8cf; font-size: 12px; white-space: nowrap; }
+.picker-options-trigger[aria-expanded=true] { border-color: #d8bd8760; color: var(--gold); }
+.picker-options-trigger:disabled { opacity: .55; }
+.picker-options-trigger > svg:last-child { transition: rotate .2s; }
+.picker-options-trigger[aria-expanded=true] > svg:last-child { rotate: 180deg; }
+.picker-options-panel { position: absolute; top: calc(100% + 6px); right: 0; display: grid; justify-items: start; gap: 12px; width: max-content; max-width: calc(100vw - 2 * var(--gutter) - 28px); padding: 12px; border: 1px solid #ffffff25; border-radius: 8px; background: #191a1ef5; box-shadow: 0 12px 40px #0008; }
+.picker-options-panel[hidden] { display: none; }
+.picker-option { display: flex; }
+.picker-options-panel .player-count { margin: 0; }
+.picker-options-panel .picker-presentation { gap: 4px; }
+.picker-presentation button { padding: 7px 14px; border: 1px solid #ffffff20; border-radius: 5px; font-size: 12px; color: #bbb9b3; }
+.picker-presentation button[aria-pressed=true] { color: var(--gold); background: #2a261d; border-color: #d8bd8760; }
+.picker-options-panel .picker-scope-controls { justify-content: flex-start; }
+.picker-options-panel .helix-motion-controls { gap: 16px; }
+.picker-options-panel .helix-motion-controls .text-button,
+.picker-options-panel .helix-motion-controls > label { min-height: 28px; font-size: 12px; color: #aaa9a3; }
+.picker-options-panel .helix-motion-controls .text-button > span { display: inline; }
+.picker-options-panel .helix-motion-controls input { width: 14px; height: 14px; }
+/* With the player count and motion options in the menu, the dock is just the Pick button. */
+@media (max-width: 550px), (max-height: 500px) {
+  .helix-gesture { bottom: 70px; }
+  .has-winner .helix-reveal { top: 52px; bottom: 122px; }
+}
+/* Phones in landscape: the stage fills the screen once scrolled to (picking scrolls it into view). */
+@media (max-height: 500px) {
+  :root { --picker-stage: max(300px, calc(var(--app-height) - 16px)); }
+  .helix-intro p { display: none; }
+  /* The card fits between the bar (52px) and the result panel (122px). */
+  .has-winner .revealed-card { width: min(208px, calc((var(--picker-stage) - 186px) * 0.718)); min-width: 0; }
+}
 .picker-scope-controls { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; }
 .picker-scope-count { color: #aaa7a0; font-size: 11px; white-space: nowrap; }
 .deck-format { position: absolute; z-index: 2; bottom: 8px; right: 8px; max-width: calc(100% - 16px); padding: 4px 7px; border-radius: 4px; background: #111214eb; color: #e9deca; font-size: 11px; line-height: 1.2; }
@@ -1719,5 +1755,4 @@ body:has(.studio-workspace) { min-width:320px; }
 @media (max-width: 700px) {
   .manager-search { flex-wrap: wrap; }
   .manager-search > label:not(.format-select) { flex-basis: 100%; }
-  .helix-format { top: 88px; right: 0; left: 0; text-align: center; }
 }

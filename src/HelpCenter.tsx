@@ -87,7 +87,7 @@ const topics: Partial<Record<HelpSection, Topic>> = {
       { title: "One format at a time", text: "Hidden and switched-off collections are left out. A deck in two collections counts once. A single-format shelf or shortlist carries its scope into the picker; mixed pools start in Commander." },
       { title: "Colors include; Exact matches", text: <>U and B shows every deck with both, Esper and Grixis too. Turn on <b>Exact colors</b> for Dimir only. Search needs every word to match.</> },
       { title: "Choose a few", text: <>Press <b>Choose a few</b>, click decks (Shift-click selects a range), then <b>Picker</b>. The numbers are just order. The shortlist lasts until you clear it or reload.</> },
-      { title: "Equal odds", text: "Every deck in the pool has the same chance. Picking for 2–4 players gives each player a different deck, numbered in the order the spiral stops on them. Small pools repeat around the spiral; repeats don’t change the odds." },
+      { title: "Equal odds", text: "Every deck in the pool has the same chance, in the Helix and in Shuffle: the pick is made first, and the animation only shows it. Picking for 2–4 players gives each player a different deck, numbered in the order the spiral stops on them or the cards are dealt. Small pools repeat around the spiral; repeats don’t change the odds." },
     ],
     action: { label: "Open the picker", target: "picker" },
   },
@@ -115,7 +115,7 @@ const faq: { group: string; items: { q: string; a: ReactNode; see?: HelpSection 
     { q: "I switched a collection off but its decks still show", a: "They’re also in another collection that’s on. A deck shows while any collection holding it is on." },
   ] },
   { group: "Picking", items: [
-    { q: "Is the random pick fair?", a: "Yes. Every deck in the pool has the same chance; the spiral’s repeats are only visual.", see: "picking" },
+    { q: "Is the random pick fair?", a: "Yes. Every deck in the pool has the same chance, with the Helix or Shuffle picker; the spiral’s repeats are only visual.", see: "picking" },
     { q: "Why can’t I press Picker?", a: "Select at least one deck that’s visible with your current search and colors. Selected decks hidden by a filter can’t be picked." },
   ] },
   { group: "Devices and more", items: [
@@ -135,7 +135,7 @@ const featureGroups: { label: string; items: Feature[] }[] = [
     { target: "search", title: "Search and filters", caption: "Name, commander, colors, set or theme, in every view.", action: "Try search", art: 2, Icon: Search },
   ] },
   { label: "Pick", items: [
-    { target: "picker", title: "Pick a deck", caption: "Spin the picker. Every deck in the pool has the same chance.", action: "Open the picker", art: 3, Icon: Dices },
+    { target: "picker", title: "Pick a deck", caption: "Spin the helix or shuffle and deal. Every deck in the pool has the same chance.", action: "Open the picker", art: 3, Icon: Dices },
     { target: "shortlist", title: "Choose a few", caption: "Shortlist the decks you’re torn between, then pick from those.", action: "Choose a few", art: 4, Icon: ListChecks },
   ] },
   { label: "Your shelf", items: [

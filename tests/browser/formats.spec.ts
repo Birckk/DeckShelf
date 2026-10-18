@@ -134,6 +134,8 @@ for (const viewport of [{ width: 1920, height: 1080 }, { width: 1500, height: 90
     await page.getByRole('button', { name: 'Cards', exact: true }).click();
     await shot('cards-all');
     await page.getByRole('group', { name: 'Collection view' }).getByRole('button', { name: 'Pick a deck', exact: true }).click();
+    // Phones keep the picker's controls in its Options menu.
+    if (viewport.width < 550) await page.getByRole('button', { name: /^Picker options/ }).click();
     await page.getByLabel('Pick format', { exact: true }).selectOption('modern');
     await shot('picker-modern');
     await page.getByRole('button', { name: 'My collection', exact: true }).click();
