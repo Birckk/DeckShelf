@@ -57,13 +57,18 @@ try {
   await preconSwitch.uncheck();
   await expect(page.locator('.workspace-heading')).toContainText('0 on display');
   await preconSwitch.check();
-  await page.getByRole('button', { name: 'Remove precons', exact: true }).click();
+  // Hide (in More) is the saved way to put precons away; Enable all skips hidden collections.
+  await page.getByRole('button', { name: 'More actions for Official Commander precons', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Hide precons', exact: true }).click();
   await page.getByRole('button', { name: 'Enable all', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText('0 on display');
   await page.reload();
   await page.getByRole('button', { name: 'My collection', exact: true }).click();
-  await page.locator('.disabled-collections').getByRole('button', { name: 'Official Commander precons Disabled', exact: true }).click();
-  await page.getByRole('button', { name: 'Enable collection', exact: true }).click();
+  // Phones keep the sidebar, and its Hidden list, behind Sources and folders.
+  if (viewport.width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
+  const nav = page.getByRole('navigation', { name: 'Collection sources' });
+  await nav.getByRole('button', { name: /^Hidden/ }).click();
+  await nav.getByRole('button', { name: 'Show Official Commander precons', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText(`${snapshot.decks.length} on display`);
   const downloadEvent = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export backup', exact: true }).click();
@@ -96,12 +101,12 @@ try {
   await page.reload();
   await expect(page.getByRole('alert')).toContainText('has not been overwritten');
   await page.getByRole('button', { name: /^My collection/ }).click();
-  await page.getByRole('button', { name: 'Add official precons', exact: true }).click();
+  await page.getByRole('button', { name: 'Add Official Commander precons', exact: true }).click();
   expect(await page.evaluate(k => localStorage.getItem(k), key)).toBe('{broken');
   await page.locator('input[type=file]').setInputFiles({ name: 'recovery.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(old)) });
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
   await expect.poll(() => page.evaluate(k => JSON.parse(localStorage.getItem(k)), key)).toEqual(old);
-  console.log(`${viewport.width}px: full precons, filters, temporary shortlist, persistent remove/restore, add-decks entry, v1 backup and corrupt recovery passed; first view ${startup}ms; no API requests.`);
+  console.log(`${viewport.width}px: full precons, filters, temporary shortlist, persistent hide/show, add-decks entry, v1 backup and corrupt recovery passed; first view ${startup}ms; no API requests.`);
   await context.close();
  }
  expect(errors).toEqual([]);
