@@ -4,7 +4,7 @@
 release-planning overview. Its items are the real
 [GitHub issues](https://github.com/Bircck/DeckShelf/issues), not duplicate tasks.
 Use [First-use polish](https://github.com/Bircck/DeckShelf/milestone/1) for the next
-product iteration. The repository and project remain private.
+product iteration. Key decisions are summarised in [DECISIONS.md](DECISIONS.md).
 
 ## Project structure
 

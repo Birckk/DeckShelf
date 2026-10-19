@@ -56,7 +56,7 @@ Then open http://127.0.0.1:4317. On Windows you can double-click
 - [Using DeckShelf](docs/USAGE.md): views, filters, the picker, sources and backups
 - [Development](docs/DEVELOPMENT.md): repository layout, tests and CI
 - [Hosting](docs/HOSTING.md) · [Desktop app](docs/DESKTOP.md) · [Releasing](docs/RELEASING.md)
-- [Design direction](docs/DESIGN.md) for interface changes
+- [Design direction](docs/DESIGN.md) for interface changes · [Decisions](docs/DECISIONS.md) so far
 
 ## Credits
 

@@ -16,4 +16,4 @@ All 13 recovered image-generation boards, with the chosen inspiration, flat comp
 
 [Editable SVG comparison sheet](deckshelf-svg-attempts.svg). These three assets total approximately 484 KB; no old preview sites or tooling are retained.
 
-Selected logo: [PR #27](https://github.com/Bircck/DeckShelf/pull/27), [completed discovery #25](https://github.com/Bircck/DeckShelf/issues/25).
+Selected logo: archive PR 27, [completed discovery #25](https://github.com/Bircck/DeckShelf/issues/25).

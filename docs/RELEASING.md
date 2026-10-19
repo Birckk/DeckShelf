@@ -79,11 +79,10 @@ For a release:
 Do not reuse or overwrite a published version/tag; draft creation fails on an
 existing release rather than replacing its assets.
 
-The source code is MIT licensed. Before the first public publication, the owner
-must still settle the bundled asset redistribution basis and download visibility
-(issue #9). The
-repository is `Bircck/DeckShelf` and currently private: release links and Actions
-artifacts are restricted to collaborators. No workflow changes repository visibility.
+The source code is MIT licensed, and bundled card art follows the Wizards Fan
+Content Policy (issue #9). The repository `Bircck/DeckShelf` is public; history
+before 2026-10-19 was recreated from a private archive (#122). No workflow
+changes repository visibility.
 
 ## Signing and platform scope
 

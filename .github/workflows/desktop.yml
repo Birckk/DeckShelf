@@ -36,7 +36,7 @@ jobs:
       # The last build named Commander Archive, installed first to test a real upgrade.
       - uses: actions/checkout@v7
         with:
-          ref: f39259699cf34d5a16bd26b5218a99497e3937d4
+          ref: bb82435c05e34eb35bd73f087af70f9d33e8ad88
           path: qa/legacy-source
       - name: Package Commander Archive
         working-directory: qa/legacy-source
