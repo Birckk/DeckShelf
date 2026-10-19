@@ -70,6 +70,10 @@ export async function fetchDeck(id, { refresh = false, store = cache, limit = 10
   return cached.deck;
 }
 
+// Rate limits, upstream outages and timeouts pass; a private, missing or invalid deck does not.
+const retryable = error => error.status === 429 || error.status >= 500 || error.retryAfter > 0 ||
+  ['TimeoutError', 'TypeError'].includes(error.name);
+
 export async function handleApi(req, res, next = () => { res.writeHead(404); res.end('Not found'); }) {
   const url = new URL(req.url || '/', 'http://localhost');
   if (!url.pathname.startsWith('/api/')) return next();
@@ -97,7 +101,8 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
     const id = match[1];
     const manual = url.searchParams.get('refresh') === '1';
     const failed = failedDecks.get(id);
-    if (!manual && failed?.retryAt > Date.now()) throw new Error(failed.error);
+    // A remembered failure answers as the original did, including whether to try again later.
+    if (!manual && failed?.retryAt > Date.now()) throw Object.assign(new Error(failed.error), { retry: failed.retry });
     // Automatic checks share one in-flight request per deck and remember failures briefly.
     let request = !manual && pendingDecks.get(id);
     if (!request) {
@@ -111,13 +116,13 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
     } catch (error) {
       if (!manual) {
         if (failedDecks.size >= 100) failedDecks.delete(failedDecks.keys().next().value);
-        failedDecks.set(id, { error: error.message, retryAt: Math.max(Date.now() + 60000, upstreamCooldown.retryAt) });
+        failedDecks.set(id, { error: error.message, retry: retryable(error), retryAt: Math.max(Date.now() + 60000, upstreamCooldown.retryAt) });
       }
       throw error;
     } finally { if (pendingDecks.get(id) === request) pendingDecks.delete(id); }
   } catch (error) {
     // retry tells background filling whether to keep a listed deck for later or drop it.
-    const retry = error.status === 429 || error.status >= 500 || ['TimeoutError', 'TypeError'].includes(error.name);
+    const retry = error.retry ?? retryable(error);
     res.writeHead(502);
     res.end(JSON.stringify({error:error.name === 'TimeoutError' ? 'Archidekt took too long to respond. Your saved collection is still available.' : error.message || 'Could not fetch this deck.', retry}));
   }

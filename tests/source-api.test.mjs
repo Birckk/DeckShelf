@@ -49,8 +49,13 @@ test('concurrent automatic snapshot requests share in-flight work and failed imp
   assert.deepEqual(results[0], results[1]);
   assert.equal(results[0].status, 200);
   globalThis.fetch.mock.mockImplementation(async () => { calls++; return { ok: false, status: 429 }; });
-  assert.equal((await request('/api/decks/987654318')).status, 502);
-  assert.equal((await request('/api/decks/987654318')).status, 502);
+  const limited = await request('/api/decks/987654318');
+  assert.equal(limited.status, 502);
+  assert.equal(limited.body.retry, true);
+  // The remembered failure still says to try again later, so shelves don't drop the deck for good.
+  const remembered = await request('/api/decks/987654318');
+  assert.equal(remembered.status, 502);
+  assert.equal(remembered.body.retry, true);
   assert.equal(calls, 2);
 });
 
