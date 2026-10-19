@@ -11,3 +11,5 @@
 !public/**
 !server/
 !server/**
+!shared/
+!shared/**
