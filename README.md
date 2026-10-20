@@ -26,6 +26,8 @@ the matching decks to the picker. Every deck in the pool has the same chance.
 
 - Imports public Archidekt accounts, folders and single decks. It only reads them and never asks for a login.
 - Ships with the 184 Commander precons from Archidekt's catalog as an optional starter collection, so it works before you link anything.
+- Picks with a spinning helix or a shuffle-and-deal, for up to four players at once.
+- Shares a shelf as a link that opens read-only, beside the visitor's own decks.
 - Saves your collection in your browser. A backup file moves it to another browser or the Windows app.
 - Runs in the browser, in Docker or as a Windows app.
 

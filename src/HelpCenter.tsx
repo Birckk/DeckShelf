@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ComponentType, type MouseEvent, type 
 import {
   ArrowLeft, ArrowRight, BookOpen, ChevronRight, Dices, Eye, ExternalLink, Folder, FolderOpen, HardDrive,
   HardDriveDownload, Info, LayoutGrid, Library, Link2, ListChecks, Map as MapIcon, Menu, MessageCircleQuestion, Puzzle,
-  RefreshCw, Search, Settings, X,
+  RefreshCw, Search, Settings, Share2, X,
 } from "lucide-react";
 import { CardFanIcon } from "./CardFanIcon";
 import CollectionGuide from "./CollectionGuide";
@@ -26,7 +26,7 @@ export const helpSections = [
   { id: "features", label: "Features", Icon: Puzzle, parent: "project", summary: "Everything DeckShelf does, with a shortcut to each." },
   { id: "roadmap", label: "Roadmap", Icon: MapIcon, parent: "project", summary: "What’s next, later, and still being explored." },
   { id: "about", label: "About", Icon: Info, parent: "project", summary: "Why DeckShelf exists, and credits." },
-  { id: "settings", label: "Settings", Icon: Settings, summary: "Card backs, artwork and List columns." },
+  { id: "settings", label: "Settings", Icon: Settings, summary: "Card backs, artwork, List columns and new decks." },
 ] as const satisfies readonly { id: string; label: string; Icon: Icon; summary: string; group?: boolean; parent?: string }[];
 export type HelpSection = (typeof helpSections)[number]["id"];
 export type FeatureTarget = "grid" | "cards" | "picker" | "search" | "shortlist" | "collection" | "precons";
@@ -120,7 +120,7 @@ const faq: { group: string; items: { q: string; a: ReactNode; see?: HelpSection 
   ] },
   { group: "Devices and more", items: [
     { q: "What if my collection cannot be saved or read?", a: "After a failed save, changes still work for this session: export them before closing, or retry saving when storage is available. Damaged or unreadable saved data is kept untouched until you confirm a valid restore. Download recovery data preserves the damaged file for manual repair; Export backup saves the current session instead.", see: "saving" },
-    { q: "Can I use it on my phone and my computer?", a: "Yes, but each keeps its own shelf. Export a backup on one and restore it on the other. Sync between devices is on the roadmap.", see: "saving" },
+    { q: "Can I use it on my phone and my computer?", a: "Yes, but each keeps its own shelf. Export a backup on one and restore it on the other. Sync between devices isn’t planned for now.", see: "saving" },
     { q: "Does it work offline?", a: "Browsing and picking work once DeckShelf has loaded. Adding or refreshing decks needs a connection, and artwork may too unless your browser has cached it." },
     { q: "Can I add formats other than Commander?", a: "Yes. Public Archidekt decks in other formats work too, including Modern, Standard and Pauper. Switch the folder list’s format when adding them, then set Pick format for the game.", see: "adding" },
     { q: "Can I add decks from Moxfield?", a: "Not for now. Moxfield offers no public way for other apps to read decks, so DeckShelf couldn’t keep them up to date. It reads decks from Archidekt." },
@@ -128,7 +128,7 @@ const faq: { group: string; items: { q: string; a: ReactNode; see?: HelpSection 
   ] },
 ];
 
-type Feature = { target: FeatureTarget | "saving"; title: string; caption: string; action: string; art: number; Icon: Icon };
+type Feature = { target: FeatureTarget | "saving" | "settings"; title: string; caption: string; action: string; art: number; Icon: Icon };
 const featureGroups: { label: string; items: Feature[] }[] = [
   { label: "Browse", items: [
     { target: "grid", title: "Collection", caption: "A wall of commander cards: details, cards only or a list.", action: "Open Collection", art: 0, Icon: LayoutGrid },
@@ -136,13 +136,15 @@ const featureGroups: { label: string; items: Feature[] }[] = [
     { target: "search", title: "Search and filters", caption: "Name, commander, colors, set or theme, in every view.", action: "Try search", art: 2, Icon: Search },
   ] },
   { label: "Pick", items: [
-    { target: "picker", title: "Pick a deck", caption: "Spin the helix or shuffle and deal. Every deck in the pool has the same chance.", action: "Open the picker", art: 3, Icon: Dices },
+    { target: "picker", title: "Pick a deck", caption: "Spin the helix or shuffle and deal, for up to four players. Every deck has the same chance.", action: "Open the picker", art: 3, Icon: Dices },
     { target: "shortlist", title: "Choose a few", caption: "Shortlist the decks you’re torn between, then pick from those.", action: "Choose a few", art: 4, Icon: ListChecks },
   ] },
   { label: "Your shelf", items: [
-    { target: "collection", title: "Your Archidekt decks", caption: "Paste a username, folder or deck link. Read-only, no login.", action: "Open My collection", art: 10, Icon: Link2 },
+    { target: "collection", title: "Your Archidekt decks", caption: "Paste a username, folder or deck link. Folders you add whole pick up new decks by themselves.", action: "Open My collection", art: 10, Icon: Link2 },
+    { target: "collection", title: "Share and keep shelves", caption: "Send a link to your shelf, or keep a friend’s beside yours to browse.", action: "Open My collection", art: 7, Icon: Share2 },
     { target: "precons", title: "Official precons", caption: "Commander precons to start with. Hide them any time.", action: "View precons", art: 11, Icon: Library },
     { target: "saving", title: "Saved in this browser", caption: "No account. Export a backup to move your shelf.", action: "Read Saving and devices", art: 6, Icon: HardDriveDownload },
+    { target: "settings", title: "Settings", caption: "Card backs, artwork, List columns and how new decks arrive.", action: "Open Settings", art: 8, Icon: Settings },
   ] },
 ];
 
@@ -263,7 +265,7 @@ export default function HelpCenter({ section, onSection, onClose, onGo, precons,
           {featureGroups.map(g => <section key={g.label} aria-labelledby={`features-${g.label}`}>
             <h3 id={`features-${g.label}`}>{g.label}</h3>
             <ul>{g.items.map(({ target, title, caption, action, art, Icon }) => <li key={title}>
-              <button className="feature-row" title={action} onClick={() => target === "saving" ? onSection("saving") : onGo(target)}>
+              <button className="feature-row" title={action} onClick={() => target === "saving" || target === "settings" ? onSection(target) : onGo(target)}>
                 <span className="feature-thumb"><img src={decks[art].commanders[0].art} alt="" /><span><Icon size={13} /></span></span>
                 <span className="feature-text"><strong>{title}</strong><span>{caption}</span></span>
                 <ArrowRight size={15} aria-hidden="true" />
@@ -274,12 +276,14 @@ export default function HelpCenter({ section, onSection, onClose, onGo, precons,
 
         {section === "roadmap" && <div className="roadmap">
           <div className="roadmap-stages">
-            {roadmapStages.map(stage => <section key={stage.id} className={`roadmap-stage roadmap-${stage.id}`} aria-labelledby={`roadmap-${stage.id}`}>
+            {roadmapStages.map(stage => { const items = roadmap.filter(item => item.stage === stage.id); return <section key={stage.id} className={`roadmap-stage roadmap-${stage.id}`} aria-labelledby={`roadmap-${stage.id}`}>
               <h3 id={`roadmap-${stage.id}`}><span className="roadmap-dot" aria-hidden="true" />{stage.label}</h3>
-              <ul>{roadmap.filter(item => item.stage === stage.id).map(item => <li key={item.issue}><strong>{item.title}</strong><span>{item.summary}</span></li>)}</ul>
-            </section>)}
+              {items.length
+                ? <ul>{items.map(item => <li key={item.title}><strong>{item.title}</strong><span>{item.summary}</span></li>)}</ul>
+                : <p className="roadmap-empty">Nothing planned right now.</p>}
+            </section>; })}
           </div>
-          <p className="help-note">Plans, not promises. The order can change as DeckShelf gets used. Follow progress or suggest something on {external(`${REPO_URL}/issues`, "GitHub")}.</p>
+          <p className="help-note">Everything planned for 1.0 has shipped. Exploring lists ideas, not plans. The order can change as DeckShelf gets used. Follow progress or suggest something on {external(`${REPO_URL}/issues`, "GitHub")}.</p>
         </div>}
 
         {section === "settings" && <SettingsSection value={settings.value} onChange={settings.change} />}
