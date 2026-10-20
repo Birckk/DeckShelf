@@ -327,6 +327,10 @@ function App() {
       notify(`${dropped.length === 1 ? "A deck" : `${dropped.length} decks`} could not be added. ${reasons.join(" ")}`, { tone: "problem" });
     });
   }, [collection.added, online, fillPass]);
+  // A shared deck opened while its details were loading updates in place.
+  useEffect(() => {
+    setDetail(current => current?.partial ? shared.decks.find(deck => deck.id === current.id) ?? current : current);
+  }, [shared.decks]);
   const updateReady = useUpdateReady();
   const [updateLater, setUpdateLater] = useState(false);
   useEffect(() => {
@@ -575,8 +579,14 @@ function App() {
           </div>);
   const sharedName = shared.source?.name || sharedRoute.source?.value || 'Shared collection';
   const isKept = !!shared.source && kept.some(shelf => shelfId(shelf.source) === sharedIdentity);
-  const canKeep = !!shared.source && shared.decks.length > 0 && !isKept;
-  const canSave = !!shared.source && shared.decks.length > 0 && !sharedSaved && !sharedSaving && !storageLocked;
+  // Keep and Save wait until every deck's details have loaded.
+  const canKeep = !!shared.source && shared.decks.length > 0 && !shared.filling && !isKept;
+  const canSave = !!shared.source && shared.decks.length > 0 && !shared.filling && !sharedSaved && !sharedSaving && !storageLocked;
+  const sharedSummary = [
+    `Read-only · ${shared.decks.length} public ${shared.decks.length === 1 ? 'deck' : 'decks'}`,
+    shared.filling ? `${shared.filling} loading` : '',
+    shared.failed ? `${shared.failed} couldn’t load` : '',
+  ].filter(Boolean).join(' · ');
   function keepCurrent() {
     if (canKeep) changeKept(keepShelf(kept, { source: shared.source!, decks: shared.decks, folders: shared.folders }));
   }
@@ -742,7 +752,7 @@ function App() {
       </section>}
       {sharedShelf && !showCollection && !barHidden && <section className="shared-collection-bar shared-bar-slim" aria-label="Shared collection">
         <button className="icon-button" aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={17} /></button>
-        <p><strong>{sharedName}</strong><small role={sharedSaved ? "status" : undefined}>{sharedSaved ? 'Saved to your collection. Refresh it in My collection.' : `Read-only · ${shared.decks.length} public ${shared.decks.length === 1 ? 'deck' : 'decks'}`}</small></p>
+        <p><strong>{sharedName}</strong><small role={sharedSaved ? "status" : undefined}>{sharedSaved ? 'Saved to your collection. Refresh it in My collection.' : sharedSummary}</small></p>
         <div className="shared-bar-actions">{shelfButtons}</div>
         <button className="icon-button" aria-label="Hide this bar" title="Hide this bar. Its actions stay in the menu by the logo." onClick={() => changeBarHidden(true)}><ChevronUp size={17} /></button>
       </section>}

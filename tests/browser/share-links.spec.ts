@@ -104,6 +104,27 @@ test('account links load the exact public account; its folders open read-only an
   await page.getByRole('button',{name:'Share',exact:true}).click();
   await expect(page.getByText('Add an Archidekt account or folder in My collection to share it.')).toBeVisible();
 });
+test('a shared shelf opens from its folder listing while deck details load behind it', async ({page}) => {
+  const hidden = {...seed[1],id:'987003',name:'Private deck'};
+  const listed = [deck, hidden].map(d => ({id:d.id,name:d.name,image:d.commanders[0].art,colors:d.colors}));
+  await page.route('**/api/source-folders?*', route => route.fulfill({json:tree({...source,entries:listed,knownIds:listed.map(e=>e.id)})}));
+  let release = () => {};
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/decks/987001', async route => { await held; await route.fulfill({json:deck}); });
+  await page.route('**/api/decks/987003', route => route.fulfill({status:502,json:{error:'This deck is private.',retry:false}}));
+  await page.goto('/f/42');
+  // The listing's name and art show at once; Save waits for the details.
+  await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
+  const bar = page.getByRole('region',{name:'Shared collection'});
+  await expect(bar).toContainText('Read-only · 1 public deck · 1 loading · 1 couldn’t load');
+  await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeDisabled();
+  await page.getByRole('button',{name:'View Shared Commander',exact:true}).click();
+  await expect(page.getByText('Loading details from Archidekt…')).toBeVisible();
+  release();
+  await expect(page.getByText('Loading details from Archidekt…')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeEnabled();
+  await expect(bar).toContainText('Read-only · 1 public deck · 1 couldn’t load');
+});
 test("explicit save adds a source while preserving a visitor's personal deck and choices", async ({page}) => {
   const saved = {version:1,starter:false,hidden:[seed[1].id],excluded:[seed[1].id],added:[seed[1]],manualIds:[seed[1].id]};
   await page.addInitScript(({key,saved})=>localStorage.setItem(key,JSON.stringify(saved)),{key,saved});
