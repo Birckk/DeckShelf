@@ -47,7 +47,7 @@ test('shelf lists never touch the saved collection and survive a full or blocked
   writeKept(storage, keepShelf([], { source: source('Birckk'), decks: seed.slice(0, 1) }));
   writeRecent(storage, []);
   assert.equal(storage.getItem('commander-archive.collection.v1'), '{"version":1}');
-  assert.deepEqual([...storage.data.keys()].sort(), ['commander-archive.collection.v1', KEPT_KEY, RECENT_KEY].sort());
+  assert.deepEqual([...storage.data.keys()].sort((a, b) => a.localeCompare(b)), ['commander-archive.collection.v1', KEPT_KEY, RECENT_KEY].sort((a, b) => a.localeCompare(b)));
   const full = { getItem: () => null, setItem: () => { throw new Error('QuotaExceededError'); } };
   assert.equal(writeKept(full, []), false);
   assert.equal(writeRecent(undefined, []), false);

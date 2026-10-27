@@ -37,10 +37,14 @@ export default defineConfig({
   lint: {
     ignorePatterns: ['docs/archive/**'],
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
-    rules: { 'vite-plus/prefer-vite-plus-imports': 'error' },
+    rules: { 'vite-plus/prefer-vite-plus-imports': 'error', 'typescript/require-array-sort-compare': ['warn', { ignoreStringArrays: true }] },
     options: { typeAware: true, typeCheck: true },
-    // node:test registers tests through the promise test() returns; nothing awaits it.
-    overrides: [{ files: ['tests/*.test.mjs'], rules: { 'typescript/no-floating-promises': 'off' } }],
+    overrides: [
+      // node:test registers tests through the promise test() returns; nothing awaits it.
+      { files: ['tests/*.test.mjs'], rules: { 'typescript/no-floating-promises': 'off' } },
+      // Browser tests keep Storage and File prototype methods to patch them and call the originals.
+      { files: ['tests/browser/**'], rules: { 'typescript/unbound-method': 'off' } },
+    ],
   },
   // Agent worktrees live under .claude/; watching them reloads this checkout's dev server. Ignore only
   // this checkout's own folder, so a server started inside a worktree still watches its files.

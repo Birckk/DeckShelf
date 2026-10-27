@@ -355,7 +355,7 @@ test('restored stale sources refresh on later visibility revisits while the old 
     const state = window as typeof window & { retiredSnapshotAborted?: boolean };
     const fetch = window.fetch;
     window.fetch = (input, init) => {
-      if (String(input).includes(`/api/decks/${id}`)) init?.signal?.addEventListener('abort', () => { state.retiredSnapshotAborted = true; }, { once: true });
+      if ((input instanceof Request ? input.url : String(input)).includes(`/api/decks/${id}`)) init?.signal?.addEventListener('abort', () => { state.retiredSnapshotAborted = true; }, { once: true });
       return fetch.call(window, input, init);
     };
   }, decks[2].id);

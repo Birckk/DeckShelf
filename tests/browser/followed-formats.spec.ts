@@ -13,9 +13,9 @@ for (const trial of [false, true]) test(`All-formats refresh preserves scope wit
   const source = { key: 'folder:88', kind: 'folder', value: '88', name: 'Mixed formats', url: 'https://archidekt.com/folders/88', formatScope: 'all',
     checkedAt: trial ? '2020-01-01T00:00:00Z' : new Date().toISOString(), entries: decks.map(entry), knownIds: decks.map(deck => deck.id), selectedIds: decks.map(deck => deck.id), ownedIds: decks.map(deck => deck.id), membership: 'follow' };
   const collection = { version: 1, starter: false, added: decks, hidden: [], excluded: [], sources: [source], ...(trial ? {} : { followOff: true }) };
-  await page.addInitScript(({ key, collection, trial }) => {
+  await page.addInitScript(({ key, collection }) => {
     localStorage.setItem(key, JSON.stringify(collection));
-  }, { key, collection, trial });
+  }, { key, collection });
   const scopes: string[] = [];
   await page.route('**/api/sources?*', route => {
     const scope = new URL(route.request().url()).searchParams.get('formats') || 'commander';
