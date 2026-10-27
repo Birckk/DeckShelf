@@ -1,11 +1,12 @@
 # Development
 
-Requires Node.js 22.12+. Read [DESIGN.md](DESIGN.md) before changing the interface.
+Requires Node.js 22.18+. Read [DESIGN.md](DESIGN.md) before changing the interface.
 
 ```sh
 npm ci
 npm run dev        # http://127.0.0.1:4317 with the Archidekt adapter
 npm test           # unit tests
+npm run check      # Oxlint with type-aware rules (Vite+)
 npm run test:dialogs   # Playwright browser regressions (starts its own server)
 npm run build      # type-check and production build
 npm start          # serve dist/ with the production server

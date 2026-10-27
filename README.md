@@ -35,7 +35,7 @@ format scope.
 
 ## Get started
 
-**Run from source** (Node.js 22.12+):
+**Run from source** (Node.js 22.18+):
 
 ```sh
 npm ci
