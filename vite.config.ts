@@ -35,8 +35,7 @@ export default defineConfig({
   // The code is formatted by hand; Oxfmt would rewrite every file, so `vp check` only lints and type-checks.
   check: { fmt: false },
   lint: {
-    // Playwright specs have never been type-checked and carry 14 type errors; bring them in once those are fixed.
-    ignorePatterns: ['docs/archive/**', 'tests/browser/**'],
+    ignorePatterns: ['docs/archive/**'],
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
     rules: { 'vite-plus/prefer-vite-plus-imports': 'error' },
     options: { typeAware: true, typeCheck: true },

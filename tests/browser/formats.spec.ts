@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { mkdirSync, readFileSync } from 'node:fs';
 import seed from '../../src/data/decks.json' with { type: 'json' };
 import { archidektFormat } from '../../shared/formats.mjs';
-import { parseCollection } from '../../src/domain';
+import { parseCollection, type Deck } from '../../src/domain';
 
 const key = 'commander-archive.collection.v1';
 const commander = { ...seed[0], id: '982001', name: 'Commander partners', commanders: [seed[0].commanders[0], seed[1].commanders[0]] };
@@ -11,9 +11,9 @@ const decks = [commander, ...[2, 1, 6, 99].map((id, index) => ({
   format: archidektFormat(id), commanders: [],
   cover: id === 99 ? { kind: 'fallback', name: 'No cover selected', image: '', art: '', artist: '' }
     : { ...seed[index + 1].commanders[0], kind: 'featured' },
-}))];
+}))] as Deck[];
 const fixture = { version: 1, starter: false, hidden: ['999'], excluded: [decks[1].id], added: decks, manualIds: decks.map(d => d.id) };
-const source = { key: 'folder:88', kind: 'folder', value: '88', name: 'Mixed formats', url: 'https://archidekt.com/folders/88', checkedAt: new Date().toISOString(), formatScope: 'all', entries: decks.map(d => ({ id: d.id, name: d.name, image: d.commanders[0]?.art || ('cover' in d ? d.cover.art : ''), colors: d.colors, format: 'format' in d ? d.format : archidektFormat(3) })), knownIds: decks.map(d => d.id) };
+const source = { key: 'folder:88', kind: 'folder', value: '88', name: 'Mixed formats', url: 'https://archidekt.com/folders/88', checkedAt: new Date().toISOString(), formatScope: 'all', entries: decks.map(d => ({ id: d.id, name: d.name, image: d.commanders[0]?.art || d.cover?.art || '', colors: d.colors, format: d.format ?? archidektFormat(3) })), knownIds: decks.map(d => d.id) };
 const commanderSource = { ...source, formatScope: 'commander', entries: source.entries.slice(0, 1), knownIds: [commander.id] };
 async function mockDiscovery(page: Page, calls: string[] = []) {
   await page.route('**/api/source-folders?*', route => {

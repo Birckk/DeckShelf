@@ -28,7 +28,7 @@ async function prepare(page: Page, options: { mode?: string; fail?: boolean; fre
   await page.goto('/');
 }
 async function screenshot(page: Page, path: string) {
-  await page.locator('img').evaluateAll(async images => {
+  await page.locator('img').evaluateAll(async (images: HTMLImageElement[]) => {
     for (const image of images) image.loading = 'eager';
     await Promise.all(images.map(image => image.decode().catch(() => {})));
   });

@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test';
 import fixture from '../fixtures/collection-decks.json' with { type: 'json' };
 import modernRaw from '../fixtures/archidekt-modern.json' with { type: 'json' };
 import { normalizeDeck } from '../../server/api.mjs';
-import { coverOf, formatOf } from '../../src/domain';
+import { coverOf, formatOf, type Deck } from '../../src/domain';
 
 const key = 'commander-archive.collection.v1';
 const modern = normalizeDeck(modernRaw);
-const decks = [fixture[0], modern];
-const entry = (deck: typeof fixture[number]) => ({ id: deck.id, name: deck.name, image: coverOf(deck).art, colors: deck.colors, format: formatOf(deck) });
+const decks = [fixture[0], modern] as Deck[];
+const entry = (deck: Deck) => ({ id: deck.id, name: deck.name, image: coverOf(deck).art, colors: deck.colors, format: formatOf(deck) });
 
 for (const trial of [false, true]) test(`All-formats refresh preserves scope with trial ${trial}`, async ({ page }) => {
   const source = { key: 'folder:88', kind: 'folder', value: '88', name: 'Mixed formats', url: 'https://archidekt.com/folders/88', formatScope: 'all',

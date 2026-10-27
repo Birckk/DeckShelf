@@ -5,7 +5,7 @@ const key = 'commander-archive.collection.v1';
 const deck = {...seed[0], id:'987001', name:'Shared Commander'};
 const source = {key:'folder:42',kind:'folder',value:'42',name:'Public shelf',url:'https://archidekt.com/folders/42',checkedAt:new Date().toISOString(),entries:[{id:deck.id,name:deck.name,image:deck.commanders[0].art,colors:deck.colors}],knownIds:[deck.id]};
 // Shared links read the same folder listing as Add decks: one root folder here.
-const tree = (root: object & {name:string}) => ({name:root.name,folders:[{source:root,path:root.name,root:true}]});
+const tree = <T extends {name:string}>(root: T) => ({name:root.name,folders:[{source:root,path:root.name,root:true}]});
 async function mock(page: import('@playwright/test').Page) {
   await page.route('**/api/source-folders?*', route => route.fulfill({json:tree(source)}));
   await page.route('**/api/decks/987001', route => route.fulfill({json:deck}));
