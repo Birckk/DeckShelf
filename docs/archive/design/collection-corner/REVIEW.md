@@ -2,6 +2,11 @@
 
 Local exploration for issues #2 and #21; not deployed or connected to saved collection state.
 
+> Archived record. The layout shipped as the My collection workspace. The runnable prototype
+> (`index.html`, `app.js`, `shared.tsx`, its fonts and the Birckk folder snapshots) had drifted
+> from the app's components and was removed in #114; it is in the history at `fab808e`.
+> This review and `desktop.png` remain. The handoff notes below describe that October state.
+
 This pass adds a default Overview with collection switches, source navigation independent from folding, compact tree rows with centered SVG chevrons, selected/total counts visible on collapsed sources, aggregate folder totals, and a shorter content header.
 
 birckk-folders.json is a read-only public snapshot retrieved through the local source-folders endpoint. Birckk has 33 Commander decks across five non-root folders: DeckShelf Test Collection (1 direct, 30 including children), Mono-color (5), Multicolor (24), Precons owned (2), and test folder 2 (1). Prototype choices reset on reload. Other sources remain illustrative. Artwork is from the returned public preview, not invented commander assignments.
