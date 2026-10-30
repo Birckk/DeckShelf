@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { createReadStream, existsSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
+import { pipeline } from 'node:stream';
 import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { handleApi } from './api.mjs';
@@ -47,7 +48,8 @@ const server = createServer((req,res) => {
     }
     if (!info.isFile()) { res.writeHead(404); res.end(); return; }
     res.writeHead(200, { 'Content-Type':mime[extname(file)] || 'application/octet-stream', 'Content-Length':info.size, 'X-Content-Type-Options':'nosniff', 'Cache-Control':path.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache' });
-    if (req.method === 'HEAD') res.end(); else createReadStream(file).pipe(res);
+    // pipeline destroys both streams on a read error or a closed connection instead of crashing.
+    if (req.method === 'HEAD') res.end(); else pipeline(createReadStream(file), res, () => {});
   } catch { res.writeHead(400); res.end('Bad request'); }
   });
 });

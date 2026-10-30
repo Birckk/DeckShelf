@@ -510,6 +510,7 @@ export default function CollectionManager({
         finish(`Checked. ${loaded.length} saved ${loaded.length === 1 ? 'deck' : 'decks'} updated.`, errors);
       } catch (error) { report(error); }
       finally { if (controller.current?.signal === signal) setBusy(''); }
+      if (signal.aborted) return;
       await sourceRefresh.refresh(source.key, true);
       return;
     }
@@ -869,6 +870,8 @@ export default function CollectionManager({
               ref={input}
               type="file"
               className="sr-only"
+              tabIndex={-1}
+              aria-hidden="true"
               accept=".json,application/json"
               onChange={restore}
             />

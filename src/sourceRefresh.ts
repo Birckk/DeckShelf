@@ -9,7 +9,8 @@ async function read(path: string, signal: AbortSignal) {
   return data;
 }
 
-// Foreground prototype only. Restores and mode changes invalidate the whole queue.
+// Checks run only while the app is open; there is no background sync. Restores and mode
+// changes invalidate the whole queue. `prototype=1` asks the server for its cached listing.
 export function useSourceRefresh(collection: Collection, setCollection: (update: (c: Collection) => Collection) => void, locked: boolean, enabled: boolean, catalog: Deck[]) {
   const latest = useRef(collection);
   latest.current = collection;
