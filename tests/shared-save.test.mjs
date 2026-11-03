@@ -313,6 +313,7 @@ test('shared Saves serialize a reentrant read/merge/write across tabs', async ()
   const secondSource = { ...source, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43' };
   const initial = () => ({ ...base(), added: [] });
   let raw = JSON.stringify(initial());
+  /** @type {Promise<void> | undefined} */
   let second;
   let reads = 0;
   const storage = {

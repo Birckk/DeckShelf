@@ -45,7 +45,7 @@ function folderResponse(id) {
     decks: source.entries.map(e => ({ ...row(decks.find(d => d.id === e.id)), parentFolderId: Number(id) })) };
 }
 
-function stubArchidekt(t, respond = () => {}) {
+function stubArchidekt(t, respond = async () => {}) {
   const calls = [];
   const json = data => ({ ok: true, status: 200, json: async () => data });
   t.mock.method(globalThis, 'fetch', async (input, options) => {
@@ -173,12 +173,12 @@ test('pick_deck applies colour, exact and text filters and only picks eligible d
   stubArchidekt(t);
   const call = await connect(t);
   const ids = filter => new Set(decks.filter(filter).map(d => d.id));
-  const cases = [
+  const cases = /** @type {[object, Set<string>][]} */ ([
     [{ colors: ['B', 'G'] }, ids(d => d.colors.includes('B') && d.colors.includes('G'))],
     [{ colors: ['B', 'G'], exact: true }, ids(d => d.colors.join('') === 'BG')],
     [{ query: 'giada' }, ids(d => d.commanders.some(c => c.name.includes('Giada')))],
     [{ query: 'Foundations', colors: ['R'] }, ids(d => d.set === 'Foundations Commander' && d.colors.includes('R'))],
-  ];
+  ]);
   for (const [filters, expected] of cases) {
     assert.ok(expected.size > 0);
     const seen = new Set();

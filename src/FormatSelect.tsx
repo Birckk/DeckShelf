@@ -1,6 +1,6 @@
 import { formatOf, formatName, type DeckFormat } from './domain';
 
-export function availableFormats(items: { format?: DeckFormat }[]) {
+function availableFormats(items: { format?: DeckFormat }[]) {
   return [...new Map(items.map(item => { const format = formatOf(item); return [format.id, format]; })).values()]
     .sort((a, b) => a.id === 'commander' ? -1 : b.id === 'commander' ? 1 : a.name.localeCompare(b.name));
 }

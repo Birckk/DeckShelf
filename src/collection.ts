@@ -592,7 +592,7 @@ export function sourceMembership(source: CollectionSource): "follow" | "selected
   return source.knownIds.every(id => picked.includes(id)) ? 'follow' : 'selected';
 }
 // Save inferred Individual membership before new source ownership can mask it.
-export function materializeIndependentDecks(collection: Collection, catalog: Deck[] = []): Collection {
+function materializeIndependentDecks(collection: Collection, catalog: Deck[] = []): Collection {
   const ids = showcaseGroups(collection, catalog, collectionDecks(collection, catalog)).find(group => group.key === 'manual')!.ids;
   const manualIds = [...new Set([...(collection.manualIds || []), ...ids])];
   return ids.every(id => collection.manualIds?.includes(id)) ? collection : { ...collection, manualIds };

@@ -7,8 +7,8 @@ import "./notices.css";
 // Results of actions, plus Undo where an action removes something (#57) or
 // Turn on where decks were added to a collection that is off (#94).
 // Results fade; problems stay until dismissed.
-export type NoticeTone = "done" | "problem";
-export type NoticeAction = { label: string; run: () => void };
+type NoticeTone = "done" | "problem";
+type NoticeAction = { label: string; run: () => void };
 export type Notify = (message: string, options?: { tone?: NoticeTone; action?: NoticeAction }) => void;
 
 const LIMIT = 3;

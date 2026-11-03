@@ -297,7 +297,7 @@ for (const width of [1440, 390]) test(`temporary shortlist picks from the active
   await expect(page.getByRole('heading', { name: 'Deck picker', exact: true })).toBeAttached();
   await expect(page.locator('.result-count')).not.toContainText('selected');
   await expect(page.getByRole('button', { name: '3 selected', exact: true })).toBeVisible();
-  expect(await page.locator('.helix-card').evaluateAll(nodes => [...new Set(nodes.map(node => node.getAttribute('aria-label')))].sort())).toEqual(decks.slice(0, 3).map(deck => 'View ' + deck.name).sort());
+  expect(await page.locator('.helix-card').evaluateAll(nodes => [...new Set(nodes.map(node => node.getAttribute('aria-label') ?? ''))].sort())).toEqual(decks.slice(0, 3).map(deck => 'View ' + deck.name).sort());
   await page.getByRole('textbox', { name: 'Search decks', exact: true }).fill(decks[4].name);
   await expect(page.locator('.helix-card')).toHaveCount(0);
   await page.getByRole('textbox', { name: 'Search decks', exact: true }).clear();
@@ -542,7 +542,6 @@ for (const width of [1440, 390]) test('My collection remembers pages and folder 
 
 for (const width of [1440, 390]) test('hidden collections stay out of bulk enabling at ' + width + 'px', async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 });
-  const box = page.locator('.collection-box').filter({ has: page.getByRole('button', { name: 'Open Birckk', exact: true }) });
   await menu(page, 'Birckk', 'Hide');
   await page.getByRole('button', { name: 'Enable all', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText('0 on display');

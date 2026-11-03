@@ -1,8 +1,8 @@
-﻿import { test, expect } from '@playwright/test';
+﻿import { test, expect, type Page } from '@playwright/test';
 import seed from '../../src/data/decks.json' with { type: 'json' };
 
 // Phones keep the picker's controls in its Options menu; wide screens show them in place.
-async function options(page, run: () => Promise<unknown>) {
+async function options(page: Page, run: () => Promise<unknown>) {
   const menu = page.getByRole('button', { name: /^Picker options/ });
   const folded = await menu.isVisible();
   if (folded) await menu.click();
@@ -10,14 +10,14 @@ async function options(page, run: () => Promise<unknown>) {
   if (folded) await page.keyboard.press('Escape');
 }
 // Wide screens choose the picker in a dropdown; phones use two buttons in Options.
-async function choose(page, presentation: 'Helix' | 'Shuffle') {
+async function choose(page: Page, presentation: 'Helix' | 'Shuffle') {
   const menu = page.getByRole('button', { name: /^Picker options/ });
   if (await menu.isVisible()) {
     await menu.click();
     await page.getByRole('group', { name: 'Picker presentation' }).getByRole('button', { name: presentation, exact: true }).click();
   } else await page.getByLabel('Picker', { exact: true }).selectOption(presentation.toLowerCase());
 }
-async function shuffle(page) {
+async function shuffle(page: Page) {
   await page.goto('/');
   await page.getByRole('button', { name: 'Pick a deck', exact: true }).click();
   await choose(page, 'Shuffle');

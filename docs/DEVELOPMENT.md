@@ -1,11 +1,12 @@
 # Development
 
-Requires Node.js 22.12+. Read [DESIGN.md](DESIGN.md) before changing the interface.
+Requires Node.js 22.18+. Read [DESIGN.md](DESIGN.md) before changing the interface.
 
 ```sh
 npm ci
 npm run dev        # http://127.0.0.1:4317 with the Archidekt adapter
 npm test           # unit tests
+npm run check      # Oxlint with type-aware rules (Vite+)
 npm run test:dialogs   # Playwright browser regressions (starts its own server)
 npm run build      # type-check and production build
 npm start          # serve dist/ with the production server
@@ -13,6 +14,13 @@ npm start          # serve dist/ with the production server
 
 On Windows, `scripts/start-windows.cmd` installs dependencies on first run,
 rebuilds and starts the production server.
+
+To update Vite+, run the version you want through its migrator. It moves `vite-plus` and
+the `vite` alias together, so Dependabot leaves both alone. Skip the extras it would add:
+
+```sh
+npx --package=vite-plus@<version> vp migrate --no-interactive --no-agent --no-editor --no-hooks
+```
 
 ## Repository layout
 
@@ -104,7 +112,7 @@ the protocol, so use `npm run -s mcp` when starting it by hand.
 Claude Code:
 
 ```sh
-claude mcp add --scope user deckshelf -- node --experimental-strip-types --disable-warning=ExperimentalWarning C:\path\to\deckshelf\server\mcp.mjs
+claude mcp add --scope user deckshelf -- node C:\path\to\deckshelf\server\mcp.mjs
 ```
 
 Claude Desktop: add this to `%APPDATA%\Claude\claude_desktop_config.json` and restart it.
@@ -114,8 +122,7 @@ Claude Desktop: add this to `%APPDATA%\Claude\claude_desktop_config.json` and re
   "mcpServers": {
     "deckshelf": {
       "command": "node",
-      "args": ["--experimental-strip-types", "--disable-warning=ExperimentalWarning",
-        "C:\\path\\to\\deckshelf\\server\\mcp.mjs"]
+      "args": ["C:\\path\\to\\deckshelf\\server\\mcp.mjs"]
     }
   }
 }

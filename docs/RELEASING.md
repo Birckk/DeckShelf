@@ -26,7 +26,7 @@ future work. Archidekt reconstructs public deck sources, not local app preferenc
 
 ## Local build (Windows x64)
 
-Use Node 22.12+ and the committed npm lockfile. The package command explicitly
+Use Node 22.18+ and the committed npm lockfile. The package command explicitly
 installs the pinned Electron runtime (current Electron no longer uses an npm
 postinstall hook):
 
@@ -42,7 +42,6 @@ Build intermediates stay in ignored `build/windows/`, including `win-unpacked/`.
 Electron and packaging tooling are pinned; the bundled runtime
 must be maintained for security updates. The application ZIP excludes source,
 tests, concept images, caches, private environment files and development tooling.
-`scripts/package.py` is an optional developer source archive, not the end-user app.
 
 The desktop smoke script extracts the actual ZIP into a temporary folder, uses an
 isolated temporary profile, and exercises the packaged executable with Playwright.

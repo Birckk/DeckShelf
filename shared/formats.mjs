@@ -10,7 +10,7 @@ export function archidektFormat(value) {
     sourceId,
   };
 }
-export const COMMANDER_FORMAT = archidektFormat(3);
+const COMMANDER_FORMAT = archidektFormat(3);
 export function formatName(id) {
   for (let sourceId = 1; sourceId < names.length; sourceId++) {
     const format = archidektFormat(sourceId);
