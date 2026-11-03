@@ -40,6 +40,11 @@ test('existing saved collection survives browsing, back and forward and upstream
   await page.route('**/api/source-folders?*', route => route.fulfill({status:404,json:{error:'Source not found or not public.'}}));
   await page.goto('/f/99');
   await expect(page.getByText('Source not found or not public.',{exact:true})).toBeVisible();
+  // A proxy's own error page is not JSON; it must not reach people as a parse error.
+  await page.unroute('**/api/source-folders?*');
+  await page.route('**/api/source-folders?*', route => route.fulfill({status:502,contentType:'text/plain',body:'error code: 502'}));
+  await page.goto('/f/98');
+  await expect(page.getByText('This public collection is unavailable.',{exact:true})).toBeVisible();
   expect(JSON.parse((await page.evaluate(key=>localStorage.getItem(key),key))!)).toEqual(JSON.parse(saved));
 });
 test('invalid links do not fetch an upstream source', async ({page}) => {

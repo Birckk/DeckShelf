@@ -23,7 +23,7 @@ test('refresh bypasses the cache and upstream failure preserves the last good sn
   assert.equal(calls,2);
   globalThis.fetch.mock.mockImplementation(async()=>({ok:false,status:503}));
   const failed=await request('/api/decks/987654321?refresh=1');
-  assert.equal(failed.status,502);
+  assert.equal(failed.status,424);
   assert.match(failed.body.error,/unavailable/);
   assert.equal(failed.body.retry,true);
   assert.equal((await request('/api/decks/987654321')).body.name,'Updated');
@@ -31,7 +31,7 @@ test('refresh bypasses the cache and upstream failure preserves the last good sn
 test('import failures explain private/missing sources and do not return a snapshot', async t => {
   t.mock.method(globalThis,'fetch',async()=>({ok:false,status:404}));
   const missing=await request('/api/decks/987654320');
-  assert.equal(missing.status,502);
+  assert.equal(missing.status,424);
   assert.match(missing.body.error,/public/);
   assert.equal(missing.body.retry,false);
   assert.equal((await request('/api/decks/not-an-id')).status,404);
@@ -50,11 +50,11 @@ test('concurrent automatic snapshot requests share in-flight work and failed imp
   assert.equal(results[0].status, 200);
   globalThis.fetch.mock.mockImplementation(async () => { calls++; return { ok: false, status: 429 }; });
   const limited = await request('/api/decks/987654318');
-  assert.equal(limited.status, 502);
+  assert.equal(limited.status, 424);
   assert.equal(limited.body.retry, true);
   // The remembered failure still says to try again later, so shelves don't drop the deck for good.
   const remembered = await request('/api/decks/987654318');
-  assert.equal(remembered.status, 502);
+  assert.equal(remembered.status, 424);
   assert.equal(remembered.body.retry, true);
   assert.equal(calls, 2);
 });
@@ -68,14 +68,14 @@ test('snapshot Retry-After cools down other snapshots, discovery and queued visi
     calls++;
     return { ok: false, status: 429, headers: new Headers({ 'Retry-After': '3600' }) };
   });
-  assert.equal((await request('/api/decks/987654310')).status, 502);
+  assert.equal((await request('/api/decks/987654310')).status, 424);
   assert.equal(upstreamCooldown.retryAt, now + 3600000);
-  assert.equal((await request('/api/decks/987654311?refresh=1')).status, 502);
-  assert.equal((await request('/api/sources?kind=folder&value=987654310&prototype=1')).status, 502);
-  assert.equal((await request('/api/source-folders?kind=folder&value=987654310')).status, 502);
+  assert.equal((await request('/api/decks/987654311?refresh=1')).status, 424);
+  assert.equal((await request('/api/sources?kind=folder&value=987654310&prototype=1')).status, 424);
+  assert.equal((await request('/api/source-folders?kind=folder&value=987654310')).status, 424);
   assert.equal(calls, 1);
   now += 3599999;
-  assert.equal((await request('/api/decks/987654312')).status, 502);
+  assert.equal((await request('/api/decks/987654312')).status, 424);
   assert.equal(calls, 1);
   now++;
   globalThis.fetch.mock.mockImplementation(async () => { calls++; return { ok: true, json: async () => ({ ...source('After cooldown'), id: 987654313 }) }; });
