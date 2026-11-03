@@ -53,7 +53,8 @@ jobs:
       matrix:
         browser: ${{ fromJSON(inputs.full && '["chromium","firefox","webkit"]' || '["chromium"]') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Firefox takes about 16 minutes on a runner, and WebKit ran past 20 without a failure.
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
