@@ -39,8 +39,11 @@ you're considering (Shift-click selects a range), then **Picker**. Every deck in
 the pool has the same chance; repeated cards in the spiral are only there to fill
 it out.
 
-Drag the spiral to turn it, pause the drift, or turn on **Instant pick** to skip
-the animation. Your system's reduced-motion setting is respected.
+Choose **Helix** or **Shuffle** in the Picker dropdown. Drag the spiral to turn
+it, pause the drift, or turn on **Instant pick** to skip the animation. **Shuffle**
+gathers the decks into a pile, shuffles and deals one card per player instead. Either way the pick is made
+first and the animation only shows it. Pick for 1–4 **Players** to give each
+player a different deck. Your system's reduced-motion setting is respected.
 
 ## Your collection
 
@@ -57,8 +60,12 @@ the animation. Your system's reduced-motion setting is respected.
   shows just one; **Enable all** turns everything back on. Hiding a collection
   keeps its decks and choices saved.
 - **Official Commander precons:** the starter collection of 184 precons from
-  Archidekt's catalog. Remove it when you only want your own decks, and restore
-  it at any time without losing your selections.
+  Archidekt's catalog. Hide it (⋯ More → **Hide precons**) when you only want your
+  own decks; **Show** in the Hidden list brings it back with its selections.
+  **Refresh** in its header adds precons Archidekt has listed since the snapshot.
+- **Hide or remove:** **Hide** moves a collection to the Hidden list and keeps it.
+  **Remove** (imported sources only) deletes the source and the decks only it had;
+  **Undo** in the notice brings them back.
 - **Refresh** a source to pick up new or changed decks. Once a day, when you open
   DeckShelf, folders you added whole also get their new decks automatically (turn
   this off with **Add new decks automatically**). In folders where you picked
@@ -72,13 +79,25 @@ same source again with All formats to widen discovery without losing its saved
 selections. Unknown source formats keep their original numeric ID and have their
 own picker scope. DeckShelf displays the source format; it does not check legality.
 
+## Sharing shelves
+
+**Share** in My collection gives a link to one of your Archidekt accounts or
+folders (`/u/<username>` or `/f/<folder id>`). Opening it shows that public shelf
+read-only, beside your own: browse and pick from it, **Keep** it in the shelf
+switcher, or **Save to mine** to add its decks to your collection. Recently viewed
+shelves are listed in My collection. Nothing about your own shelf is changed or
+sent anywhere; the link only names the Archidekt source.
+
 ## Settings
 
 Open **Help → Settings** (`/help/settings`) to choose Dragon nest or Art deco
 wedges for card backs and missing commander artwork. Previews show four sample
 colour identities. **Show card backs instead of artwork** uses the card back for
 every deck and stops DeckShelf downloading any commander artwork. Both choices are
-saved locally and travel with collection backups.
+saved locally and travel with collection backups. The same page sets the List
+columns and artwork, whether folders get new decks automatically
+(**Add new decks automatically**), and whether adding decks to a switched-off
+collection switches it back on.
 
 ## Saving and backups
 

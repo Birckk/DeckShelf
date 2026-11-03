@@ -682,6 +682,7 @@
 .roadmap-next li { border-color:#e2cd9c33; }
 .roadmap-stage li strong { font-size:14px; font-weight:500; color:#ece9ef; }
 .roadmap-stage li span { font-size:13px; line-height:1.5; color:#a9a7b1; }
+.roadmap-empty { margin:0; padding:12px 14px; border-radius:8px; border:1px dashed #ffffff14; font-size:13px; color:#8f8d97; }
 
 .help-about .about-copy { padding:0; }
 .help-about .about-credits { display:grid; gap:12px; padding-top:18px; border-top:1px solid #ffffff12; }
