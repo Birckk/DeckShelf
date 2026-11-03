@@ -52,13 +52,15 @@ test("filling runs as a sliding pool: the next deck starts when any one finishes
   /** @type {string[]} */
   const filled = [];
   const started = [];
-  const delays = { 1000: 30, 1001: 5, 1002: 5, 1003: 5, 1004: 5, 1005: 5, 1006: 5 };
+  // The slow deck holds its slot until 1002 lands, so lockstep pairs could never finish.
+  let releaseSlow;
+  const slow = new Promise(r => { releaseSlow = r; });
   await fillDecks(list, async id => {
     started.push(id); active++; peak = Math.max(peak, active);
-    await new Promise(r => setTimeout(r, delays[id]));
+    await (id === "1000" ? slow : new Promise(r => setTimeout(r, 1)));
     active--;
     return full(id);
-  }, { signal: new AbortController().signal, onDeck: d => filled.push(d.id), onError: assert.fail });
+  }, { signal: new AbortController().signal, onDeck: d => { filled.push(d.id); if (d.id === "1002") releaseSlow(); }, onError: assert.fail });
   assert.equal(FILL_CONCURRENCY, 2);
   assert.equal(peak, FILL_CONCURRENCY);
   assert.deepEqual([...filled].sort(), list);
