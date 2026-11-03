@@ -3,7 +3,7 @@ import ShareCollection from './ShareCollection';
 import { fetchShelfListing, readSharedLocation, useSharedCollection } from './useSharedCollection';
 import { buildSharePath, type SharedSource } from './share-links';
 import { addRecent, applyShelfView, cachedShelf, keepShelf, putShelfView, readKept, readRecent, readShelfViews, shelfCollection, shelfId, shelfRef, shelfViewOf, writeKept, writeRecent, writeShelfViews, type KeptShelf, type ShelfRef, type ShelfViews } from './shelves';
-import { OtherCollections, ShelfList, ShelfStrip, ShelfSwitcher } from './SharedShelves';
+import { OtherCollections, ShelfSwitcher } from './SharedShelves';
 import { OpenVariantBar, useOpenVariant } from './OpenVariantDev';
 import { coverOf, formatOf, formatName } from './domain';
 import { listingDeck } from './collection';
@@ -23,6 +23,7 @@ import {
   ArrowLeft,
   BookmarkCheck,
   BookmarkPlus,
+  ChevronUp,
   Plus,
   Share2,
   Check,
@@ -644,6 +645,7 @@ function App() {
       persistedCollection.current = next;
       setCollection(next);
       setSharedSaved(true);
+      notify('Saved to your collection. Refresh it in My collection.');
     } catch (error) { notify((error as Error).message); }
     finally { setSharedSaving(false); }
   }
@@ -657,8 +659,14 @@ function App() {
     <button className="button button-gold shelf-secondary" disabled={!canSave} aria-label={sharedSaved ? 'Saved to my collection' : 'Save to my collection'}
       title="Add the decks you have on to your own collection" onClick={saveShared}>{sharedSaved ? <Check size={15} /> : <Plus size={15} />}<span>{sharedSaved ? 'Saved' : 'Save to mine'}</span></button>
   </>;
-  const shelfList = openVariant.nav === 'sidebar' ? <ShelfList currentId={sharedIdentity} kept={kept} recent={recent}
-    personalCount={isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length} onPersonal={() => { if (isShared) leaveShared(); }} onOpen={openSharedShelf} /> : undefined;
+  // PROTOTYPE (#128): where a friend's shelf keeps its actions.
+  const barShown = sharedShelf && !showCollection && openVariant.variant === 'bar' && !openVariant.hidden;
+  const headerBack = sharedShelf && !showCollection && !barShown;
+  const iconActions = <>
+    <button className="icon-button" disabled={isKept} aria-label={isKept ? 'Bookmarked' : 'Bookmark this collection'} title={isKept ? 'Bookmarked' : 'Bookmark this collection'} onClick={keepCurrent}>{isKept ? <BookmarkCheck size={17} /> : <BookmarkPlus size={17} />}</button>
+    <button className="icon-button" aria-label="Share" title="Share" onClick={() => setShowShare(true)}><Share2 size={17} /></button>
+    <button className="icon-button" disabled={!canSave} aria-label={sharedSaved ? 'Saved to my collection' : 'Save to my collection'} title={sharedSaved ? 'Saved to your collection' : 'Add the decks you have on to your own collection'} onClick={saveShared}>{sharedSaved ? <Check size={17} /> : <Plus size={17} />}</button>
+  </>;
   const activeFilterChips = [
     view !== 'picker' && filters.format !== 'commander' && <button key="format" disabled={spinning} onClick={() => updateFilter('format', 'commander')}>{filters.format === 'all' ? 'All formats' : formatName(filters.format || 'commander')}<X size={12} /></button>,
     filters.query && <button key="query" disabled={spinning} onClick={() => updateFilter("query", "")}>“{filters.query}” <X size={12} /></button>,
@@ -675,7 +683,7 @@ function App() {
     <ArtworkContext.Provider value={!collection.hideArtwork}>
     <ListSettingsContext.Provider value={tableSettings}>
     <div
-      className={`app-shell studio-theme nav-${openVariant.nav} ${revealed ? "winner-atmosphere" : ""}`}
+      className={`app-shell studio-theme ${revealed ? "winner-atmosphere" : ""}`}
     >
       <Atmosphere deck={pickerWinner} revealed={revealed} />
       <OpenVariantBar {...openVariant} />
@@ -699,11 +707,14 @@ function App() {
             Deck<span className="brand-sub">Shelf</span>
           </span>
         </a>
-        {openVariant.nav === 'menu' && <ShelfSwitcher
+        {headerBack && <button className="shelf-back" disabled={spinning} aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={16} /><span>Mine</span></button>}
+        <ShelfSwitcher
           current={isShared ? { id: sharedIdentity, name: shared.source?.name || sharedRoute.source?.value || "Shared" } : null}
           viewing={isShared && shared.source ? { source: shared.source, count: shared.decks.length } : null}
           kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length} disabled={spinning}
-          onPersonal={openPersonalShelf} onOpen={openSharedShelf} onBookmark={bookmarkShelf} onUnbookmark={removeBookmark} />}
+          onPersonal={openPersonalShelf} onOpen={openSharedShelf} onBookmark={bookmarkShelf} onUnbookmark={removeBookmark} />
+        {headerBack && openVariant.variant === 'header' && <span className="shelf-header-actions">{iconActions}</span>}
+        {headerBack && openVariant.variant === 'bar' && <button className="icon-button shelf-show-bar" aria-label="Show bar" title="Show bar" onClick={() => openVariant.hide(false)}><ChevronDown size={16} /></button>}
         </div>
         <div className="studio-nav" role="group" aria-label="Collection view">
           {(
@@ -768,21 +779,20 @@ function App() {
             onClick={openMyCollection}
           >
             <Library size={16} />
-            <span>{sharedShelf ? sharedName : "My collection"}</span>
+            <span className={sharedShelf ? "header-shelf-name" : undefined} title={sharedShelf ? sharedName : undefined}>{sharedShelf ? sharedName : "My collection"}</span>
             <span className="count-badge">{sharedShelf ? owned.length : isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length}</span>
           </button>
         </div>
       </header>
-      {openVariant.nav === 'strip' && <ShelfStrip currentId={sharedIdentity} kept={kept} recent={recent} disabled={spinning}
-        onPersonal={openPersonalShelf} onOpen={openSharedShelf} onAdd={() => { if (isShared) leaveShared(); setHelp(null); setCollectionSection('overview'); setCollectionScope(null); setShowCollection(true); }} />}
       {isShared && !sharedShelf && <section className="shared-collection-bar shared-bar-slim" aria-label="Shared collection">
         <button className="shared-bar-back" aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={16} /><span>Mine</span></button>
         <p><strong>{sharedName}</strong><small role={shared.error ? "alert" : undefined}>{shared.loading ? 'Loading public decks…' : shared.error || 'No public decks found. The source may be empty, unavailable or private.'}</small></p>
       </section>}
-      {sharedShelf && !showCollection && <section className="shared-collection-bar shared-bar-slim" aria-label="Shared collection">
+      {barShown && <section className="shared-collection-bar shared-bar-slim" aria-label="Shared collection">
         <button className="shared-bar-back" aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={16} /><span>Mine</span></button>
         <p><strong>{sharedName}</strong><small role={sharedSaved ? "status" : undefined}>{sharedSaved ? 'Saved to your collection. Refresh it in My collection.' : sharedSummary}</small></p>
         <div className="shared-bar-actions">{shelfButtons}</div>
+        <button className="icon-button shared-bar-hide" aria-label="Hide this bar" title="Hide this bar" onClick={() => openVariant.hide(true)}><ChevronUp size={17} /></button>
       </section>}
       {showShare && <ShareCollection sources={isShared ? (shared.source ? [shared.source] : []) : collection.sources || []} onClose={() => setShowShare(false)} />}
       {storageError && (
@@ -816,7 +826,7 @@ function App() {
             <Search size={16} />
             <input
               aria-label="Search decks"
-              placeholder="Search decks, commanders, or themes…"
+              placeholder={sharedShelf && !barShown ? `Search ${sharedName}'s decks…` : "Search decks, commanders, or themes…"}
               value={filters.query}
               onChange={(e) => updateFilter("query", e.target.value)}
             />
@@ -962,8 +972,11 @@ function App() {
                   {visible.length === owned.length
                     ? `${visible.length} ${visible.length === 1 ? "deck" : "decks"}`
                     : <>{visible.length} of {owned.length}<span className="count-unit"> decks</span></>}
+                  {sharedShelf && !barShown && shared.filling > 0 && ` · ${shared.filling} loading`}
+                  {sharedShelf && !barShown && shared.failed > 0 && ` · ${shared.failed} couldn’t load`}
                 </span>
               </div>
+              {headerBack && openVariant.variant === 'row' && <span className="shelf-row-actions">{iconActions}</span>}
               <QuickChoiceControls view={view} selecting={selecting} total={shortlist.length} eligible={view === 'picker' ? eligible.length : browsingEligible.length} busy={spinning}
                 hasVisible={visible.length > 0} allSelected={visible.length > 0 && visible.every(d => shortlist.includes(d.id))}
                 edit={() => { if (view === 'grid') setSelecting(value => !value); else { setSelecting(true); selectView('grid'); } }}
@@ -1203,7 +1216,6 @@ function App() {
         <CollectionManager
           key={`${sharedIdentity}:${collectionVisit}`}
           readOnly={{ name: sharedName, actions: shelfButtons, onMine: leaveShared }}
-          navExtra={shelfList}
           // Someone else's shelf is never checked from here, and your choices stay on this device.
           sourceRefresh={sourceRefresh}
           followEnabled={false}
@@ -1241,7 +1253,6 @@ function App() {
           undoTo={undoTo}
           onShare={() => setShowShare(true)}
           onBrowse={openSharedShelf}
-          navExtra={shelfList}
           overviewExtra={<OtherCollections kept={kept} recent={recent} onOpen={openSharedShelf} onBookmark={bookmarkShelf} onUnbookmark={removeBookmark}
             onForget={id => setRecent(list => list.filter(ref => shelfId(ref) !== id))} />}
         />

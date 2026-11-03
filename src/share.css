@@ -32,4 +32,5 @@
   .shared-bar-actions .shelf-secondary { display:none; }
 }
 
-.share-dialog { padding:0 20px 16px; }
+.share-dialog { padding:16px 20px; }
+.share-dialog > :first-child { margin-top:0; }

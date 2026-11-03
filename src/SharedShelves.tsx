@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type RefObject } from "react";
 import { ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck, ChevronDown, Folder, Library, Plus, UserRound, X } from "lucide-react";
 import { Artwork } from "./components";
 import { shelfId, shelfRef, type KeptShelf, type ShelfRef } from "./shelves";
@@ -98,43 +98,6 @@ export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCou
         : <button type="button" className="shelf-open-row" onClick={() => setAdding(true)}><Plus size={15} />Open a collection…</button>}
     </div>}
   </div>;
-}
-
-// PROTOTYPE (#128): every collection as a chip under the header, one click apart.
-export function ShelfStrip({ currentId, kept, recent, disabled, onPersonal, onOpen, onAdd }: {
-  currentId: string; kept: KeptShelf[]; recent: ShelfRef[]; disabled: boolean;
-  onPersonal: () => void; onOpen: (source: SharedSource) => void; onAdd: () => void;
-}) {
-  const { bookmarked, viewed } = otherShelves(kept, recent);
-  if (!bookmarked.length && !viewed.length && !currentId) return null;
-  const chip = (id: string, label: string, run: () => void, icon: ReactNode, quiet = false) =>
-    <button key={id || "mine"} type="button" className={`shelf-chip ${quiet ? "is-quiet" : ""}`} disabled={disabled} aria-current={id === currentId ? "true" : undefined} onClick={run}>{icon}<span>{label}</span></button>;
-  return <nav className="shelf-strip" aria-label="Switch collection">
-    {chip("", "Mine", onPersonal, <Library size={14} />)}
-    {bookmarked.map(ref => chip(shelfId(ref), ref.name, () => onOpen(ref), <BookmarkCheck size={14} />))}
-    {viewed.map(ref => chip(shelfId(ref), ref.name, () => onOpen(ref), <UserRound size={14} />, true))}
-    <button type="button" className="shelf-chip is-add" disabled={disabled} aria-label="Open someone's collection" title="Open someone's collection" onClick={onAdd}><Plus size={14} /></button>
-  </nav>;
-}
-
-// PROTOTYPE (#128): the same list in the My collection sidebar, on your shelf and on a friend's.
-export function ShelfList({ currentId, kept, recent, personalCount, onPersonal, onOpen }: {
-  currentId: string; kept: KeptShelf[]; recent: ShelfRef[]; personalCount: number;
-  onPersonal: () => void; onOpen: (source: SharedSource) => void;
-}) {
-  const { bookmarked, viewed } = otherShelves(kept, recent);
-  const row = (id: string, name: string, count: number, run: () => void, icon: ReactNode) =>
-    <li key={id || "mine"}><button type="button" aria-current={id === currentId ? "true" : undefined} onClick={run}>{icon}<span>{name}</span><small>{count}</small></button></li>;
-  return <nav className="shelf-list" aria-label="Switch collection">
-    <h3>Collections</h3>
-    <ul>
-      {row("", "Mine", personalCount, onPersonal, <Library size={15} />)}
-      {bookmarked.map(ref => row(shelfId(ref), ref.name, ref.count, () => onOpen(ref), <BookmarkCheck size={15} />))}
-    </ul>
-    {viewed.length > 0 && <><h4>Recently viewed</h4><ul>
-      {viewed.map(ref => row(shelfId(ref), ref.name, ref.count, () => onOpen(ref), <UserRound size={15} />))}
-    </ul></>}
-  </nav>;
 }
 
 // Other people's collections, in My collection: bookmarks first, then recently viewed.
