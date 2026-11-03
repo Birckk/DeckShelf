@@ -15,6 +15,13 @@ npm start          # serve dist/ with the production server
 On Windows, `scripts/start-windows.cmd` installs dependencies on first run,
 rebuilds and starts the production server.
 
+To update Vite+, run the version you want through its migrator. It moves `vite-plus` and
+the `vite` alias together, so Dependabot leaves both alone. Skip the extras it would add:
+
+```sh
+npx --package=vite-plus@<version> vp migrate --no-interactive --no-agent --no-editor --no-hooks
+```
+
 ## Repository layout
 
 | Folder | Contents |
