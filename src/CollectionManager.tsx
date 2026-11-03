@@ -85,6 +85,7 @@ type Props = {
   onShare: () => void;
   overviewExtra?: ReactNode;
   onBrowse?: (source: SharedSource) => void;
+  navExtra?: ReactNode;
   /** A shared shelf shown read-only: its folders and decks, with the shelf's own actions. */
   readOnly?: { name: string; actions: ReactNode };
   startPersonal?: boolean;
@@ -155,6 +156,7 @@ export default function CollectionManager({
   onShare,
   overviewExtra,
   onBrowse,
+  navExtra,
   readOnly,
   undoTo,
   startPersonal = false,
@@ -633,7 +635,7 @@ export default function CollectionManager({
       {readOnly
         ? <header className="workspace-heading">
             <div><h1 ref={heading} tabIndex={-1}>{readOnly.name}</h1><p>{decks.length} public {decks.length === 1 ? "deck" : "decks"} · Read-only</p></div>
-            <button className="text-button workspace-back" aria-label="Back to collection" title="Back to collection" onClick={onClose}><ArrowLeft size={15} /><span>Back to collection</span></button>
+            <button className="text-button workspace-back" aria-label={`Back to ${readOnly.name}`} title={`Back to ${readOnly.name}`} onClick={onClose}><ArrowLeft size={15} /><span>Back to {readOnly.name}</span></button>
             <div className="workspace-shelf-actions">{readOnly.actions}</div>
           </header>
         : <header className="workspace-heading">
@@ -646,6 +648,7 @@ export default function CollectionManager({
         <div className="manager-body">
           <button className="workspace-mobile-toggle button button-outline" aria-expanded={mobileNav} onClick={() => setMobileNav(v => !v)}><FolderTree size={15} />{readOnly ? "Folders" : "Sources and folders"}</button>
           <div className={mobileNav ? 'workspace-navigation is-open' : 'workspace-navigation'}>
+            {navExtra}
             <CollectionNavigator readOnly={!!readOnly} collection={collection} decks={decks} groups={groups} section={connecting ? '' : section} busy={!!busy} navigate={navigate}
               openScope={(key, name, keys) => { navigate(key); setScope({ name, keys }); }}
               toggle={(keys, enabled, all) => setCollection(c => enableGroups(c, keys, enabled, all))}

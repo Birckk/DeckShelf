@@ -66,6 +66,8 @@ for (const [width,height] of [[1920,1080],[1500,900],[390,844]]) test(`shared co
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
   fs.mkdirSync('.codex-shots',{recursive:true});
   await page.screenshot({path:`.codex-shots/shared-${width}.png`,fullPage:false});
+  // Phones keep Share in the folders view; the bar has one row.
+  if (width === 390) await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Share',exact:true}).click();
   await expect(page.getByLabel('Collection link')).toHaveValue(`${new URL(page.url()).origin}/f/42`);
   await page.getByRole('button',{name:'Copy link',exact:true}).click();
@@ -149,6 +151,7 @@ test('clipboard denial on phone offers a selectable manual link without changing
   await page.addInitScript(()=>Object.defineProperty(navigator,'clipboard',{value:{writeText:()=>Promise.reject(new Error('denied'))},configurable:true}));
   await mock(page);
   await page.goto('/f/42');
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Share',exact:true}).click();
   await page.getByRole('button',{name:'Copy link',exact:true}).click();
   await expect(page.getByText('Copy was unavailable. Select the link above and copy it.')).toBeVisible();

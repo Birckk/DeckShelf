@@ -22,8 +22,8 @@ const personal = (page: Page) => page.evaluate(key=>localStorage.getItem(key),ke
 test('a kept shelf returns from the header switcher, offline, with its search', async ({page}) => {
   const {fetches} = await setup(page);
   await page.getByLabel('Search decks').fill('Shared');
-  await page.getByRole('button',{name:'Keep as a collection',exact:true}).click();
-  await expect(page.getByRole('button',{name:'Kept',exact:true})).toBeDisabled();
+  await page.getByRole('button',{name:'Bookmark this collection',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Bookmarked',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
   await expect(page).toHaveURL('/');
   await expect(page.getByLabel('Search decks')).toHaveValue('');
@@ -53,12 +53,12 @@ test('a viewed shelf is in the switcher and My collection until kept or removed'
   await menu.getByRole('button',{name:/^Public shelf/}).click();
   await expect(page).toHaveURL('/f/42');
   expect(fetches()).toBe(0);
-  await page.getByRole('button',{name:'Keep as a collection',exact:true}).click();
+  await page.getByRole('button',{name:'Bookmark this collection',exact:true}).click();
   await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
   await page.getByRole('button',{name:'My collection',exact:true}).click();
-  await expect(page.getByRole('region',{name:'Recently viewed',exact:true}).getByText('Archidekt folder · 1 deck · Kept')).toBeVisible();
+  await expect(page.getByRole('region',{name:'Other collections',exact:true}).getByText('Archidekt folder · 1 deck · Bookmarked')).toBeVisible();
   await page.getByRole('button',{name:'Showing Mine. Switch collection'}).click();
-  await expect(menu.getByText('Kept · 1 deck')).toBeVisible();
+  await expect(menu.getByText('Bookmarked · 1 deck')).toBeVisible();
   await expect(menu.getByText('Recently viewed')).toHaveCount(0);
   expect(JSON.parse((await personal(page))!)).toEqual(JSON.parse(saved));
 });
@@ -74,11 +74,11 @@ test('the shelf bar hides, and its actions stay in the switcher', async ({page})
   await expect(bar).toHaveCount(0);
   await page.getByRole('button',{name:'Showing Public shelf. Switch collection'}).click();
   const menu = page.getByRole('group',{name:'Collections'});
-  await menu.getByRole('button',{name:'Keep',exact:true}).click();
+  await menu.getByRole('button',{name:'Bookmark',exact:true}).click();
   await page.getByRole('button',{name:'Showing Public shelf. Switch collection'}).click();
-  await expect(menu.getByRole('button',{name:'Kept',exact:true})).toBeDisabled();
+  await expect(menu.getByRole('button',{name:'Bookmarked',exact:true})).toBeDisabled();
   await menu.getByRole('button',{name:'Show bar',exact:true}).click();
-  await expect(bar.getByRole('button',{name:'Kept',exact:true})).toBeDisabled();
+  await expect(bar.getByRole('button',{name:'Bookmarked',exact:true})).toBeDisabled();
   expect(JSON.parse((await personal(page))!)).toEqual(JSON.parse(saved));
 });
 

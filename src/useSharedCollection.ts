@@ -29,7 +29,8 @@ export function useSharedCollection(route: ReturnType<typeof readSharedLocation>
   useEffect(() => {
     const controller = new AbortController();
     const hit = route.source && (cachedShelf(shelfId(route.source)) || callbacks.current.lookup?.(shelfId(route.source)));
-    if (hit) {
+    // A bookmark made before its details finished loads again until it has them.
+    if (hit && !hit.decks.some(deck => deck.partial)) {
       cacheShelf(hit);
       setResult({ ...hit, error: '', loading: false, filling: 0, failed: 0 });
       callbacks.current.onLoad?.(hit);

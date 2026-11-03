@@ -40,23 +40,44 @@
 .shelf-open-line button:hover { background:#ffffff0d; }
 .shelf-open small { line-height:1.4; }
 .shelf-open small.shelf-open-error { color:#e6b29a; }
-.shelf-switch-menu > .shelf-open:first-child, .shelf-switch-actions + .shelf-open { border-bottom:1px solid #ffffff12; margin-bottom:6px; }
-.shelf-open-row { display:flex; align-items:center; gap:10px; width:100%; min-height:var(--tap); margin-top:6px; padding:6px 10px; border-top:1px solid #ffffff12; color:#e7e1d5; font-size:14px; text-align:left; }
-.shelf-open-row:hover { background:#ffffff08; }
-.shelf-open-row svg { color:#a9a9af; }
-.shelf-open-icon { position:relative; display:inline-flex; }
-.shelf-open-icon .shelf-switch-menu { left:auto; right:0; }
-.overview-open-shelf { margin-top:32px; max-width:420px; }
-.overview-open-shelf .shelf-open { padding:0; }
-.overview-open-shelf .shelf-open label { font-size:16px; font-weight:500; }
-.manager-input-line .button-browse { white-space:nowrap; }
+.shelf-switch-open { margin-top:6px; border-top:1px solid #ffffff12; }
+.shelf-add-tile { display:flex; flex-direction:column; justify-content:center; }
+.shelf-add-tile .shelf-open { padding:14px; }
+.shelf-add-tile .shelf-open label { font-size:15px; font-weight:500; }
+
+/* PROTOTYPE (#128): every collection as a chip under the header. */
+.shelf-strip { display:flex; gap:6px; padding:8px var(--gutter); border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:none; }
+.shelf-chip { flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; min-height:30px; max-width:180px; padding:0 10px; border:1px solid #37363a; border-radius:5px; color:#e7e1d5; font-size:12px; white-space:nowrap; }
+.shelf-chip > span { overflow:hidden; text-overflow:ellipsis; }
+.shelf-chip svg { flex-shrink:0; color:#a9a9af; }
+.shelf-chip:hover:not(:disabled) { background:#ffffff0d; }
+.shelf-chip.is-quiet { border-color:transparent; color:var(--muted); }
+.shelf-chip[aria-current="true"] { border-color:#f2ddb0; color:#f2ddb0; }
+.shelf-chip[aria-current="true"] svg { color:#f2ddb0; }
+.shelf-chip.is-add { padding:0 8px; border-style:dashed; }
+
+/* PROTOTYPE (#128): the same list in the My collection sidebar. */
+.shelf-list { padding:18px 12px 12px 0; border-bottom:1px solid #ffffff12; }
+.workspace-navigation:has(.shelf-list) { display:flex; flex-direction:column; }
+.collection-workspace .shelf-list + .manager-nav { height:auto; flex:1; }
+.shelf-list h3 { margin:0 0 6px 10px; font-size:13px; font-weight:500; color:var(--muted); }
+.shelf-list h4 { margin:10px 0 4px 10px; font-size:11px; font-weight:500; color:var(--muted); }
+.shelf-list ul { list-style:none; margin:0; padding:0; }
+.shelf-list li button { display:flex; align-items:center; gap:10px; width:100%; min-height:32px; padding:4px 10px; border-radius:5px; color:#e7e1d5; font-size:13px; text-align:left; }
+.shelf-list li button:hover { background:#ffffff08; }
+.shelf-list li button > span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.shelf-list li button > svg { flex-shrink:0; color:#a9a9af; }
+.shelf-list li button > small { color:var(--muted); font-size:11px; }
+.shelf-list li button[aria-current="true"] { background:#ffffff0d; color:#f2ddb0; }
+.shelf-list li button[aria-current="true"] > svg { color:#f2ddb0; }
 
 /* Recently viewed, under the overview's own collections. */
 .recent-shelves { margin-top:32px; }
 .recent-shelves .overview-intro { display:flex; justify-content:space-between; }
 .recent-shelves-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr)); gap:16px; }
 .recent-shelf .overview-group-top { display:flex; justify-content:space-between; align-items:center; }
-.recent-shelf .shelf-forget { margin:-8px -8px -8px 0; }
+.recent-shelf-actions { display:flex; margin:-8px -8px -8px 0; }
+.recent-shelf .shelf-forget.is-marked { color:#f2ddb0; }
 .recent-shelf small { color:var(--muted); font-size:11px; }
 
 @media (max-width:550px) {
@@ -69,8 +90,8 @@
   .shelf-switch-menu { left:0; width:calc(100vw - 2 * var(--gutter)); }
   /* 16px stops iOS zooming the page when the field takes focus. */
   .shelf-open input { font-size:16px; }
-  .shelf-open-icon { position:static; }
-  .shelf-open-icon .shelf-switch-menu { left:var(--gutter); right:var(--gutter); width:auto; max-width:none; }
+  /* With the menu in the header, phones show the mark alone so the row doesn't crowd. */
+  .nav-menu .studio-header .brand > span { display:none; }
 }
 
 /* A shared shelf's folders, read-only in the My collection workspace: its actions sit in the heading. */
