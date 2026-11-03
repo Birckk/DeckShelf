@@ -25,7 +25,7 @@ test('blocked storage does not stop the app from starting', () => {
 
 test('no current source file reads a retired key', () => {
   const dir = new URL('../src/', import.meta.url);
-  const files = readdirSync(dir, { recursive: true }).filter(file => /\.(tsx?|js)$/.test(file) && !file.endsWith('retiredKeys.ts'));
+  const files = readdirSync(dir, { recursive: true, encoding: 'utf8' }).filter(file => /\.(tsx?|js)$/.test(file) && !file.endsWith('retiredKeys.ts'));
   for (const file of files) {
     const source = readFileSync(new URL(file.replaceAll('\\', '/'), dir), 'utf8');
     for (const key of RETIRED_KEYS) assert.equal(source.includes(key), false, `${file} uses ${key}`);
