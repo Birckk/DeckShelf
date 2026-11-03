@@ -9,6 +9,7 @@ export const RETIRED_KEYS = [
   "deckshelf.dev.shelf-bar",
   "deckshelf.dev.shelf-variant",
   "deckshelf.dev.sort-variant",
+  "deckshelf.shelf-bar-hidden",
   "deckshelf.follow-prototype",
   "deckshelf.follow-variant",
 ];

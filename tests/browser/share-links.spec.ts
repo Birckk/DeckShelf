@@ -98,8 +98,9 @@ test('account links load the exact public account; its folders open read-only an
   await expect(workspace.getByRole('heading',{name:'A.b',exact:true})).toBeVisible();
   await workspace.getByRole('navigation',{name:'Collection sources'}).getByRole('button',{name:'Public shelf',exact:true}).click();
   await expect(workspace.locator('.workspace-tile')).toHaveCount(1);
-  await expect(workspace.getByRole('checkbox')).toHaveCount(0);
-  await expect(workspace.getByRole('switch')).toHaveCount(0);
+  // Its controls are the same as yours, but adding and removing stay on your own shelf.
+  await expect(workspace.getByRole('switch').first()).toBeVisible();
+  await expect(workspace.getByRole('button',{name:'Refresh',exact:true})).toHaveCount(0);
   await expect(workspace.getByRole('button',{name:'Add decks'})).toHaveCount(0);
   await expect(page).toHaveURL('/u/A.b?format=commander');
   await page.getByRole('button',{name:'Showing A.b. Switch collection'}).click();

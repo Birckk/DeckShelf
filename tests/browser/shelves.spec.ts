@@ -39,7 +39,7 @@ test('a kept shelf returns from the header switcher, offline, with its search', 
   await page.getByRole('group',{name:'Collections'}).getByRole('button',{name:/^Public shelf/}).click();
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Showing Public shelf. Switch collection'}).click();
-  await page.getByRole('button',{name:'Remove Public shelf from the switcher'}).click();
+  await page.getByRole('button',{name:'Remove the bookmark for Public shelf'}).click();
   expect(await page.evaluate(()=>localStorage.getItem('deckshelf.kept-shelves.v1'))).toBe('[]');
   expect(JSON.parse((await personal(page))!)).toEqual(JSON.parse(saved));
 });
@@ -49,7 +49,8 @@ test('a viewed shelf is in the switcher and My collection until kept or removed'
   await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
   await page.getByRole('button',{name:'Showing Mine. Switch collection'}).click();
   const menu = page.getByRole('group',{name:'Collections'});
-  await expect(menu.getByText('Viewed · 1 deck')).toBeVisible();
+  await expect(menu.getByText('Recently viewed')).toBeVisible();
+  await expect(menu.getByRole('button',{name:/^Public shelf/})).toContainText('1 deck');
   await menu.getByRole('button',{name:/^Public shelf/}).click();
   await expect(page).toHaveURL('/f/42');
   expect(fetches()).toBe(0);
@@ -58,27 +59,24 @@ test('a viewed shelf is in the switcher and My collection until kept or removed'
   await page.getByRole('button',{name:'My collection',exact:true}).click();
   await expect(page.getByRole('region',{name:'Other collections',exact:true}).getByText('Archidekt folder · 1 deck · Bookmarked')).toBeVisible();
   await page.getByRole('button',{name:'Showing Mine. Switch collection'}).click();
-  await expect(menu.getByText('Bookmarked · 1 deck')).toBeVisible();
+  await expect(menu.getByRole('button',{name:'Remove the bookmark for Public shelf'})).toBeVisible();
   await expect(menu.getByText('Recently viewed')).toHaveCount(0);
   expect(JSON.parse((await personal(page))!)).toEqual(JSON.parse(saved));
 });
 
-test('the shelf bar hides, and its actions stay in the switcher', async ({page}) => {
+test('the menu is only for moving around, and bookmarking from it stays on the page', async ({page}) => {
   await setup(page);
-  const bar = page.getByRole('region',{name:'Shared collection'});
-  await expect(bar.getByText('Read-only · 1 public deck')).toBeVisible();
-  await bar.getByRole('button',{name:'Hide this bar'}).click();
-  await expect(bar).toHaveCount(0);
-  await page.reload();
-  await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
-  await expect(bar).toHaveCount(0);
-  await page.getByRole('button',{name:'Showing Public shelf. Switch collection'}).click();
+  await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
+  await page.getByRole('button',{name:'Showing Mine. Switch collection'}).click();
   const menu = page.getByRole('group',{name:'Collections'});
-  await menu.getByRole('button',{name:'Bookmark',exact:true}).click();
-  await page.getByRole('button',{name:'Showing Public shelf. Switch collection'}).click();
-  await expect(menu.getByRole('button',{name:'Bookmarked',exact:true})).toBeDisabled();
-  await menu.getByRole('button',{name:'Show bar',exact:true}).click();
-  await expect(bar.getByRole('button',{name:'Bookmarked',exact:true})).toBeDisabled();
+  for (const name of ['Share','Save to mine','Keep','Show bar']) await expect(menu.getByRole('button',{name,exact:true})).toHaveCount(0);
+  await menu.getByRole('button',{name:'Bookmark Public shelf',exact:true}).click();
+  await expect(menu.getByRole('button',{name:'Remove the bookmark for Public shelf',exact:true})).toBeVisible();
+  await expect(page).toHaveURL('/');
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('deckshelf.kept-shelves.v1')!).map((shelf: {source:{name:string}})=>shelf.source.name))).toEqual(['Public shelf']);
+  await menu.getByRole('button',{name:'Remove the bookmark for Public shelf',exact:true}).click();
+  expect(await page.evaluate(()=>localStorage.getItem('deckshelf.kept-shelves.v1'))).toBe('[]');
+  await expect(menu.getByRole('button',{name:/^Public shelf/})).toBeVisible();
   expect(JSON.parse((await personal(page))!)).toEqual(JSON.parse(saved));
 });
 
@@ -100,6 +98,7 @@ test('a typed username opens read-only from the switcher and adds nothing', asyn
   await page.route('**/api/decks/987001', route => route.fulfill({json:deck}));
   await page.goto('/');
   await page.getByRole('button',{name:'Showing Mine. Switch collection'}).click();
+  await page.getByRole('button',{name:'Open a collection…',exact:true}).click();
   const field = page.getByLabel('Open a collection');
   await field.fill('https://archidekt.com/decks/123/one');
   await page.getByRole('button',{name:'Open this collection'}).click();
@@ -112,5 +111,41 @@ test('a typed username opens read-only from the switcher and adds nothing', asyn
   expect(asked.some(search => search.includes('value=Some.Friend'))).toBe(true);
   expect(JSON.parse((await personal(page))!)).toEqual(JSON.parse(saved));
   await page.goBack();
+  await expect(page).toHaveURL('/');
+});
+
+// A friend's shelf has the same controls as yours (#128). The choices are remembered per friend and never reach your collection.
+test('a friend\'s folders switch like yours, on this device only', async ({page}) => {
+  const second = {...seed[3], id:'987002', name:'Second Commander'};
+  const folder = {...source,key:'folder:43',value:'43',name:'Second',url:'https://archidekt.com/folders/43',entries:[{id:second.id,name:second.name,image:second.commanders[0].art,colors:second.colors}],knownIds:[second.id]};
+  await page.addInitScript(({key,saved})=>{if(!localStorage.getItem(key))localStorage.setItem(key,saved);},{key,saved});
+  await page.route('**/api/source-folders?*', route => route.fulfill({json:{name:source.name,folders:[{source,path:source.name,root:true},{source:folder,path:'Public shelf / Second',root:false}]}}));
+  await page.route('**/api/decks/987001', route => route.fulfill({json:deck}));
+  await page.route('**/api/decks/987002', route => route.fulfill({json:second}));
+  await page.goto('/f/42');
+  const friend = page.getByRole('button',{name:'View Second Commander',exact:true});
+  await expect(friend).toBeVisible();
+  await page.getByRole('button',{name:'Public shelf folders',exact:true}).click();
+  const workspace = page.getByRole('main',{name:'Public shelf folders'});
+  await expect(workspace.getByRole('button',{name:'Add decks'})).toHaveCount(0);
+  await workspace.getByRole('switch',{name:'Enable Second in sidebar',exact:true}).click();
+  await workspace.getByRole('button',{name:'Back to Public shelf',exact:true}).click();
+  await expect(friend).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
+  const bar = page.getByRole('region',{name:'Shared collection'});
+  await expect(bar.getByText('Read-only · 1 of 2 public decks on')).toBeVisible();
+  expect(JSON.parse((await personal(page))!)).toEqual(JSON.parse(saved));
+  await page.reload();
+  await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
+  await expect(friend).toHaveCount(0);
+  // Save to mine takes what's on.
+  await page.getByRole('button',{name:'Save to my collection',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Saved to my collection',exact:true})).toBeDisabled();
+  const mine = JSON.parse((await personal(page))!);
+  expect(mine.added.map((item: {id:string})=>item.id)).toContain('987001');
+  expect(mine.added.map((item: {id:string})=>item.id)).not.toContain('987002');
+  // The folders view has its own way back to Mine.
+  await page.getByRole('button',{name:'Public shelf folders',exact:true}).click();
+  await page.getByRole('main',{name:'Public shelf folders'}).getByRole('button',{name:'Back to my collection',exact:true}).click();
   await expect(page).toHaveURL('/');
 });

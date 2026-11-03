@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type RefObject } from "react";
-import { ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck, Check, ChevronDown, Folder, Library, Plus, UserRound, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck, ChevronDown, Folder, Library, Plus, UserRound, X } from "lucide-react";
 import { Artwork } from "./components";
 import { shelfId, shelfRef, type KeptShelf, type ShelfRef } from "./shelves";
 import { parseShelfInput, type SharedSource } from "./share-links";
@@ -48,51 +48,54 @@ const otherShelves = (kept: KeptShelf[], recent: ShelfRef[]) => {
   return { bookmarked: kept.map(shelf => shelfRef(shelf, shelf.keptAt)), viewed: recent.filter(ref => !keptIds.has(shelfId(ref))) };
 };
 
-// One switcher beside the brand: your own collection, bookmarked shelves and recently viewed ones.
-export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCount, disabled, onPersonal, onOpen, onForget, onForgetRecent, actions, showOpen = false }: {
+// One switcher beside the brand, only for moving around: your collection, bookmarks, recent shelves.
+export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCount, disabled, onPersonal, onOpen, onBookmark, onUnbookmark }: {
   current: { id: string; name: string } | null;
   viewing: { source: SharedSource & { name: string }; count: number } | null;
   kept: KeptShelf[]; recent?: ShelfRef[]; personalCount: number; disabled: boolean;
-  onPersonal: () => void; onOpen: (source: SharedSource) => void; onForget: (id: string) => void; onForgetRecent?: (id: string) => void;
-  actions?: ReactNode; showOpen?: boolean;
+  onPersonal: () => void; onOpen: (source: SharedSource) => void; onBookmark: (source: SharedSource & { name: string }) => void; onUnbookmark: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
-  useDismiss(open, () => setOpen(false), root, trigger);
-  const go = (run: () => void) => { setOpen(false); run(); };
+  const close = () => { setOpen(false); setAdding(false); };
+  useDismiss(open, close, root, trigger);
+  const go = (run: () => void) => { close(); run(); };
   const keptIds = new Set(kept.map(shelf => shelfId(shelf.source)));
   // With the recent list, the shelf being viewed is already its first entry.
-  const unkept = viewing && !keptIds.has(shelfId(viewing.source)) && !recent.length ? viewing : null;
+  const unkept = viewing && !keptIds.has(shelfId(viewing.source)) && !recent.some(ref => shelfId(ref) === shelfId(viewing.source)) ? viewing : null;
   const viewed = recent.filter(ref => !keptIds.has(shelfId(ref))).slice(0, 5);
-  const row = (id: string | null, name: string, count: number, kind: SharedSource["kind"] | null, run: () => void, note?: string, forget: ((id: string) => void) | null = onForget, marked = false) =>
-    <li key={id || "mine"} className={current?.id === id || (!current && !id) ? "is-current" : ""}>
-      <button type="button" aria-current={current?.id === id || (!current && !id) ? "true" : undefined} onClick={() => go(run)}>
-        {marked ? <BookmarkCheck size={15} /> : kind === null ? <Library size={15} /> : kind === "account" ? <UserRound size={15} /> : <Folder size={15} />}
-        <span>{name}<small>{note || decks(count)}</small></span>
-        {(current?.id === id || (!current && !id)) && <Check size={15} className="shelf-current-mark" />}
+  const row = (source: (SharedSource & { name: string }) | null, name: string, count: number) => {
+    const id = source && shelfId(source);
+    const isCurrent = current?.id === id || (!current && !id);
+    const marked = !!id && keptIds.has(id);
+    return <li key={id || "mine"} className={isCurrent ? "is-current" : ""}>
+      <button type="button" aria-current={isCurrent ? "true" : undefined} onClick={() => go(() => source ? onOpen(source) : onPersonal())}>
+        {!source ? <Library size={15} /> : source.kind === "account" ? <UserRound size={15} /> : <Folder size={15} />}
+        <span>{name}<small>{decks(count)}</small></span>
       </button>
-      {id && forget && <button type="button" className="shelf-forget" aria-label={`Remove ${name} from the switcher`} title="Remove from the switcher. Your own collection is not changed." onClick={() => forget(id)}><X size={14} /></button>}
+      {source && <button type="button" className={`shelf-forget ${marked ? "is-marked" : ""}`} aria-pressed={marked} aria-label={marked ? `Remove the bookmark for ${name}` : `Bookmark ${name}`} title={marked ? "Remove bookmark" : "Bookmark"}
+        onClick={() => marked ? onUnbookmark(id!) : onBookmark(source)}>{marked ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}</button>}
     </li>;
+  };
   return <div className="shelf-switch" ref={root}>
     <button ref={trigger} type="button" className="shelf-switch-trigger" disabled={disabled} aria-expanded={open} aria-haspopup="true"
-      aria-label={`Showing ${current?.name || "Mine"}. Switch collection`} onClick={() => setOpen(value => !value)}>
+      aria-label={`Showing ${current?.name || "Mine"}. Switch collection`} onClick={() => open ? close() : setOpen(true)}>
       <span>{current?.name || "Mine"}</span><ChevronDown size={14} />
     </button>
     {open && <div className="shelf-switch-menu" role="group" aria-label="Collections">
-      {/* The shown shelf's actions, so its bar can stay hidden. */}
-      {actions && current && <div className="shelf-switch-actions" onClick={() => setOpen(false)}>
-        <small>{current.name} · read-only</small><div>{actions}</div>
-      </div>}
       <ul>
-        {row(null, "Mine", personalCount, null, onPersonal, `Your saved collection · ${decks(personalCount)}`)}
-        {kept.map(shelf => row(shelfId(shelf.source), shelf.source.name, shelf.decks.length, shelf.source.kind, () => onOpen(shelf.source), `Bookmarked · ${decks(shelf.decks.length)}`, onForget, true))}
-        {unkept && row(shelfId(unkept.source), unkept.source.name, unkept.count, unkept.source.kind, () => onOpen(unkept.source), `Not bookmarked · ${decks(unkept.count)}`, null)}
+        {row(null, "Mine", personalCount)}
+        {kept.map(shelf => row(shelf.source, shelf.source.name, shelf.decks.length))}
+        {unkept && row(unkept.source, unkept.source.name, unkept.count)}
       </ul>
       {viewed.length > 0 && <><h4>Recently viewed</h4><ul>
-        {viewed.map(ref => row(shelfId(ref), ref.name, ref.count, ref.kind, () => onOpen(ref), `Viewed · ${decks(ref.count)}`, onForgetRecent ?? null))}
+        {viewed.map(ref => row(ref, ref.name, ref.count))}
       </ul></>}
-      {showOpen && <div className="shelf-switch-open"><OpenShelfForm onOpen={source => go(() => onOpen(source))} /></div>}
+      {adding
+        ? <div className="shelf-switch-open"><OpenShelfForm autoFocus onOpen={source => go(() => onOpen(source))} /></div>
+        : <button type="button" className="shelf-open-row" onClick={() => setAdding(true)}><Plus size={15} />Open a collection…</button>}
     </div>}
   </div>;
 }
@@ -135,9 +138,9 @@ export function ShelfList({ currentId, kept, recent, personalCount, onPersonal, 
 }
 
 // Other people's collections, in My collection: bookmarks first, then recently viewed.
-export function OtherCollections({ kept, recent, currentId = "", openRef, onOpen, onBookmark, onUnbookmark, onForget }: {
-  kept: KeptShelf[]; recent: ShelfRef[]; currentId?: string; openRef?: RefObject<HTMLElement | null>;
-  onOpen: (source: SharedSource) => void; onBookmark: (ref: ShelfRef) => void; onUnbookmark: (ref: ShelfRef) => void; onForget: (id: string) => void;
+export function OtherCollections({ kept, recent, currentId = "", onOpen, onBookmark, onUnbookmark, onForget }: {
+  kept: KeptShelf[]; recent: ShelfRef[]; currentId?: string;
+  onOpen: (source: SharedSource) => void; onBookmark: (source: SharedSource & { name: string }) => void; onUnbookmark: (id: string) => void; onForget: (id: string) => void;
 }) {
   const { bookmarked, viewed } = otherShelves(kept, recent);
   const tile = (ref: ShelfRef, marked: boolean) => {
@@ -152,14 +155,14 @@ export function OtherCollections({ kept, recent, currentId = "", openRef, onOpen
         <div className="overview-group-top"><button className="overview-group-title" onClick={() => onOpen(ref)}>{ref.name}</button>
           <span className="recent-shelf-actions">
             <button className={`icon-button shelf-forget ${marked ? "is-marked" : ""}`} aria-pressed={marked} aria-label={marked ? `Remove the bookmark for ${ref.name}` : `Bookmark ${ref.name}`} title={marked ? "Remove bookmark" : "Bookmark"}
-              onClick={() => marked ? onUnbookmark(ref) : onBookmark(ref)}>{marked ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}</button>
+              onClick={() => marked ? onUnbookmark(shelfId(ref)) : onBookmark(ref)}>{marked ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}</button>
             {!marked && <button className="icon-button shelf-forget" aria-label={`Remove ${ref.name} from recently viewed`} title="Remove from this list" onClick={() => onForget(shelfId(ref))}><X size={14} /></button>}
           </span></div>
         <small>{kindLabel(ref.kind)} · {decks(ref.count)} · {marked ? "Bookmarked" : "Viewed"}</small>
       </div>
     </article>;
   };
-  return <section className="recent-shelves" aria-label="Other collections" ref={openRef}>
+  return <section className="recent-shelves" aria-label="Other collections">
     <div className="overview-intro"><div><h3>Other collections</h3></div></div>
     <div className="recent-shelves-grid">
       {bookmarked.map(ref => tile(ref, true))}

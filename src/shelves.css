@@ -41,6 +41,11 @@
 .shelf-open small { line-height:1.4; }
 .shelf-open small.shelf-open-error { color:#e6b29a; }
 .shelf-switch-open { margin-top:6px; border-top:1px solid #ffffff12; }
+.shelf-open-row { display:flex; align-items:center; gap:10px; width:100%; min-height:var(--tap); margin-top:6px; padding:6px 10px; border-top:1px solid #ffffff12; color:#e7e1d5; font-size:14px; text-align:left; }
+.shelf-open-row:hover { background:#ffffff08; }
+.shelf-open-row svg { flex-shrink:0; color:#a9a9af; }
+.shelf-switch-menu .is-current > button:first-child { color:#f2ddb0; }
+.shelf-switch-menu .shelf-forget.is-marked { color:#f2ddb0; }
 .shelf-add-tile { display:flex; flex-direction:column; justify-content:center; }
 .shelf-add-tile .shelf-open { padding:14px; }
 .shelf-add-tile .shelf-open label { font-size:15px; font-weight:500; }
@@ -99,6 +104,8 @@
 .workspace-shelf-actions .button { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
 @media (max-width:700px) {
   .collection-workspace.is-read-only .workspace-heading { flex-wrap:wrap; }
+  /* ← Mine leads the heading here, so a second back arrow would only confuse; Done closes the view. */
+  .collection-workspace.is-read-only .workspace-back { display:none; }
   .workspace-heading > .workspace-shelf-actions { flex-basis:100%; order:1; }
   .workspace-shelf-actions .button { flex:1; justify-content:center; margin-left:0; }
 }

@@ -1,4 +1,4 @@
-import { coverOf, imageUrl, validateDeck, validateSource, type CollectionSource, type Deck } from './domain.ts';
+import { coverOf, imageUrl, validateDeck, validateSource, type Collection, type CollectionSource, type Deck } from './domain.ts';
 import type { SharedSource } from './share-links.ts';
 import type { SharedFolder } from './collection.ts';
 
@@ -13,6 +13,8 @@ export const RECENT_KEY = 'deckshelf.recent-shelves.v1';
 export const KEPT_KEY = 'deckshelf.kept-shelves.v1';
 export const RECENT_LIMIT = 8;
 export const KEPT_LIMIT = 12;
+export const VIEWS_KEY = 'deckshelf.shelf-views.v1';
+export const VIEWS_LIMIT = 40;
 
 export const shelfId = (source: SharedSource) => `${source.kind}:${source.value.toLowerCase()}`;
 
@@ -99,3 +101,74 @@ export const readRecent = (storage?: ShelfStorage) => readList(storage, RECENT_K
 export const writeRecent = (storage: ShelfStorage | undefined, list: ShelfRef[]) => writeList(storage, RECENT_KEY, list);
 export const readKept = (storage?: ShelfStorage) => readList(storage, KEPT_KEY, validKept, KEPT_LIMIT);
 export const writeKept = (storage: ShelfStorage | undefined, list: KeptShelf[]) => writeList(storage, KEPT_KEY, list);
+
+// What someone has switched on or off on a friend's shelf. It changes only how they see that
+// shelf on this device: never their own collection, a backup, or Archidekt. `off` names decks
+// rather than listing the shown ones, so decks the friend adds later arrive switched on.
+export type ShelfView = {
+  disabledGroups?: string[]; archivedGroups?: string[]; hidden?: string[];
+  pausedGroups?: { keys: string[]; enabled: string[] }[]; off?: Record<string, string[]>;
+};
+export type ShelfViews = Record<string, ShelfView>;
+
+// A friend's shelf as a collection of its folders, so it can use the My collection screens.
+export function shelfCollection({ source, decks, folders }: LoadedShelf): Collection {
+  const parts = folders?.filter(folder => folder.source.entries.length) || [];
+  const sources = parts.length
+    ? parts.map(folder => ({ ...folder.source, folderPath: folder.path, connectionKey: source.key, connectionName: source.name }))
+    : [source];
+  return { version: 1, starter: false, hidden: [], excluded: [], added: decks, manualIds: [],
+    sources: sources.map(item => ({ ...item, selectedIds: item.knownIds, ownedIds: item.knownIds })) };
+}
+
+export function applyShelfView(collection: Collection, view: ShelfView = {}): Collection {
+  return { ...collection,
+    disabledGroups: view.disabledGroups || [], pausedGroups: view.pausedGroups || [], archivedGroups: view.archivedGroups || [], hidden: view.hidden || [],
+    sources: collection.sources?.map(source => {
+      const off = view.off?.[source.key];
+      return off?.length ? { ...source, selectedIds: source.knownIds.filter(id => !off.includes(id)), excludedIds: off } : source;
+    }) };
+}
+
+export function shelfViewOf(collection: Collection): ShelfView {
+  const off = Object.fromEntries((collection.sources || []).flatMap(source => {
+    const selected = new Set(source.selectedIds ?? source.knownIds);
+    const ids = source.knownIds.filter(id => !selected.has(id));
+    return ids.length ? [[source.key, ids]] : [];
+  }));
+  return {
+    ...(collection.disabledGroups?.length ? { disabledGroups: collection.disabledGroups } : {}),
+    ...(collection.pausedGroups?.length ? { pausedGroups: collection.pausedGroups } : {}),
+    ...(collection.archivedGroups?.length ? { archivedGroups: collection.archivedGroups } : {}),
+    ...(collection.hidden.length ? { hidden: collection.hidden } : {}),
+    ...(Object.keys(off).length ? { off } : {}),
+  };
+}
+
+// The newest choices go last, and the oldest drop off once the list is full.
+export function putShelfView(views: ShelfViews, id: string, view: ShelfView, limit = VIEWS_LIMIT): ShelfViews {
+  const { [id]: _previous, ...rest } = views;
+  const next = Object.keys(view).length ? { ...rest, [id]: view } : rest;
+  return Object.fromEntries(Object.entries(next).slice(-limit));
+}
+
+const strings = (value: unknown) => Array.isArray(value) && value.length <= 2000 && value.every(item => typeof item === 'string');
+function validView(value: unknown): value is ShelfView {
+  const view = value as ShelfView;
+  return !!view && typeof view === 'object' && !Array.isArray(view) &&
+    [view.disabledGroups, view.archivedGroups, view.hidden].every(list => list === undefined || strings(list)) &&
+    (view.pausedGroups === undefined || (Array.isArray(view.pausedGroups) && view.pausedGroups.every(group => strings(group?.keys) && strings(group?.enabled)))) &&
+    (view.off === undefined || (typeof view.off === 'object' && !Array.isArray(view.off) && Object.values(view.off).every(strings)));
+}
+
+export function readShelfViews(storage?: ShelfStorage): ShelfViews {
+  try {
+    const value = JSON.parse(storage?.getItem(VIEWS_KEY) || '{}');
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, ShelfView] => validView(entry[1])).slice(-VIEWS_LIMIT));
+  } catch { return {}; }
+}
+export function writeShelfViews(storage: ShelfStorage | undefined, views: ShelfViews) {
+  if (!storage) return false;
+  try { storage.setItem(VIEWS_KEY, JSON.stringify(views)); return true; } catch { return false; }
+}

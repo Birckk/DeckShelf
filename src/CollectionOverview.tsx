@@ -37,7 +37,7 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
     } else summaries.push({ group, children: [], keys: [group.key] });
   }
   return <div className={`collection-overview ${expanded ? 'is-expanded' : ''}`}>
-    <div className="overview-intro"><div><h3>Collections</h3></div>{!readOnly && <button className="text-button" disabled={busy} onClick={enableAll}><Power size={14} />Enable all</button>}</div>
+    <div className="overview-intro"><div><h3>Collections</h3></div><button className="text-button" disabled={busy} onClick={enableAll}><Power size={14} />Enable all</button></div>
     <button className="text-button overview-expand" aria-expanded={expanded} onClick={() => setExpanded(v => !v)}>{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}{expanded ? 'Collapse collections' : 'Expand collections'}</button>
     <div className="overview-groups">
       {summaries.filter(({ group }) => !readOnly || ['account', 'folder'].includes(group.kind)).map(({ group, children, keys }) => {
@@ -60,17 +60,17 @@ export default function CollectionOverview({ groups, collection, decks, busy, na
           <div className="collection-box-body">
           <div className="overview-group-top"><Icon size={17} />
             <button className="overview-group-title" disabled={busy} onClick={() => children.length ? openScope(`scope:${group.key}`, group.name, keys) : navigate(group.key)}>{group.name}</button>
-            {!readOnly && <label className={`overview-switch ${partial ? 'is-partial' : ''}`}><input type="checkbox" role="switch" aria-label={`Enable ${group.name} in overview`} aria-description={partial ? 'Some folders enabled' : undefined} checked={group.enabled} disabled={busy} title="Click to pause/resume. Ctrl-click or Cmd-click to enable all folders; repeat to disable all." onChange={e => { const event = e.nativeEvent as MouseEvent; const all = event.ctrlKey || event.metaKey; toggle(keys, all ? keys.some(key => collection.disabledGroups?.includes(key)) : e.target.checked, all); }} /><span>{partial ? 'Some' : group.enabled ? 'On' : 'Off'}</span></label>}
+            <label className={`overview-switch ${partial ? 'is-partial' : ''}`}><input type="checkbox" role="switch" aria-label={`Enable ${group.name} in overview`} aria-description={partial ? 'Some folders enabled' : undefined} checked={group.enabled} disabled={busy} title="Click to pause/resume. Ctrl-click or Cmd-click to enable all folders; repeat to disable all." onChange={e => { const event = e.nativeEvent as MouseEvent; const all = event.ctrlKey || event.metaKey; toggle(keys, all ? keys.some(key => collection.disabledGroups?.includes(key)) : e.target.checked, all); }} /><span>{partial ? 'Some' : group.enabled ? 'On' : 'Off'}</span></label>
           </div>
-          {readOnly ? <div className="overview-group-footer"><small>{group.ids.length} {group.ids.length === 1 ? 'deck' : 'decks'}</small></div> : <div className="overview-group-footer">
+          <div className="overview-group-footer">
             <small>{active}/{group.available} active</small>
             <button className="text-button" disabled={busy} onClick={() => children.length ? onlyMany(keys) : only(group.key)}><Focus size={14} />Only this</button>
             <CollectionMenu name={group.name} busy={busy} items={[
               { label: group.kind === 'demo' ? 'Hide precons' : 'Hide', icon: <EyeOff size={14} />, run: () => hide(keys) },
-              ...(['account', 'folder'].includes(group.kind) ? [{ label: 'Remove', icon: <Trash2 size={14} />, run: () => remove(keys, group.name, group.ids.length) }] : []),
+              ...(['account', 'folder'].includes(group.kind) && !readOnly ? [{ label: 'Remove', icon: <Trash2 size={14} />, run: () => remove(keys, group.name, group.ids.length) }] : []),
               ...(group.kind === 'included' ? [{ label: 'Remove', icon: <Trash2 size={14} />, run: () => remove(keys, group.name, 0) }] : []),
             ]} />
-          </div>}
+          </div>
           {expanded && children.length > 0 && <div className="overview-folder-summary">{children.map(folder => <button key={folder.key} disabled={busy} onClick={() => navigate(folder.key)}><Folder size={12} /><span>{collection.sources?.find(s => s.key === folder.key)?.folderPath || folder.name}</span><small>{folder.enabled ? folder.ids.filter(id => !collection.hidden.includes(id)).length : 0}/{folder.available} active</small></button>)}</div>}
           {expanded && group.kind === 'demo' && collection.demo && <p className="overview-provenance">Snapshot {new Date(collection.demo.snapshotAt).toLocaleDateString(undefined, { dateStyle: 'medium' })} · Curated by Archidekt</p>}
           </div>

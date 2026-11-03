@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CollectionSource, Deck } from './domain';
-import { parseSharePath } from './share-links';
+import { parseSharePath, type SharedSource } from './share-links';
 import { cacheShelf, cachedShelf, shelfFromFolders, shelfId, type LoadedShelf } from './shelves';
 import { listingDeck, type SharedFolder } from './collection';
 import { DeckLoadError, fillDecks, loadFullDeck } from './deckFill';
@@ -15,6 +15,16 @@ type SharedResult = {
   // Decks still showing listing data while their details load, and decks that could not load.
   filling: number; failed: number;
 };
+
+// A shelf's public listing, with each deck as its listing name, art and colours.
+export async function fetchShelfListing(requested: SharedSource, signal: AbortSignal) {
+  const response = await fetch(`/api/source-folders?${new URLSearchParams({ ...requested, formats: 'all' })}`,
+    { signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]) });
+  // A proxy's or static host's own error page is not JSON and has no message for people.
+  const data = response.headers.get('content-type')?.includes('application/json') ? await response.json() : null;
+  if (!response.ok || !data) throw new Error(data?.error || 'This public collection is unavailable.');
+  return shelfFromFolders(requested, data);
+}
 
 // A shelf already loaded in this tab (or a kept snapshot from `lookup`) opens at once.
 // Otherwise the folder listing opens it, with each deck's listing name, art and colours,
@@ -42,12 +52,7 @@ export function useSharedCollection(route: ReturnType<typeof readSharedLocation>
     let flushTimer: ReturnType<typeof setTimeout> | undefined;
     void (async () => {
       try {
-        const response = await fetch(`/api/source-folders?${new URLSearchParams({ ...requested, formats: 'all' })}`,
-          { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(60000)]) });
-        // A proxy's or static host's own error page is not JSON and has no message for people.
-        const data = response.headers.get('content-type')?.includes('application/json') ? await response.json() : null;
-        if (!response.ok || !data) throw new Error(data?.error || 'This public collection is unavailable.');
-        const { source, folders } = shelfFromFolders(requested, data);
+        const { source, folders } = await fetchShelfListing(requested, controller.signal);
         if (controller.signal.aborted) return;
         const decks = new Map(source.entries.map(entry => [entry.id, listingDeck(entry)]));
         const lost = new Set<string>();

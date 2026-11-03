@@ -26,7 +26,6 @@
   .shared-bar-slim { gap:8px; padding:4px 0 8px; }
   .shared-bar-slim strong { font-size:14px; }
   .shared-bar-slim small { font-size:11px; }
-  .shared-bar-hide { display:none; }
   .shared-bar-actions { gap:6px; }
   .shared-bar-actions .button { justify-content:center; width:36px; padding:0; }
   .shared-bar-actions .button > span { display:none; }
