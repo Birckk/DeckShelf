@@ -39,7 +39,7 @@ test('import failures explain private/missing sources and do not return a snapsh
 
 test('concurrent automatic snapshot requests share in-flight work and failed imports back off', async t => {
   let calls = 0;
-  t.mock.method(globalThis, 'fetch', async url => {
+  t.mock.method(globalThis, 'fetch', async () => {
     calls++;
     await Promise.resolve();
     return { ok: true, json: async () => ({ ...source('Shared snapshot'), id: 987654319 }) };

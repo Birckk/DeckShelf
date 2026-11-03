@@ -281,7 +281,7 @@ for (const viewport of reviewSizes) test.describe(`owner phone pre-pass ${viewpo
     await dialog.evaluate(el => { el.scrollTop = el.scrollHeight; });
     const link = dialog.getByRole('link', { name: /View deck on/ });
     await expect(link).toBeInViewport({ ratio: 1 });
-    await expect(link).toHaveAttribute('href', long.url);
+    await expect(link).toHaveAttribute('href', long.sourceUrl);
     await expect(dialog.getByRole('button', { name: 'Close dialog' })).toBeInViewport({ ratio: 1 });
     await shot(page, 'details-bottom');
     await link.focus();

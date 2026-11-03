@@ -4,6 +4,10 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # These two move together through vp migrate (docs/DEVELOPMENT.md).
+      - dependency-name: vite
+      - dependency-name: vite-plus
     groups:
       minor-and-patch:
         update-types: [minor, patch]

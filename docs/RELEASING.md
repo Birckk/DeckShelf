@@ -26,7 +26,7 @@ future work. Archidekt reconstructs public deck sources, not local app preferenc
 
 ## Local build (Windows x64)
 
-Use Node 22.12+ and the committed npm lockfile. The package command explicitly
+Use Node 22.18+ and the committed npm lockfile. The package command explicitly
 installs the pinned Electron runtime (current Electron no longer uses an npm
 postinstall hook):
 

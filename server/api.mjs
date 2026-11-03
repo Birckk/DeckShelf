@@ -37,7 +37,7 @@ export function normalizeDeck(data) {
   return {
     format, ...(cover ? { cover } : {}),
     id:String(data.id), name:plain(data.name), set:cards[0]?.edition.editionname || '',
-    colors:[...'WUBRG'].filter(c => identity.has(c)), theme:'',
+    colors:['W', 'U', 'B', 'R', 'G'].filter(c => identity.has(c)), theme:'',
     tags:(data.deckTags || []).map(t => t.tag?.name || t.name).filter(t => typeof t === 'string'),
     description:descriptionText(data.description).slice(0, 12000), commanders,
     sourceUrl:`https://archidekt.com/decks/${data.id}`, sourceName:'Archidekt',
