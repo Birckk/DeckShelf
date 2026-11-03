@@ -61,7 +61,8 @@
 
 @media (max-width:550px) {
   .brand-cell { gap:8px; }
-  .shelf-switch-trigger { max-width:112px; padding-left:8px; font-size:13px; }
+  /* As tall as the header icons, so the switcher never makes the header taller. */
+  .shelf-switch-trigger { min-height:32px; max-width:112px; padding-left:8px; font-size:13px; }
   /* Open from the page edge so the menu never runs off a phone screen. */
   .brand-cell { position:relative; }
   .shelf-switch { position:static; }
