@@ -20,7 +20,6 @@ export const shelfId = (source: SharedSource) => `${source.kind}:${source.value.
 const memory = new Map<string, LoadedShelf>();
 export const cachedShelf = (id: string) => memory.get(id);
 export function cacheShelf(shelf: LoadedShelf) { memory.set(shelfId(shelf.source), shelf); }
-export function forgetCachedShelf(id: string) { memory.delete(id); }
 
 const validFolder = (value: unknown): value is SharedFolder => {
   const folder = value as SharedFolder;

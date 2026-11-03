@@ -126,6 +126,7 @@ export default function HelixPicker({
     setSpinning(false);
     setDragging(false);
     pointer.current = null;
+    return () => setSpinning(false);
   }, [key, setSpinning]);
   // Seats arrive from the spiral's front card, where the last deck landed.
   useLayoutEffect(() => {
