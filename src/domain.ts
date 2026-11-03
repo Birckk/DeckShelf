@@ -10,7 +10,7 @@ export type CardArtwork = {
   imageSource?: string;
   artSource?: string;
 };
-export type Commander = CardArtwork;
+type Commander = CardArtwork;
 export type Deck = {
   // Missing in legacy v1 snapshots: those decks are Commander.
   format?: DeckFormat;

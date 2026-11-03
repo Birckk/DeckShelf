@@ -4,7 +4,7 @@ export const CENTERED_START = { travel: 0.5, turn: 0 } as const;
 const ROWS_PER_WINDOW = 21;
 const loopLength = (slots: number) =>
   Math.max(1, Math.ceil(slots / 2) / ROWS_PER_WINDOW);
-export const modulo = (n: number, size = 1) => ((n % size) + size) % size;
+const modulo = (n: number, size = 1) => ((n % size) + size) % size;
 
 // Keep the desktop screw unchanged; narrower stages need more room between rows
 // and less perspective magnification, independent of how many decks are eligible.
