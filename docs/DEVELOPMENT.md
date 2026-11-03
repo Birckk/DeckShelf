@@ -112,7 +112,7 @@ the protocol, so use `npm run -s mcp` when starting it by hand.
 Claude Code:
 
 ```sh
-claude mcp add --scope user deckshelf -- node --experimental-strip-types --disable-warning=ExperimentalWarning C:\path\to\deckshelf\server\mcp.mjs
+claude mcp add --scope user deckshelf -- node C:\path\to\deckshelf\server\mcp.mjs
 ```
 
 Claude Desktop: add this to `%APPDATA%\Claude\claude_desktop_config.json` and restart it.
@@ -122,8 +122,7 @@ Claude Desktop: add this to `%APPDATA%\Claude\claude_desktop_config.json` and re
   "mcpServers": {
     "deckshelf": {
       "command": "node",
-      "args": ["--experimental-strip-types", "--disable-warning=ExperimentalWarning",
-        "C:\\path\\to\\deckshelf\\server\\mcp.mjs"]
+      "args": ["C:\\path\\to\\deckshelf\\server\\mcp.mjs"]
     }
   }
 }

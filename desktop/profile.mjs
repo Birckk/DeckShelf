@@ -2,8 +2,8 @@ import { cpSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync } from '
 import { basename, join } from 'node:path';
 
 // The desktop app shipped as Commander Archive before 1.0.
-export const LEGACY_PROFILE = 'Commander Archive';
-export const PROFILE = 'DeckShelf';
+const LEGACY_PROFILE = 'Commander Archive';
+const PROFILE = 'DeckShelf';
 
 // Chromium recreates locks, caches and crash data; copying them can fail or waste space.
 const skipped = new Set(['lockfile', 'LOCK', 'SingletonLock', 'SingletonCookie', 'SingletonSocket', 'Cache', 'Code Cache', 'GPUCache', 'DawnCache', 'DawnGraphiteCache', 'DawnWebGPUCache', 'GrShaderCache', 'ShaderCache', 'Crashpad', 'startup.log']);

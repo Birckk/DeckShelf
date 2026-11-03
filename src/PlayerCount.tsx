@@ -1,7 +1,7 @@
 import { type KeyboardEvent } from "react";
 import { User } from "lucide-react";
 
-export const MAX_PLAYERS = 4;
+const MAX_PLAYERS = 4;
 const SEATS = Array.from({ length: MAX_PLAYERS }, (_, i) => i + 1);
 const KEY = "deckshelf.picker-players";
 
