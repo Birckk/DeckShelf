@@ -43,8 +43,9 @@ export function useSharedCollection(route: ReturnType<typeof readSharedLocation>
       try {
         const response = await fetch(`/api/source-folders?${new URLSearchParams({ ...requested, formats: 'all' })}`,
           { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(60000)]) });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'This public collection is unavailable.');
+        // A proxy's or static host's own error page is not JSON and has no message for people.
+        const data = response.headers.get('content-type')?.includes('application/json') ? await response.json() : null;
+        if (!response.ok || !data) throw new Error(data?.error || 'This public collection is unavailable.');
         const { source, folders } = shelfFromFolders(requested, data);
         if (controller.signal.aborted) return;
         const decks = new Map(source.entries.map(entry => [entry.id, listingDeck(entry)]));

@@ -71,6 +71,9 @@ export async function fetchDeck(id, { refresh = false, store = cache, limit = 10
 }
 
 // Rate limits, upstream outages and timeouts pass; a private, missing or invalid deck does not.
+// Cloudflare swaps the body of an origin's 502 for its own text, so a proxied site would lose
+// the JSON error and its retry flag. 424 (Failed Dependency) passes through unchanged.
+const UPSTREAM_FAILED = 424;
 const retryable = error => error.status === 429 || error.status >= 500 || error.retryAfter > 0 ||
   ['TimeoutError', 'TypeError'].includes(error.name);
 
@@ -89,7 +92,7 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
         : await discover(url.searchParams.get('kind'), url.searchParams.get('value') || '', { formatScope, request:fetchArchidekt });
       res.end(JSON.stringify(source));
     } catch (error) {
-      res.writeHead(502);
+      res.writeHead(UPSTREAM_FAILED);
       res.end(JSON.stringify({error:error.name === 'TimeoutError' ? 'Archidekt took too long to respond. Your saved collection is unchanged.' : error.message}));
     }
     return;
@@ -123,7 +126,7 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
   } catch (error) {
     // retry tells background filling whether to keep a listed deck for later or drop it.
     const retry = error.retry ?? retryable(error);
-    res.writeHead(502);
+    res.writeHead(UPSTREAM_FAILED);
     res.end(JSON.stringify({error:error.name === 'TimeoutError' ? 'Archidekt took too long to respond. Your saved collection is still available.' : error.message || 'Could not fetch this deck.', retry}));
   }
 }
