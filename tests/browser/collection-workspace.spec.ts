@@ -216,6 +216,20 @@ for (const width of [1440, 390, 320]) test(`workspace layouts, artwork selection
 });
 
 
+test('show folder switches only keeps its focus ring for keyboard focus', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const nav = page.getByRole('navigation', { name: 'Collection sources' });
+  const checkbox = nav.getByRole('checkbox', { name: 'Show folder switches' });
+  const option = nav.locator('.navigator-switch-option');
+  await checkbox.click();
+  await expect(checkbox).toBeFocused();
+  await expect(option).toHaveCSS('outline-style', 'none');
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Tab');
+  await expect(checkbox).toBeFocused();
+  await expect(option).toHaveCSS('outline-style', 'solid');
+});
+
 for (const width of [1440, 390]) test(`folder pills preserve subsets and scoped overlap status at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 });
   if (width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
