@@ -3,7 +3,8 @@ import ShareCollection from './ShareCollection';
 import { readSharedLocation, useSharedCollection } from './useSharedCollection';
 import { buildSharePath, type SharedSource } from './share-links';
 import { addRecent, keepShelf, readKept, readRecent, shelfId, shelfRef, writeKept, writeRecent, type KeptShelf, type ShelfRef } from './shelves';
-import { RecentShelves, ShelfSwitcher } from './SharedShelves';
+import { OpenShelfForm, OpenShelfIcon, RecentShelves, ShelfSwitcher } from './SharedShelves';
+import { OpenVariantBar, useOpenVariant } from './OpenVariantDev';
 import { coverOf, formatOf, formatName } from './domain';
 import QuickChoiceControls from './QuickChoiceControls';
 import './recovery.css';
@@ -108,6 +109,7 @@ function readSaved(): { collection: Collection; error: string; raw?: string | nu
 }
 
 function App() {
+  const openVariant = useOpenVariant();
   const [sharedRoute, setSharedRoute] = useState(readSharedLocation);
   const [kept, setKept] = useState<KeptShelf[]>(() => readKept(shelfStorage()));
   const [recent, setRecent] = useState<ShelfRef[]>(() => readRecent(shelfStorage()));
@@ -642,6 +644,7 @@ function App() {
       className={`app-shell studio-theme ${revealed ? "winner-atmosphere" : ""}`}
     >
       <Atmosphere deck={pickerWinner} revealed={revealed} />
+      <OpenVariantBar {...openVariant} />
       <header className="studio-header">
         <div className="brand-cell">
         <a
@@ -662,7 +665,8 @@ function App() {
             Deck<span className="brand-sub">Shelf</span>
           </span>
         </a>
-        {(kept.length > 0 || recent.length > 0 || isShared) && <ShelfSwitcher
+        {(openVariant.variant === 'box' || openVariant.variant === 'row' || kept.length > 0 || recent.length > 0 || isShared) && <ShelfSwitcher
+          openForm={openVariant.variant === 'box' || openVariant.variant === 'row' ? openVariant.variant : null}
           current={isShared ? { id: sharedIdentity, name: shared.source?.name || sharedRoute.source?.value || "Shared" } : null}
           viewing={isShared && shared.source ? { source: shared.source, count: shared.decks.length } : null}
           kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length} disabled={spinning}
@@ -708,6 +712,7 @@ function App() {
             onClose={closeTour}
           />}
           <span className="header-icons">
+            {openVariant.variant === 'icon' && <OpenShelfIcon disabled={spinning} onOpen={openSharedShelf} />}
             <button
               className="button button-outline header-icon"
               ref={settingsTrigger}
@@ -1209,8 +1214,12 @@ function App() {
           notify={notify}
           undoTo={undoTo}
           onShare={() => setShowShare(true)}
-          overviewExtra={<RecentShelves list={recent} kept={kept.map(shelf => shelfId(shelf.source))} onOpen={openSharedShelf}
-            onForget={id => setRecent(list => list.filter(ref => shelfId(ref) !== id))} onClear={() => setRecent([])} />}
+          onBrowse={openVariant.browse ? openSharedShelf : undefined}
+          overviewExtra={<>
+            {openVariant.variant === 'overview' && <section className="overview-open-shelf"><OpenShelfForm label="Look at someone else's collection" onOpen={openSharedShelf} /></section>}
+            <RecentShelves list={recent} kept={kept.map(shelf => shelfId(shelf.source))} onOpen={openSharedShelf}
+            onForget={id => setRecent(list => list.filter(ref => shelfId(ref) !== id))} onClear={() => setRecent([])} />
+          </>}
         />
       )}
     </div>

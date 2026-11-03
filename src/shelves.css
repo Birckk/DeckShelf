@@ -29,6 +29,28 @@
 .shelf-switch-menu h4 { margin:8px 10px 2px; padding-top:8px; border-top:1px solid #ffffff12; color:var(--muted); font-size:11px; font-weight:500; }
 .shelf-switch-menu p { margin:6px 10px 4px; padding-top:8px; border-top:1px solid #ffffff12; color:var(--muted); font-size:11px; line-height:1.5; }
 
+/* Opening someone's collection by username or link. */
+.shelf-open { display:grid; gap:6px; padding:8px 10px 10px; }
+.shelf-open label { color:#e7e1d5; font-size:13px; }
+.shelf-open-line { display:flex; gap:6px; }
+.shelf-open input { flex:1; min-width:0; min-height:38px; padding:0 10px; border:1px solid #37363a; border-radius:5px; background:#0f1012; color:#f3f1ec; font-size:14px; }
+.shelf-open input:focus-visible { outline:1px solid #f2ddb0; outline-offset:0; }
+.shelf-open input[aria-invalid="true"] { border-color:#a8674a; }
+.shelf-open-line button { flex:0 0 auto; display:grid; place-items:center; width:38px; min-height:38px; border:1px solid #37363a; border-radius:5px; color:#f2ddb0; }
+.shelf-open-line button:hover { background:#ffffff0d; }
+.shelf-open small { line-height:1.4; }
+.shelf-open small.shelf-open-error { color:#e6b29a; }
+.shelf-switch-menu > .shelf-open:first-child, .shelf-switch-actions + .shelf-open { border-bottom:1px solid #ffffff12; margin-bottom:6px; }
+.shelf-open-row { display:flex; align-items:center; gap:10px; width:100%; min-height:var(--tap); margin-top:6px; padding:6px 10px; border-top:1px solid #ffffff12; color:#e7e1d5; font-size:14px; text-align:left; }
+.shelf-open-row:hover { background:#ffffff08; }
+.shelf-open-row svg { color:#a9a9af; }
+.shelf-open-icon { position:relative; display:inline-flex; }
+.shelf-open-icon .shelf-switch-menu { left:auto; right:0; }
+.overview-open-shelf { margin-top:32px; max-width:420px; }
+.overview-open-shelf .shelf-open { padding:0; }
+.overview-open-shelf .shelf-open label { font-size:16px; font-weight:500; }
+.manager-input-line .button-browse { white-space:nowrap; }
+
 /* Recently viewed, under the overview's own collections. */
 .recent-shelves { margin-top:32px; }
 .recent-shelves .overview-intro { display:flex; justify-content:space-between; }
@@ -44,6 +66,10 @@
   .brand-cell { position:relative; }
   .shelf-switch { position:static; }
   .shelf-switch-menu { left:0; width:calc(100vw - 2 * var(--gutter)); }
+  /* 16px stops iOS zooming the page when the field takes focus. */
+  .shelf-open input { font-size:16px; }
+  .shelf-open-icon { position:static; }
+  .shelf-open-icon .shelf-switch-menu { left:var(--gutter); right:var(--gutter); width:auto; max-width:none; }
 }
 
 /* A shared shelf's folders, read-only in the My collection workspace: its actions sit in the heading. */

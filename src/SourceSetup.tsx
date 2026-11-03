@@ -10,7 +10,8 @@ export type FolderDiscovery = {
   folders: { source: CollectionSource; path: string; root: boolean }[];
 };
 
-export default function SourceSetup({ followEnabled, value, setValue, discovery, selected, setSelected, busy, back, connect, save, formatScope, setFormatScope }: {
+export default function SourceSetup({ followEnabled, value, setValue, discovery, selected, setSelected, busy, back, connect, save, formatScope, setFormatScope, browse }: {
+  browse?: () => void;
   followEnabled: boolean;
   formatScope: string; setFormatScope: (value: string) => void;
   value: string; setValue: (value: string) => void;
@@ -36,6 +37,7 @@ export default function SourceSetup({ followEnabled, value, setValue, discovery,
       <div className="manager-input-line">
         <input id="collection-source-input" value={value} onChange={e => setValue(e.target.value)} placeholder="Archidekt username or link" required disabled={busy} autoFocus autoComplete="off" spellCheck={false} />
         <button className="button button-gold" disabled={busy}><Search size={15} />{busy ? 'Finding decks…' : 'Continue'}</button>
+        {browse && <button type="button" className="button button-outline button-browse" disabled={busy} onClick={browse} title="Look at this collection read-only, without adding anything">Just browse</button>}
       </div>
       <p className="manager-note">Public decks only. Decklists stay on Archidekt.</p>
     </form> : <>

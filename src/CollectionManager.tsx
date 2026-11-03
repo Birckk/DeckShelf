@@ -33,6 +33,7 @@ import {
   type SourceEntry,
 } from "./domain";
 import { clearResults, type Notify } from "./Notices";
+import { parseShelfInput, type SharedSource } from "./share-links";
 import {
   parseSourceInput,
   sourceMembership,
@@ -83,6 +84,7 @@ type Props = {
   undoTo: (before: Collection, after: Collection) => () => void;
   onShare: () => void;
   overviewExtra?: ReactNode;
+  onBrowse?: (source: SharedSource) => void;
   /** A shared shelf shown read-only: its folders and decks, with the shelf's own actions. */
   readOnly?: { name: string; actions: ReactNode };
   startPersonal?: boolean;
@@ -152,6 +154,7 @@ export default function CollectionManager({
   notify,
   onShare,
   overviewExtra,
+  onBrowse,
   readOnly,
   undoTo,
   startPersonal = false,
@@ -687,7 +690,8 @@ export default function CollectionManager({
                 formatScope={formatScope} setFormatScope={changeFormatScope}
                 selected={selected} setSelected={setSelected} busy={!!busy}
                 back={() => { if (!discovery) setConnecting(false); resetSourceForm(); }}
-                connect={connect} save={addFolders} />
+                connect={connect} save={addFolders}
+                browse={onBrowse && (() => { try { onBrowse(parseShelfInput(value)); } catch (problem) { setError((problem as Error).message); } })} />
             ) : (
               <>
               {section === "overview" && (

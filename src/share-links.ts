@@ -20,6 +20,27 @@ export function parseSharePath(path: string, search = ''): SharedSource | null {
   return { kind, value: parsed.value };
 }
 
+// What someone types to open a shelf: a username, an Archidekt profile or folder link, or a
+// DeckShelf link from any installation. Only the kind and value are read from a link, and the
+// same rules check them as a share link, so another host's address is never contacted.
+export function parseShelfInput(input: string): SharedSource {
+  let value = input.trim();
+  if (!value) throw new Error('Enter an Archidekt username or link.');
+  if (/^(www\.)?archidekt\.com\//i.test(value)) value = `https://${value}`;
+  if (/^https?:/i.test(value)) {
+    let url: URL;
+    try { url = new URL(value); } catch { throw new Error('That link is not complete. Check it and try again.'); }
+    if (!['archidekt.com', 'www.archidekt.com'].includes(url.hostname)) {
+      const shared = !url.username && !url.password && parseSharePath(url.pathname);
+      if (!shared) throw new Error('Use an Archidekt username, profile or folder link, or a DeckShelf collection link.');
+      return shared;
+    }
+  }
+  const parsed = parseSourceInput(value, 'account');
+  if (parsed.kind === 'deck') throw new Error('That link is a single deck. Use a username, profile or folder link, or add the deck in My collection.');
+  return { kind: parsed.kind as SharedSource['kind'], value: parsed.value };
+}
+
 export function buildSharePath(source: SharedSource): string {
   if (!['account', 'folder'].includes(source.kind)) throw new Error('Use an Archidekt account or folder.');
   const parsed = parseSourceInput(source.value, source.kind);

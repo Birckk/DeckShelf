@@ -91,3 +91,26 @@ for (const [width,height] of [[1920,1080],[390,844]]) test(`the switcher menu fi
   expect(menu!.x + menu!.width).toBeLessThanOrEqual(width);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+
+// Open a collection (#128): a fresh profile gets there from the header, with no share link.
+test('a typed username opens read-only from the switcher and adds nothing', async ({page}) => {
+  await page.addInitScript(({key,saved})=>{if(!localStorage.getItem(key))localStorage.setItem(key,saved);},{key,saved});
+  const asked: string[] = [];
+  await page.route('**/api/source-folders?*', route => { asked.push(new URL(route.request().url()).search); return route.fulfill({json:{name:source.name,folders:[{source,path:source.name,root:true}]}}); });
+  await page.route('**/api/decks/987001', route => route.fulfill({json:deck}));
+  await page.goto('/');
+  await page.getByRole('button',{name:'Showing Mine. Switch collection'}).click();
+  const field = page.getByLabel('Open a collection');
+  await field.fill('https://archidekt.com/decks/123/one');
+  await page.getByRole('button',{name:'Open this collection'}).click();
+  await expect(page.getByRole('alert').filter({hasText:'single deck'})).toBeVisible();
+  await expect(page).toHaveURL('/');
+  await field.fill('Some.Friend');
+  await field.press('Enter');
+  await expect(page).toHaveURL('/u/Some.Friend');
+  await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
+  expect(asked.some(search => search.includes('value=Some.Friend'))).toBe(true);
+  expect(JSON.parse((await personal(page))!)).toEqual(JSON.parse(saved));
+  await page.goBack();
+  await expect(page).toHaveURL('/');
+});
