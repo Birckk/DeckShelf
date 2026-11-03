@@ -65,6 +65,9 @@ if (mode === 'seed') {
     }
   }
   const { app, page } = await open(profile);
-  try { await expect.poll(() => stored(page)).toEqual(fixture); } finally { await app.close(); }
+  // The daily new-decks check may note its result on a source once the app is running. That
+  // note isn't part of what the upgrade has to keep.
+  const withoutCheck = collection => ({ ...collection, sources: collection?.sources?.map(({ refresh, ...source }) => source) });
+  try { await expect.poll(async () => withoutCheck(await stored(page))).toEqual(fixture); } finally { await app.close(); }
   console.log('PASS: DeckShelf copied the Commander Archive profile and kept its collection.');
 }
