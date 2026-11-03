@@ -447,10 +447,6 @@ body {
     0 0 0 1px #f6e6c321,
     0 0 45px #f6e6c307;
 }
-.studio-card:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 6px;
-}
 .studio-card:hover {
   box-shadow:
     0 22px 28px -12px #000e,
@@ -598,7 +594,7 @@ body {
   opacity: 0;
 }
 .collection-tile:hover .collection-deck-title svg,
-.collection-deck-title:focus-visible svg {
+:root:not([data-input="pointer"]) .collection-deck-title:focus-visible svg {
   opacity: 1;
 }
 .collection-deck-meta {
@@ -1596,7 +1592,6 @@ body:has(.studio-workspace) { min-width:320px; }
 .shortlist-controls:not(:has(button)) { padding: 0; border: 0; background: none; }
 .shortlist-controls button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 28px; padding: 0 7px; border: 0; border-radius: 3px; background: transparent; color: #c3bdaf; font: inherit; font-size: 12px; line-height: 1; white-space: nowrap; cursor: pointer; }
 .shortlist-controls button:hover:not(:disabled) { background: #2a2a2d; color: #f2e5c9; }
-.shortlist-controls button:focus-visible { outline: 2px solid #d3bd91; outline-offset: 1px; }
 .shortlist-controls button:disabled { color: #6c6a66; cursor: default; }
 .shortlist-controls button { flex-shrink: 0; }
 .shortlist-controls button svg { width: 14px; height: 14px; flex-shrink: 0; }
@@ -1712,7 +1707,6 @@ body:has(.studio-workspace) { min-width:320px; }
   color: #f3f1ec;
   font: inherit;
 }
-.format-select select:focus-visible { outline: 2px solid #c9af7d; outline-offset: 2px; }
 /* One picker bar across the top of the stage in every presentation and at every width
    (src/PickerControls.tsx): presentation on the left, pick format on the right. Phones
    and phones in landscape fold it, the player count and the motion options into one

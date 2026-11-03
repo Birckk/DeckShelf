@@ -10,7 +10,6 @@
 .shared-view-controls .sort-label { margin:0; }
 .shared-view-controls .sort-label select { font-size:11px; max-width:150px; }
 .shared-view-controls .sort-value { display:none; }
-.shared-view-controls button:focus-visible, .shared-view-controls input:focus-visible, .shared-view-controls select:focus-visible { outline:2px solid #d3bd91; outline-offset:3px; }
 
 @media(max-width:700px) {
   .shared-view-controls.collection-display-toolbar { display:grid; grid-template-columns:minmax(0,1fr) 39px; width:100%; gap:5px; padding-top:5px; }
@@ -34,7 +33,7 @@
   .shared-view-controls .sort-label > svg:first-child { display:none; }
   .shared-view-controls .sort-value { display:inline; font-size:11px; color:#c3bdaf; white-space:nowrap; }
   .shared-view-controls .sort-label select { position:absolute; inset:0; width:100%; max-width:none; opacity:0; cursor:pointer; }
-  .shared-view-controls .sort-label:has(select:focus-visible) { outline:2px solid #d3bd91; outline-offset:3px; border-radius:3px; }
+  .shared-view-controls .sort-label:has(select:focus-visible) { outline:var(--focus-ring); outline-offset:2px; border-radius:3px; }
 }
 
 /* Below ~380px the four labels no longer fit; every layout becomes an equal icon button. */

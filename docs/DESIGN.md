@@ -28,6 +28,7 @@ Avoid vague fantasy slogans, promotional filler, and all-caps micro-labels that 
 - Cards navigation uses a small fan of cards with its visible label.
 - Do not restore the repeated `COMMANDER ✦` stamps on every carousel card.
 - Keep meaningful labels on unfamiliar controls. Preserve visible keyboard focus even when mouse hover styling is subtle.
+- Focus has one ring, in `src/focus.css`: it shows for keyboard users and never stays behind after a mouse click or tap, including when a dialog opens or closes. Text fields keep it on click. Hover styles apply only on devices that can hover, so a tap doesn't leave a button lit (`hoverOnlyWithMouse` in `vite.config.ts`).
 - Keep Outfit and DM Sans, the charcoal palette, and restrained warm accents. No font is inherently an “AI font”; do not churn typography to follow a generic banned-font list.
 - Avoid unsolicited neon gradients, glowing borders everywhere, nested decorative panels, oversized hero banners, and repeated badges with no purpose.
 

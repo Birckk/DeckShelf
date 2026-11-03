@@ -96,10 +96,6 @@
   left: 14px;
   background: #232327;
 }
-.overview-switch input:focus-visible {
-  outline: 2px solid #f0d9a6;
-  outline-offset: 4px;
-}
 .overview-switch input:disabled {
   opacity: 0.5;
   cursor: default;
@@ -547,7 +543,6 @@
 .source-folder strong { display: block; font: 500 16px Outfit, sans-serif; overflow-wrap: anywhere; }
 .source-folder small { display: block; color: #a7a8b2; font-size: 11px; line-height: 1.5; margin-top: 5px; overflow-wrap: anywhere; }
 .source-folder input { accent-color: #d8c08d; width: 18px; height: 18px; flex-shrink: 0; }
-.source-folder input:focus-visible, .source-folder summary:focus-visible { outline: 2px solid #d8c08d; outline-offset: 4px; }
 .source-folder-art { display: flex; flex-shrink: 0; }
 .source-folder-art img { width: 40px; height: 48px; object-fit: cover; border-radius: 4px; border: 2px solid #17181c; }
 .source-folder-art img + img { margin-left: -13px; }
@@ -591,13 +586,11 @@
 .help-nav a:hover { background:#ffffff07; color:#e6e3dc; }
 .help-nav a[aria-current] { color:#e6d1a8; background:#e4c68c0d; }
 .help-nav a[aria-current] > svg { color:#e6d1a8; }
-.help-nav a:focus-visible { outline:2px solid #e2cd9c; outline-offset:-2px; }
 .help-group { margin:6px 0; }
 .help-group-row { display:flex; align-items:center; }
 .help-group-row > a { flex:1; min-width:0; padding-left:4px; }
 .help-fold { width:24px; height:32px; display:grid; place-items:center; flex-shrink:0; border:0; background:none; color:#9d9a93; cursor:pointer; border-radius:4px; }
 .help-fold:hover { color:#e6e3dc; }
-.help-fold:focus-visible { outline:2px solid #e2cd9c; outline-offset:-2px; }
 .help-fold svg { transition:transform .15s; }
 .help-group > ul { margin-left:23px; padding-left:8px; border-left:1px solid #ffffff12; }
 .help-mobile-toggle { display:none; }
@@ -605,7 +598,6 @@
 .help-content { padding:24px 0 40px var(--gutter); min-width:0; }
 .help-crumb { display:inline-flex; align-items:center; gap:5px; margin:0 0 8px; font-size:12px; color:#aaa69c; text-decoration:none; }
 .help-crumb:hover { color:#e6d1a8; }
-.help-content a:focus-visible, .help-content summary:focus-visible { outline:2px solid #e2cd9c; outline-offset:2px; border-radius:3px; }
 .help-content > h2 { display:flex; align-items:center; gap:12px; font:500 26px Outfit,sans-serif; margin:0 0 18px; color:#f0ede7; }
 .help-content > h2:focus { outline:none; }
 .help-title-icon { width:40px; height:40px; flex-shrink:0; border-radius:8px; display:grid; place-items:center; background:#e4c68c0d; border:1px solid #e2cd9c2e; color:#ead5a5; }
@@ -661,7 +653,6 @@
 .feature-groups ul { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
 .feature-row { width:100%; display:flex; align-items:center; gap:14px; padding:10px 14px 10px 10px; text-align:left; border-radius:8px; border:1px solid #ffffff12; background:#ffffff04; color:inherit; font:inherit; cursor:pointer; transition:background-color .15s, border-color .15s; }
 .feature-row:hover { background:#ffffff08; border-color:#e2cd9c55; }
-.feature-row:focus-visible { outline:2px solid #e2cd9c; outline-offset:2px; }
 .feature-row > svg { flex-shrink:0; color:#d8c398; }
 .feature-thumb { position:relative; flex:0 0 56px; height:56px; border-radius:6px; overflow:hidden; border:1px solid #ffffff1c; }
 .feature-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -797,7 +788,6 @@
   .help-workspace .workspace-heading { gap:4px; padding-bottom:6px; }
   .help-mobile-toggle { order:-1; margin-left:-9px; display:grid; place-items:center; width:36px; height:36px; border:0; border-radius:6px; background:none; color:#c9c7c1; cursor:pointer; }
   .help-mobile-toggle:hover, .help-mobile-toggle[aria-expanded="true"] { background:#ffffff0d; color:#e6d1a8; }
-  .help-mobile-toggle:focus-visible { outline:2px solid #e2cd9c; outline-offset:-2px; }
   .help-body { display:block; }
   .help-nav { display:none; padding:8px 0; border-right:0; border-bottom:1px solid #ffffff12; }
   /* Like a docs site on a phone: the open menu replaces the page instead of pushing it down. */

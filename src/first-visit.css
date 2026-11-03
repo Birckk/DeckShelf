@@ -48,7 +48,6 @@
   text-align: center;
   animation: first-visit-in 0.18s ease-out both;
 }
-.first-visit-tour:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .first-visit-tour-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 0 16px; color: #a9a7b0; font-size: 12px; }
 .first-visit-tour-head button { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; color: #c9c6cf; }
 .first-visit-tour-head button:hover { background: #ffffff0d; color: #fff; }
