@@ -7,15 +7,19 @@ import "@fontsource/dm-sans/latin-500.css";
 import "@fontsource/dm-sans/latin-600.css";
 import "./layout.css";
 import "./styles.css";
+import "./focus.css";
 import "./helix.css";
 import "./studio.css";
 import "./picker-players.css";
 import App from "./App";
+import { trackFocusInput } from "./focusInput";
 import { registerServiceWorker } from "./pwa";
 import { clearRetiredKeys } from "./retiredKeys";
 import { WindowBar } from "./WindowBar";
 
 try { clearRetiredKeys(localStorage); } catch { /* Reading localStorage itself can throw when storage is blocked. */ }
+
+trackFocusInput();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

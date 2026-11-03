@@ -1,7 +1,6 @@
 .card-back-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
 .card-back-option { min-width:0; padding:18px; border:1px solid #ffffff20; border-radius:8px; background:#ffffff03; cursor:pointer; }
 .card-back-option:has(input:checked) { border-color:#b9a373; background:#e4c68c08; }
-.card-back-option:has(input:focus-visible) { outline:2px solid #e2cd9c; outline-offset:4px; }
 .card-back-choice { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
 .card-back-choice input { accent-color:#e2cd9c; width:18px; height:18px; margin:0; }
 .card-back-choice strong { font:500 18px Outfit,sans-serif; color:#f0ede7; }
@@ -15,7 +14,6 @@
 .studio-workspace.utility-search { padding-bottom:0; }
 .artwork-toggle { display:flex; align-items:flex-start; gap:12px; max-width:640px; padding:16px 18px; border:1px solid #ffffff20; border-radius:8px; background:#ffffff03; cursor:pointer; }
 .artwork-toggle:has(input:checked) { border-color:#b9a373; background:#e4c68c08; }
-.artwork-toggle:has(input:focus-visible) { outline:2px solid #e2cd9c; outline-offset:4px; }
 .artwork-toggle input { accent-color:#e2cd9c; width:18px; height:18px; margin:2px 0 0; flex:none; }
 .artwork-toggle strong { display:block; font:500 16px Outfit,sans-serif; color:#f0ede7; }
 .artwork-toggle span span { display:block; margin-top:4px; color:#b2b0ba; font-size:13px; line-height:1.5; }
@@ -27,7 +25,6 @@
 .list-settings-choices { display:flex; flex-wrap:wrap; gap:8px; }
 .list-choice { display:inline-flex; align-items:center; gap:8px; min-height:38px; padding:7px 12px; border:1px solid #ffffff20; border-radius:6px; background:#ffffff03; color:#e3e0d9; font-size:13px; cursor:pointer; }
 .list-choice:has(input:checked) { border-color:#b9a373; background:#e4c68c08; }
-.list-choice:has(input:focus-visible) { outline:2px solid #e2cd9c; outline-offset:3px; }
 .list-choice:has(input:disabled) { cursor:default; color:#a6a5af; border-color:#ffffff20; background:#ffffff03; }
 .list-choice input { accent-color:#e2cd9c; width:16px; height:16px; margin:0; }
 .list-art-sample { display:block; height:22px; border-radius:3px; background:#6b5a43; }
@@ -47,7 +44,6 @@
 .settings-fold h3 { margin:0; }
 .settings-fold h3 button { display:flex; align-items:center; gap:12px; width:100%; min-height:56px; padding:10px 16px; border:0; border-radius:8px; background:none; color:#f0ede7; text-align:left; cursor:pointer; }
 .settings-fold h3 button:hover { background:#ffffff06; }
-.settings-fold h3 button:focus-visible { outline:2px solid #e2cd9c; outline-offset:2px; }
 .settings-fold-icon { display:grid; place-items:center; width:30px; height:30px; border-radius:6px; background:#ffffff0a; color:#d8c08d; flex:none; }
 .settings-fold-title { font:500 17px Outfit,sans-serif; }
 .settings-fold-summary { margin-left:auto; min-width:0; color:#a6a5af; font-size:13px; text-align:right; }

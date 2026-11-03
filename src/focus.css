@@ -1,0 +1,50 @@
+/* The one focus ring. Keyboard users get it on every control; a mouse or finger never leaves it
+   behind. Browsers decide :focus-visible on their own and often say yes when a script moves focus,
+   as a dialog does on opening and closing, so focusInput.ts records the last input on <html> and
+   this file switches the ring off for a pointer. Change the ring here, not per control: a control
+   only sets --focus-offset, and rules that light something other than an outline check
+   :root:not([data-input="pointer"]) first. */
+:root {
+  --focus-ring: 2px solid var(--gold);
+  /* Inherited, so it also covers labels, summaries and cards. */
+  -webkit-tap-highlight-color: transparent;
+}
+:root[data-input="pointer"] {
+  --focus-ring: none;
+}
+
+/* Text fields keep theirs on click: that is where the caret went. */
+input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="button"], [type="submit"]),
+textarea {
+  --focus-ring: 2px solid var(--gold);
+}
+
+:focus-visible,
+.switch-label input:focus-visible + .switch,
+/* These labels draw the control themselves and hide or shrink the real input inside. */
+:is(.card-back-option, .artwork-toggle, .list-choice, .manager-select-all):has(input:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset, 2px);
+}
+
+/* Headings take focus only so screen readers land on the new page; they aren't controls. */
+:is(h1, h2, h3):focus-visible {
+  outline: none;
+}
+
+/* Inside clipped rows and tiles the ring has to sit inward; cards have room and need clearing. */
+.help-nav a,
+.help-fold,
+.help-mobile-toggle,
+.collection-menu-popover > button {
+  --focus-offset: -2px;
+}
+.collection-box-cover {
+  --focus-offset: -3px;
+}
+.helix-card {
+  --focus-offset: 3px;
+}
+.studio-card {
+  --focus-offset: 6px;
+}

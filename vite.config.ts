@@ -29,7 +29,30 @@ function serviceWorker(): Plugin {
   };
 }
 
+// A touch screen keeps :hover on whatever was tapped last, so a tapped button stays lit and raised.
+// Every :hover rule therefore applies only where the device can really hover, without each rule saying so.
+function hoverOnlyWithMouse() {
+  const query = '(hover: hover)';
+  return {
+    postcssPlugin: 'hover-only-with-mouse',
+    Once(root: { walkRules(visit: (rule: any) => void): void }, { AtRule }: { AtRule: new (fields: { name: string; params: string }) => any }) {
+      const rules: any[] = [];
+      root.walkRules(rule => { if (rule.selector.includes(':hover') && rule.parent?.params !== query) rules.push(rule); });
+      for (const rule of rules) {
+        const hover = rule.selectors.filter((selector: string) => selector.includes(':hover'));
+        const media = new AtRule({ name: 'media', params: query });
+        media.append(rule.clone({ selectors: hover }));
+        rule.before(media);
+        const rest = rule.selectors.filter((selector: string) => !selector.includes(':hover'));
+        if (rest.length) rule.selectors = rest;
+        else rule.remove();
+      }
+    },
+  };
+}
+
 export default defineConfig({
+  css: { postcss: { plugins: [hoverOnlyWithMouse()] } },
   // Plugins load lazily so `vp check` and `vp lint` don't start the React plugin or the importer.
   plugins: lazyPlugins(() => [react(), serviceWorker(), { name: 'archidekt-import', configureServer(server) { server.middlewares.use(handleApi); } }]),
   // The code is formatted by hand; Oxfmt would rewrite every file, so `vp check` only lints and type-checks.

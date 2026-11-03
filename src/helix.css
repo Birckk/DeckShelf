@@ -193,10 +193,6 @@
     0 0 0 1px #d8c69a40,
     0 10px 20px #0005;
 }
-.helix-card:focus-visible {
-  outline: 3px solid #f2d697;
-  outline-offset: 3px;
-}
 .helix-atmosphere {
   position: absolute;
   inset: -15%;
