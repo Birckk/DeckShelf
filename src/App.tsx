@@ -19,7 +19,6 @@ import {
 } from "react";
 import {
   ArrowLeft,
-  ArrowRight,
   BookmarkCheck,
   BookmarkPlus,
   ChevronUp,
@@ -28,7 +27,6 @@ import {
   Check,
   ChevronDown,
   ExternalLink,
-  Eye,
   CircleHelp,
   LayoutGrid,
   Library,
@@ -308,7 +306,7 @@ function App() {
     const names = new Map(collection.added.map(d => [d.id, d.name]));
     const dropped: string[] = [];
     const reasons: string[] = [];
-    fillDecks(ids, loadFullDeck, {
+    void fillDecks(ids, loadFullDeck, {
       signal: queue.signal,
       onDeck: deck => {
         setCollection(c => fillDeck(c, deck));

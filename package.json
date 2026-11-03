@@ -8,11 +8,12 @@
   "main": "desktop/main.mjs",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "tsc -b && vite build",
+    "dev": "vp dev --host 127.0.0.1",
+    "build": "tsc -b && vp build",
     "start": "node server/index.mjs",
     "mcp": "node --experimental-strip-types --disable-warning=ExperimentalWarning server/mcp.mjs",
-    "preview": "vite preview --host 127.0.0.1",
+    "preview": "vp preview --host 127.0.0.1",
+    "check": "vp check",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "test:dialogs": "playwright test",
     "desktop": "npm run runtime && npm run build && electron .",
@@ -41,10 +42,14 @@
     "electron": "44.7.2",
     "electron-builder": "26.15.3",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4",
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
+    "vite-plus": "1.4.0",
     "zod": "^4.6.7"
   },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0"
+  },
   "engines": {
-    "node": ">=22.12.0"
+    "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
   }
 }

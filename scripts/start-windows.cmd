@@ -3,13 +3,13 @@ setlocal
 cd /d "%~dp0.."
 where node >nul 2>nul
 if errorlevel 1 (
-  echo Please install Node.js 22.12 or newer from https://nodejs.org and try again.
+  echo Please install Node.js 22.18 or newer from https://nodejs.org and try again.
   pause
   exit /b 1
 )
-node -e "const [a,b]=process.versions.node.split('.').map(Number); if(a<22 || (a===22 && b<12)) process.exit(1)"
+node -e "const [a,b]=process.versions.node.split('.').map(Number); if(a<22 || (a===22 && b<18)) process.exit(1)"
 if errorlevel 1 (
-  echo Please upgrade to Node.js 22.12 or newer from https://nodejs.org.
+  echo Please upgrade to Node.js 22.18 or newer from https://nodejs.org.
   pause
   exit /b 1
 )

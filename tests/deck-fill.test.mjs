@@ -49,7 +49,9 @@ test("folder import adds listed decks at once and filling replaces only decks st
 test("filling runs as a sliding pool: the next deck starts when any one finishes", async () => {
   const list = ids(7);
   let active = 0, peak = 0;
-  const started = [], filled = [];
+  /** @type {string[]} */
+  const filled = [];
+  const started = [];
   const delays = { 1000: 30, 1001: 5, 1002: 5, 1003: 5, 1004: 5, 1005: 5, 1006: 5 };
   await fillDecks(list, async id => {
     started.push(id); active++; peak = Math.max(peak, active);
@@ -65,7 +67,9 @@ test("filling runs as a sliding pool: the next deck starts when any one finishes
 });
 
 test("filling reports each failure without stopping the rest and stops on abort", async () => {
-  const errors = [], filled = [];
+  /** @type {string[]} */
+  const filled = [];
+  const errors = [];
   await fillDecks(ids(5), async id => {
     if (id === "1001") throw new DeckLoadError("That deck has no assigned commander.", false);
     return full(id);

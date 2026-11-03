@@ -9,7 +9,7 @@ missing images use the existing labeled fallback.
 
 ## Updating
 
-Run `npm run catalog:update` with Node 22.12+ and internet access. Review the diff,
+Run `npm run catalog:update` with Node 22.18+ and internet access. Review the diff,
 run `npm test` and `npm run build`, then ship through the normal release process.
 There is no visitor-triggered catalog refresh and no scheduled upstream job.
 

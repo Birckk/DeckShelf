@@ -117,7 +117,7 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
         id,
         name: row.name,
         image,
-        colors: [..."WUBRG"].filter((c) => Number(row.colors?.[c]) > 0),
+        colors: ["W", "U", "B", "R", "G"].filter((c) => Number(row.colors?.[c]) > 0),
         // Only the MCP server's deck cache asks for this; saved sources stay as they were.
         ...(withUpdatedAt && typeof row.updatedAt === "string" ? { updatedAt: row.updatedAt } : {}),
       });

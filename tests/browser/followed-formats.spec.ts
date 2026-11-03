@@ -2,20 +2,20 @@ import { test, expect } from '@playwright/test';
 import fixture from '../fixtures/collection-decks.json' with { type: 'json' };
 import modernRaw from '../fixtures/archidekt-modern.json' with { type: 'json' };
 import { normalizeDeck } from '../../server/api.mjs';
-import { coverOf, formatOf } from '../../src/domain';
+import { coverOf, formatOf, type Deck } from '../../src/domain';
 
 const key = 'commander-archive.collection.v1';
 const modern = normalizeDeck(modernRaw);
-const decks = [fixture[0], modern];
-const entry = (deck: typeof fixture[number]) => ({ id: deck.id, name: deck.name, image: coverOf(deck).art, colors: deck.colors, format: formatOf(deck) });
+const decks = [fixture[0], modern] as Deck[];
+const entry = (deck: Deck) => ({ id: deck.id, name: deck.name, image: coverOf(deck).art, colors: deck.colors, format: formatOf(deck) });
 
 for (const trial of [false, true]) test(`All-formats refresh preserves scope with trial ${trial}`, async ({ page }) => {
   const source = { key: 'folder:88', kind: 'folder', value: '88', name: 'Mixed formats', url: 'https://archidekt.com/folders/88', formatScope: 'all',
     checkedAt: trial ? '2020-01-01T00:00:00Z' : new Date().toISOString(), entries: decks.map(entry), knownIds: decks.map(deck => deck.id), selectedIds: decks.map(deck => deck.id), ownedIds: decks.map(deck => deck.id), membership: 'follow' };
   const collection = { version: 1, starter: false, added: decks, hidden: [], excluded: [], sources: [source], ...(trial ? {} : { followOff: true }) };
-  await page.addInitScript(({ key, collection, trial }) => {
+  await page.addInitScript(({ key, collection }) => {
     localStorage.setItem(key, JSON.stringify(collection));
-  }, { key, collection, trial });
+  }, { key, collection });
   const scopes: string[] = [];
   await page.route('**/api/sources?*', route => {
     const scope = new URL(route.request().url()).searchParams.get('formats') || 'commander';
