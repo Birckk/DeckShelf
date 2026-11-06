@@ -2,29 +2,25 @@ import { useState } from "react";
 
 // PROTOTYPE (#128): compare where a friend's shelf keeps its actions, in the running app.
 // Dev server only. Delete this file and its uses once the owner has picked one.
-export type BarVariant = "bar" | "header" | "row" | "none";
-const KEY = "deckshelf.dev.bar-variant";
-const HIDDEN_KEY = "deckshelf.dev.bar-hidden";
+export type BarVariant = "quiet" | "crumb" | "dock";
+const KEY = "deckshelf.dev.friend-shelf";
 const VARIANTS: { id: BarVariant; label: string }[] = [
-  { id: "bar", label: "A Slim bar you can hide" },
-  { id: "header", label: "B Icons beside the name" },
-  { id: "row", label: "C Icons in the deck row" },
-  { id: "none", label: "D No bar, no icons" },
+  { id: "quiet", label: "A Quiet header" },
+  { id: "crumb", label: "B Their art and a bookmark" },
+  { id: "dock", label: "C Corner dock" },
 ];
 const read = (key: string) => { try { return localStorage.getItem(key); } catch { return null; } };
-// The browser tests run against the bar until a pick is made.
+// The browser tests run against the dock, which keeps every action on the page, until a pick is made.
 const automated = typeof navigator !== "undefined" && navigator.webdriver;
 
 export function useOpenVariant() {
   const [variant, setVariant] = useState<BarVariant>(() => {
     const saved = read(KEY);
-    return VARIANTS.some(item => item.id === saved) ? saved as BarVariant : automated ? "bar" : "header";
+    return VARIANTS.some(item => item.id === saved) ? saved as BarVariant : automated ? "dock" : "quiet";
   });
-  const [hidden, setHidden] = useState(() => read(HIDDEN_KEY) === "true");
   return {
-    variant, hidden,
-    choose: (next: BarVariant) => { setVariant(next); localStorage.setItem(KEY, next); },
-    hide: (next: boolean) => { setHidden(next); localStorage.setItem(HIDDEN_KEY, String(next)); },
+    variant,
+    choose: (next: BarVariant) => { setVariant(next); try { localStorage.setItem(KEY, next); } catch { /* This tab only. */ } },
   };
 }
 

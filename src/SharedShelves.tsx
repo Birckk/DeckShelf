@@ -49,10 +49,12 @@ const otherShelves = (kept: KeptShelf[], recent: ShelfRef[]) => {
 };
 
 // One switcher beside the brand, only for moving around: your collection, bookmarks, recent shelves.
-export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCount, disabled, onPersonal, onOpen, onBookmark, onUnbookmark }: {
+export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCount, disabled, art, onPersonal, onOpen, onBookmark, onUnbookmark }: {
   current: { id: string; name: string } | null;
   viewing: { source: SharedSource & { name: string }; count: number } | null;
   kept: KeptShelf[]; recent?: ShelfRef[]; personalCount: number; disabled: boolean;
+  // PROTOTYPE (#128, option B): a square of the shelf's own commander art before its name.
+  art?: string;
   onPersonal: () => void; onOpen: (source: SharedSource) => void; onBookmark: (source: SharedSource & { name: string }) => void; onUnbookmark: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -61,11 +63,12 @@ export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCou
   const trigger = useRef<HTMLButtonElement>(null);
   const close = () => { setOpen(false); setAdding(false); };
   useDismiss(open, close, root, trigger);
-  const go = (run: () => void) => { close(); run(); };
+  // The row that was clicked goes away with the menu, so focus returns to the switcher.
+  const go = (run: () => void) => { close(); run(); requestAnimationFrame(() => trigger.current?.focus()); };
   const keptIds = new Set(kept.map(shelf => shelfId(shelf.source)));
-  // With the recent list, the shelf being viewed is already its first entry.
-  const unkept = viewing && !keptIds.has(shelfId(viewing.source)) && !recent.some(ref => shelfId(ref) === shelfId(viewing.source)) ? viewing : null;
-  const viewed = recent.filter(ref => !keptIds.has(shelfId(ref))).slice(0, 5);
+  // On someone's shelf, that shelf leads the menu, so its bookmark is the first thing under the name.
+  const currentId = viewing ? shelfId(viewing.source) : "";
+  const viewed = recent.filter(ref => !keptIds.has(shelfId(ref)) && shelfId(ref) !== currentId).slice(0, 5);
   const row = (source: (SharedSource & { name: string }) | null, name: string, count: number) => {
     const id = source && shelfId(source);
     const isCurrent = current?.id === id || (!current && !id);
@@ -73,7 +76,7 @@ export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCou
     return <li key={id || "mine"} className={isCurrent ? "is-current" : ""}>
       <button type="button" aria-current={isCurrent ? "true" : undefined} onClick={() => go(() => source ? onOpen(source) : onPersonal())}>
         {!source ? <Library size={15} /> : source.kind === "account" ? <UserRound size={15} /> : <Folder size={15} />}
-        <span>{name}<small>{decks(count)}</small></span>
+        <span>{name}<small>{decks(count)}{isCurrent && source ? " · Read-only" : ""}</small></span>
       </button>
       {source && <button type="button" className={`shelf-forget ${marked ? "is-marked" : ""}`} aria-pressed={marked} aria-label={marked ? `Remove the bookmark for ${name}` : `Bookmark ${name}`} title={marked ? "Remove bookmark" : "Bookmark"}
         onClick={() => marked ? onUnbookmark(id!) : onBookmark(source)}>{marked ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}</button>}
@@ -81,14 +84,15 @@ export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCou
   };
   return <div className="shelf-switch" ref={root}>
     <button ref={trigger} type="button" className="shelf-switch-trigger" disabled={disabled} aria-expanded={open} aria-haspopup="true"
-      aria-label={`Showing ${current?.name || "Mine"}. Switch collection`} onClick={() => open ? close() : setOpen(true)}>
+      aria-label={current ? `Showing ${current.name}, read-only. Switch collection` : "Showing Mine. Switch collection"} onClick={() => open ? close() : setOpen(true)}>
+      {art && <img className="shelf-switch-art" src={art} alt="" />}
       <span>{current?.name || "Mine"}</span><ChevronDown size={14} />
     </button>
     {open && <div className="shelf-switch-menu" role="group" aria-label="Collections">
       <ul>
+        {viewing && row(viewing.source, viewing.source.name, viewing.count)}
         {row(null, "Mine", personalCount)}
-        {kept.map(shelf => row(shelf.source, shelf.source.name, shelf.decks.length))}
-        {unkept && row(unkept.source, unkept.source.name, unkept.count)}
+        {kept.filter(shelf => shelfId(shelf.source) !== currentId).map(shelf => row(shelf.source, shelf.source.name, shelf.decks.length))}
       </ul>
       {viewed.length > 0 && <><h4>Recently viewed</h4><ul>
         {viewed.map(ref => row(ref, ref.name, ref.count))}
