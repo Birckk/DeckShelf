@@ -460,6 +460,29 @@ test('browsing views share the same desktop toolbar baseline and height', async 
 });
 
 
+// Above phone width the Collection results bar is one row at every width: the display controls
+// compact in place instead of wrapping, and opening quick choice never moves or compacts them.
+test('collection results bar stays one unchanging row above phone width', async ({ page }) => {
+  await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
+  const snap = () => page.evaluate(() => {
+    const box = (s: string) => { const b = document.querySelector(s)!.getBoundingClientRect(); return [b.x, b.y, b.width, b.height].map(Math.round); };
+    const display = document.querySelector('.collection-display-toolbar')!;
+    return { row: box('.results-toolbar'), group: box('.shortlist-controls')[1], controls: box('.collection-layout-switch'), toggle: box('.display-options-toggle'),
+      overflow: display.scrollWidth > display.clientWidth || document.documentElement.scrollWidth > innerWidth };
+  });
+  for (const width of [1920, 1500, 1100, 1068, 1000, 944, 900, 850, 800, 760, 701]) {
+    await page.setViewportSize({ width, height: 900 });
+    const idle = await snap();
+    expect(idle.overflow, `${width}px`).toBe(false);
+    // One row: the layout switch sits level with the quick-choice group.
+    expect(Math.abs(idle.controls[1] - idle.group) < 10, `${width}px`).toBe(true);
+    await page.getByRole('button', { name: 'Choose a few', exact: true }).click();
+    expect(await snap(), `${width}px selecting`).toEqual(idle);
+    await page.getByRole('button', { name: 'Clear selection', exact: true }).click();
+  }
+});
+
+
 test('instant picking leaves drift independent and paused dragging coasts after release', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();

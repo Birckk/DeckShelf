@@ -37,6 +37,24 @@
   .shared-view-controls .sort-label:has(select:focus-visible) { outline:2px solid #d3bd91; outline-offset:3px; border-radius:3px; }
 }
 
+/* Above phone width the Collection results row's controls fill what the row leaves, right-aligned, and
+   compact in place as that space shrinks: first Size and sort fold behind the options
+   button into a panel below it, then the layouts drop their labels. Each threshold is the
+   width of the controls at the step above (full 657px, folded with labels 356px). */
+@media(min-width:701px) {
+  .results-toolbar .shared-view-controls.collection-display-toolbar { container:display-controls / inline-size; position:relative; flex-wrap:nowrap; justify-content:flex-end; }
+  @container display-controls (max-width:656px) {
+    .results-toolbar .shared-view-controls .display-options-toggle { display:flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; color:#c3bdaf; background:#171719; border:1px solid #37363a; border-radius:5px; cursor:pointer; }
+    .results-toolbar .shared-view-controls .display-options-toggle:hover { color:#f2e5c9; background:#2a2a2d; }
+    .results-toolbar .shared-view-controls .display-options-toggle[aria-expanded=true] { color:#e8d3a5; border-color:#8e7e59; }
+    .results-toolbar .shared-view-controls .display-tools { display:none; }
+    .results-toolbar .shared-view-controls.options-open .display-tools { display:flex; position:absolute; top:calc(100% + 6px); right:0; z-index:5; align-items:center; gap:18px; padding:8px 12px; background:#171719; border:1px solid #37363a; border-radius:6px; box-shadow:0 8px 24px #0008; }
+  }
+  @container display-controls (max-width:355px) {
+    .results-toolbar .shared-view-controls .collection-layout-switch button > span { display:none; }
+  }
+}
+
 /* Below ~380px the four labels no longer fit; every layout becomes an equal icon button. */
 @media(max-width:380px) {
   .shared-view-controls .collection-layout-switch button { flex:1 1 0; padding-inline:0; }
