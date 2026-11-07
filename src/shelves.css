@@ -54,8 +54,17 @@
 .shelf-back { flex-shrink:0; display:grid; place-items:center; width:32px; min-height:36px; margin-left:-4px; border-left:1px solid #ffffff24; color:#a9a9af; }
 .shelf-back:hover:not(:disabled) { color:#f2ddb0; }
 .shelf-back + .shelf-switch .shelf-switch-trigger { border-left:0; padding-left:2px; }
-/* Option B: a square of their commander art before the name. */
-.shelf-switch-art { flex-shrink:0; width:22px; height:22px; border-radius:4px; object-fit:cover; box-shadow:0 0 0 1px #ffffff1f; }
+/* PROTOTYPE (#128), option B: on your own shelf the menu is a bare chevron beside the wordmark,
+   and a friend's crumb drops the divider too. */
+.shelf-switch-chevron .shelf-switch-trigger { border-left:0; }
+.shelf-switch-trigger.is-bare { justify-content:center; width:28px; padding:0; margin-left:-6px; border-radius:5px; }
+.shelf-switch-trigger.is-bare:hover:not(:disabled) { background:#ffffff0d; }
+.brand-cell:has(.shelf-switch-chevron) .shelf-back { border-left:0; margin-left:-6px; }
+/* Option C: a people icon beside Settings and Help. It turns gold while you're on someone's shelf. */
+.studio-header .header-icons .shelf-menu-icon { width:34px; padding:0; color:#d9d6de; }
+.studio-header .header-icons .shelf-menu-icon:hover:not(:disabled) { color:#ead5a5; }
+.studio-header .header-icons .shelf-menu-icon.is-visiting { color:#f2ddb0; }
+.shelf-switch-icon .shelf-switch-menu { left:auto; right:0; }
 /* A long username never pushes the header around: both places it shows have a fixed cap. */
 .app-shell .studio-header .header-actions > .button > .header-shelf-name { display:inline-block; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom; }
 @media (max-width:1100px) {
@@ -64,22 +73,6 @@
   .app-shell:has(.shelf-back) .studio-header .brand > span { display:none; }
   .app-shell .studio-header .header-actions > .button > .header-shelf-name { max-width:80px; }
 }
-/* PROTOTYPE (#128). Option B: one bookmark toggle after the name, the size of the cog and ?. */
-.shelf-header-bookmark { flex-shrink:0; display:grid; place-items:center; width:32px; height:32px; border-radius:5px; color:#a9a9af; }
-.shelf-header-bookmark:hover:not(:disabled) { background:#ffffff0d; color:#f3f1ec; }
-.shelf-header-bookmark.is-marked, .shelf-bookmark.is-marked svg { color:#f2ddb0; }
-/* Option C: a dock in the bottom corner while you browse their decks. It lifts above notices
-   and the page keeps room below its last row, so the dock never covers a card. */
-.shelf-dock { position:fixed; z-index:40; right:var(--gutter); bottom:calc(var(--gutter) + var(--notice-space, 0px)); display:flex; height:40px; border:1px solid #37363a; border-radius:8px; background:#17181bf2; box-shadow:0 10px 28px #0008; overflow:hidden; }
-.shelf-dock button { display:inline-flex; align-items:center; gap:7px; padding:0 14px; color:#e7e1d5; font-size:13px; white-space:nowrap; }
-.shelf-dock button + button { border-left:1px solid #ffffff12; }
-.shelf-dock button:hover:not(:disabled) { background:#ffffff0d; }
-.shelf-dock button:disabled { color:#85858e; }
-.shelf-dock button:focus-visible { outline-offset:-3px; }
-.shelf-dock .shelf-dock-save:not(:disabled) svg { color:#f2ddb0; }
-.app-shell:has(.shelf-dock) .studio-workspace { padding-bottom:calc(40px + 2 * var(--gutter)); }
-html:has(.shelf-dock) { scroll-padding-bottom:calc(40px + 2 * var(--gutter)); }
-
 /* Recently viewed, under the overview's own collections. */
 .recent-shelves { margin-top:32px; }
 .recent-shelves .overview-intro { display:flex; justify-content:space-between; }
@@ -107,19 +100,16 @@ html:has(.shelf-dock) { scroll-padding-bottom:calc(40px + 2 * var(--gutter)); }
   .studio-header .brand > span, .app-shell:has(.shelf-back) .studio-header .brand > span { display:none; }
   .shelf-back { min-height:32px; margin-left:0; }
   .shelf-back + .shelf-switch .shelf-switch-trigger { max-width:120px; }
-  /* Their name shows once, in the switcher: the folders button keeps the icon and count. */
-  .app-shell .studio-header .header-actions > .button[data-friend] > .header-shelf-name { display:none; }
-  .app-shell .studio-header .header-actions > .button[data-friend] > svg,
-  .app-shell .studio-header .header-actions > .button[data-friend] > .count-badge { display:inline; }
-  .app-shell .studio-header .header-actions > .button[data-friend] { gap:5px; min-width:48px; justify-content:center; }
-  .shelf-switch-art { width:20px; height:20px; }
-  /* Beside the cog it read as one more header icon; the menu's first row keeps the bookmark. */
-  .shelf-header-bookmark { display:none; }
-  /* The dock keeps thumb-sized icons and drops its words. */
-  .shelf-dock { height:44px; }
-  .shelf-dock button { justify-content:center; width:var(--tap); padding:0; }
-  .shelf-dock button > span { display:none; }
-  .app-shell:has(.shelf-dock) .studio-workspace { padding-bottom:calc(44px + 2 * var(--gutter)); }
+  /* With their name by the logo, it shows once: the folders button keeps the icon and count. */
+  .app-shell:has(.shelf-back) .studio-header .header-actions > .button[data-friend] > .header-shelf-name { display:none; }
+  .app-shell:has(.shelf-back) .studio-header .header-actions > .button[data-friend] > svg,
+  .app-shell:has(.shelf-back) .studio-header .header-actions > .button[data-friend] > .count-badge { display:inline; }
+  .app-shell:has(.shelf-back) .studio-header .header-actions > .button[data-friend] { gap:5px; min-width:48px; justify-content:center; }
+  /* With the menu on the right, the wordmark keeps its place by the mark. */
+  .studio-header .brand-cell:not(:has(.shelf-switch)) .brand > span { display:inline; }
+  /* The people icon's menu opens from the right page edge. */
+  .studio-header .header-actions:has(.shelf-switch-icon) { position:relative; }
+  .shelf-switch-icon .shelf-switch-menu { left:auto; right:0; }
 }
 
 /* A shared shelf's folders, read-only in the My collection workspace: its actions sit in the heading. */
@@ -127,10 +117,10 @@ html:has(.shelf-dock) { scroll-padding-bottom:calc(40px + 2 * var(--gutter)); }
 .workspace-shelf-actions .button { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
 @media (max-width:380px) {
   .shelf-back + .shelf-switch .shelf-switch-trigger { max-width:100px; }
-  /* The smallest phones keep the name over the art. */
-  .shelf-switch-art { display:none; }
 }
 @media (max-width:700px) {
+  /* The same size as the cog and ? beside it. */
+  .studio-header .header-icons .shelf-menu-icon { width:32px; min-height:32px; border-color:transparent; background:none; }
   .collection-workspace.is-read-only .workspace-heading { flex-wrap:wrap; }
   /* ← Mine leads the heading here, so a second back arrow would only confuse; Done closes the view. */
   .collection-workspace.is-read-only .workspace-back { display:none; }

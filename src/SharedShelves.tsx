@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type RefObject } from "react";
-import { ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck, ChevronDown, Folder, Library, Plus, UserRound, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck, ChevronDown, Folder, Library, Plus, UserRound, Users, X } from "lucide-react";
 import { Artwork } from "./components";
 import { shelfId, shelfRef, type KeptShelf, type ShelfRef } from "./shelves";
 import { parseShelfInput, type SharedSource } from "./share-links";
@@ -49,12 +49,13 @@ const otherShelves = (kept: KeptShelf[], recent: ShelfRef[]) => {
 };
 
 // One switcher beside the brand, only for moving around: your collection, bookmarks, recent shelves.
-export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCount, disabled, art, onPersonal, onOpen, onBookmark, onUnbookmark }: {
+export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCount, disabled, placement = "label", onPersonal, onOpen, onBookmark, onUnbookmark }: {
   current: { id: string; name: string } | null;
   viewing: { source: SharedSource & { name: string }; count: number } | null;
   kept: KeptShelf[]; recent?: ShelfRef[]; personalCount: number; disabled: boolean;
-  // PROTOTYPE (#128, option B): a square of the shelf's own commander art before its name.
-  art?: string;
+  // PROTOTYPE (#128): "label" names the shelf by the logo, "chevron" names only someone else's
+  // shelf there, "icon" is a people icon beside Settings and Help.
+  placement?: "label" | "chevron" | "icon";
   onPersonal: () => void; onOpen: (source: SharedSource) => void; onBookmark: (source: SharedSource & { name: string }) => void; onUnbookmark: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -82,11 +83,12 @@ export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCou
         onClick={() => marked ? onUnbookmark(id!) : onBookmark(source)}>{marked ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}</button>}
     </li>;
   };
-  return <div className="shelf-switch" ref={root}>
-    <button ref={trigger} type="button" className="shelf-switch-trigger" disabled={disabled} aria-expanded={open} aria-haspopup="true"
+  return <div className={`shelf-switch shelf-switch-${placement}`} ref={root}>
+    <button ref={trigger} type="button" className={placement === "icon" ? `button button-outline header-icon shelf-menu-icon ${current ? "is-visiting" : ""}` : `shelf-switch-trigger ${placement === "chevron" && !current ? "is-bare" : ""}`}
+      disabled={disabled} aria-expanded={open} aria-haspopup="true" title={placement === "label" ? undefined : "Collections"}
       aria-label={current ? `Showing ${current.name}, read-only. Switch collection` : "Showing Mine. Switch collection"} onClick={() => open ? close() : setOpen(true)}>
-      {art && <img className="shelf-switch-art" src={art} alt="" />}
-      <span>{current?.name || "Mine"}</span><ChevronDown size={14} />
+      {placement === "icon" ? <Users size={18} />
+        : <>{(placement === "label" || current) && <span>{current?.name || "Mine"}</span>}<ChevronDown size={placement === "chevron" && !current ? 16 : 14} /></>}
     </button>
     {open && <div className="shelf-switch-menu" role="group" aria-label="Collections">
       <ul>

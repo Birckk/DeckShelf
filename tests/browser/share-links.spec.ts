@@ -16,6 +16,8 @@ test('fresh shared visitor has no precons, persists only on explicit save, and c
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
   expect(await page.evaluate(key=>localStorage.getItem(key),key)).toBeNull();
   await expect(page.locator('.collection-tile')).toHaveCount(1);
+  // Share and Save to mine wait on the friend's folders page.
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Save to my collection',exact:true}).click();
   await expect(page.getByRole('button',{name:'Saved to my collection',exact:true})).toBeDisabled();
   expect(JSON.parse((await page.evaluate(key=>localStorage.getItem(key),key))!).sources[0].key).toBe(source.key);
@@ -66,8 +68,8 @@ for (const [width,height] of [[1920,1080],[1500,900],[390,844]]) test(`shared co
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
   fs.mkdirSync('.codex-shots',{recursive:true});
   await page.screenshot({path:`.codex-shots/shared-${width}.png`,fullPage:false});
-  // Phones keep Share in the folders view; the bar has one row.
-  if (width === 390) await page.getByRole('button',{name:/ folders$/}).click();
+  // Share waits on the friend's folders page.
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Share',exact:true}).click();
   await expect(page.getByLabel('Collection link')).toHaveValue(`${new URL(page.url()).origin}/f/42`);
   await page.getByRole('button',{name:'Copy link',exact:true}).click();
@@ -125,19 +127,25 @@ test('a shared shelf opens from its folder listing while deck details load behin
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
   const count = page.locator('.result-count');
   await expect(count).toHaveText('1 deck · 1 loading · 1 couldn’t load');
+  const folders = page.getByRole('button',{name:'Public shelf folders',exact:true});
+  await folders.click();
   await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeDisabled();
+  await page.getByRole('button',{name:'Back to Public shelf',exact:true}).click();
   await page.getByRole('button',{name:'View Shared Commander',exact:true}).click();
   await expect(page.getByText('Loading details from Archidekt…')).toBeVisible();
   release();
   await expect(page.getByText('Loading details from Archidekt…')).toHaveCount(0);
-  await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeEnabled();
+  await page.keyboard.press('Escape');
   await expect(count).toHaveText('1 deck · 1 couldn’t load');
+  await folders.click();
+  await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeEnabled();
 });
 test("explicit save adds a source while preserving a visitor's personal deck and choices", async ({page}) => {
   const saved = {version:1,starter:false,hidden:[seed[1].id],excluded:[seed[1].id],added:[seed[1]],manualIds:[seed[1].id]};
   await page.addInitScript(({key,saved})=>localStorage.setItem(key,JSON.stringify(saved)),{key,saved});
   await mock(page);
   await page.goto('/f/42');
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Save to my collection',exact:true}).click();
   // Save is asynchronous (it waits for a Web Lock); read storage once it has finished.
   await expect(page.getByRole('button',{name:'Saved to my collection',exact:true})).toBeDisabled();
@@ -264,6 +272,7 @@ for (const exit of ['Back to my collection','Mine','Help','history']) test(`leav
 
 test('shared Save merges newer data from another tab and returning preserves subsequent edits', async ({page,context}) => {
   const {other,personal,newer} = await sharedTabWithNewerStorage(page,context);
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Save to my collection',exact:true}).click();
   await expect(page.getByRole('button',{name:'Saved to my collection',exact:true})).toBeDisabled();
   const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)!),key);
@@ -272,6 +281,7 @@ test('shared Save merges newer data from another tab and returning preserves sub
   await other.evaluate(({key,saved,id})=>localStorage.setItem(key,JSON.stringify({...saved,hidden:[...saved.hidden,id]},null,2)),{key,saved,id:deck.id});
   const latest=await other.evaluate(key=>localStorage.getItem(key),key);
   await expect.poll(()=>page.evaluate(key=>localStorage.getItem(key),key)).toBe(latest);
+  await page.getByRole('button',{name:'Back to Public shelf',exact:true}).click();
   await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
   await expect(page.getByRole('button',{name:`View ${newer.name}`,exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toHaveCount(0);
@@ -322,6 +332,8 @@ test('two shared tabs queue Saves behind the same Web Lock and keep both sources
       }));
     });
   });
+  await page.getByRole('button',{name:/ folders$/}).click();
+  await other.getByRole('button',{name:/ folders$/}).click();
   await Promise.all([page.getByRole('button',{name:'Save to my collection',exact:true}).click(),other.getByRole('button',{name:'Save to my collection',exact:true}).click()]);
   await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeDisabled();
   await expect(other.getByRole('button',{name:'Save to my collection',exact:true})).toBeDisabled();
@@ -346,6 +358,7 @@ test('shared Save preserves an existing all-format source and Settings preferenc
   await page.goto('/f/42');
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'View Personal Modern deck',exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Share',exact:true}).click();
   await expect(page.getByLabel('Collection link')).toHaveValue(`${new URL(page.url()).origin}/f/42`);
   await expect(page.locator('.share-dialog')).toContainText('public decks');
@@ -358,6 +371,7 @@ test('shared Save preserves an existing all-format source and Settings preferenc
   expect(result.added).toEqual([modern,deck]);
   expect(result.sources[0].formatScope).toBe('all');
   expect(result.sources[0].selectedIds).toEqual([modern.id,deck.id]);
+  await page.getByRole('button',{name:'Back to Public shelf',exact:true}).click();
   await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
   await page.getByRole('button',{name:'Filters',exact:true}).click();
   await page.getByLabel('Format',{exact:true}).selectOption('all');

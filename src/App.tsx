@@ -657,12 +657,17 @@ function App() {
     <button className="button button-gold shelf-secondary" disabled={!canSave} aria-label={saveLabel}
       title={saveTitle} onClick={saveShared}>{sharedSaved ? <Check size={15} /> : <Plus size={15} />}<span>{sharedSaved ? 'Saved' : 'Save to mine'}</span></button>
   </>;
-  // PROTOTYPE (#128): where a friend's shelf keeps its actions. Every option has the same header:
-  // an icon-only way back and their name in the switcher. B adds their art and a bookmark there,
-  // C a small dock in the corner while you browse their decks.
-  const headerBack = sharedShelf && !showCollection;
-  const shelfArt = openVariant.variant === 'crumb' && sharedShelf ? shelfRef({ source: shared.source!, decks: shared.decks }).art[0] : undefined;
-  const dockShown = headerBack && openVariant.variant === 'dock' && view !== 'picker' && !help;
+  // A friend's shelf keeps its header quiet: Bookmark is on the menu's first row, and Share and
+  // Save to mine are on their folders page. PROTOTYPE (#128): where the shelf menu lives. By the
+  // logo, a friend's shelf gets an icon-only way back before their name; as a people icon on the
+  // right, the menu's Mine row is the way back.
+  const menuOnRight = openVariant.variant === 'icon';
+  const headerBack = sharedShelf && !showCollection && !menuOnRight;
+  const shelfMenu = <ShelfSwitcher
+    current={isShared ? { id: sharedIdentity, name: shared.source?.name || sharedRoute.source?.value || "Shared" } : null}
+    viewing={isShared && shared.source ? { source: shared.source, count: shared.decks.length } : null}
+    kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length} disabled={spinning} placement={openVariant.variant}
+    onPersonal={openPersonalShelf} onOpen={openSharedShelf} onBookmark={bookmarkShelf} onUnbookmark={removeBookmark} />;
   const activeFilterChips = [
     view !== 'picker' && filters.format !== 'commander' && <button key="format" disabled={spinning} onClick={() => updateFilter('format', 'commander')}>{filters.format === 'all' ? 'All formats' : formatName(filters.format || 'commander')}<X size={12} /></button>,
     filters.query && <button key="query" disabled={spinning} onClick={() => updateFilter("query", "")}>“{filters.query}” <X size={12} /></button>,
@@ -704,13 +709,7 @@ function App() {
           </span>
         </a>
         {headerBack && <button className="shelf-back" disabled={spinning} aria-label="Back to my collection" title="Back to Mine" onClick={leaveShared}><ArrowLeft size={16} /></button>}
-        <ShelfSwitcher
-          current={isShared ? { id: sharedIdentity, name: shared.source?.name || sharedRoute.source?.value || "Shared" } : null}
-          viewing={isShared && shared.source ? { source: shared.source, count: shared.decks.length } : null}
-          kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length} disabled={spinning} art={shelfArt}
-          onPersonal={openPersonalShelf} onOpen={openSharedShelf} onBookmark={bookmarkShelf} onUnbookmark={removeBookmark} />
-        {headerBack && openVariant.variant === 'crumb' && <button className={`icon-button shelf-header-bookmark ${isKept ? 'is-marked' : ''}`} disabled={spinning} aria-pressed={isKept} aria-label="Bookmark this collection"
-          title={isKept ? 'Bookmarked. Press again to remove the bookmark.' : 'Bookmark this collection'} onClick={toggleBookmark}>{bookmarkIcon(17)}</button>}
+        {!menuOnRight && shelfMenu}
         </div>
         <div className="studio-nav" role="group" aria-label="Collection view">
           {(
@@ -744,6 +743,7 @@ function App() {
             onClose={closeTour}
           />}
           <span className="header-icons">
+            {menuOnRight && shelfMenu}
             <button
               className="button button-outline header-icon"
               ref={settingsTrigger}
@@ -785,12 +785,6 @@ function App() {
         <button className="shared-bar-back" aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={16} /><span>Mine</span></button>
         <p><strong>{sharedName}</strong><small role={shared.error ? "alert" : undefined}>{shared.loading ? 'Loading public decks…' : shared.error || 'No public decks found. The source may be empty, unavailable or private.'}</small></p>
       </section>}
-      {dockShown && <nav className="shelf-dock" aria-label={`${sharedName}, read-only`}>
-        <button className={`shelf-bookmark ${isKept ? 'is-marked' : ''}`} aria-pressed={isKept} aria-label="Bookmark this collection"
-          title={isKept ? 'Bookmarked. Press again to remove the bookmark.' : 'Bookmark this collection'} onClick={toggleBookmark}>{bookmarkIcon(16)}<span>Bookmark</span></button>
-        <button aria-label="Share" title="Share a link to this collection" onClick={() => setShowShare(true)}><Share2 size={16} /><span>Share</span></button>
-        <button className="shelf-dock-save" disabled={!canSave} aria-label={saveLabel} title={saveTitle} onClick={saveShared}>{sharedSaved ? <Check size={16} /> : <Plus size={16} />}<span>Save to mine</span></button>
-      </nav>}
       {showShare && <ShareCollection sources={isShared ? (shared.source ? [shared.source] : []) : collection.sources || []} onClose={() => setShowShare(false)} />}
       {storageError && (
         <div className="storage-warning" role="alert">

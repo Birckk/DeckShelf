@@ -18,15 +18,19 @@ async function setup(page: Page) {
   return { fetches: () => fetches - loaded };
 }
 const personal = (page: Page) => page.evaluate(key=>localStorage.getItem(key),key);
+// On a friend's shelf, its own row leads the menu with the bookmark toggle.
+async function bookmarkFromMenu(page: Page) {
+  await page.getByRole('button',{name:/^Showing .*, read-only\. Switch collection$/}).click();
+  const row = page.getByRole('group',{name:'Collections'}).getByRole('listitem').first();
+  await row.getByRole('button',{name:/^Bookmark /}).click();
+  await expect(row.getByRole('button',{name:/^Remove the bookmark/})).toHaveAttribute('aria-pressed','true');
+  await page.keyboard.press('Escape');
+}
 
 test('a kept shelf returns from the header switcher, offline, with its search', async ({page}) => {
   const {fetches} = await setup(page);
   await page.getByLabel('Search decks').fill('Shared');
-  const bookmark = page.getByRole('button',{name:'Bookmark this collection',exact:true});
-  await bookmark.click();
-  // A toggle: it stays in reach once pressed, so the bookmark can come off again from here.
-  await expect(bookmark).toHaveAttribute('aria-pressed','true');
-  await expect(bookmark).toBeEnabled();
+  await bookmarkFromMenu(page);
   await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
   await expect(page).toHaveURL('/');
   await expect(page.getByLabel('Search decks')).toHaveValue('');
@@ -57,7 +61,7 @@ test('a viewed shelf is in the switcher and My collection until kept or removed'
   await menu.getByRole('button',{name:/^Public shelf/}).click();
   await expect(page).toHaveURL('/f/42');
   expect(fetches()).toBe(0);
-  await page.getByRole('button',{name:'Bookmark this collection',exact:true}).click();
+  await bookmarkFromMenu(page);
   await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
   await page.getByRole('button',{name:'My collection',exact:true}).click();
   await expect(page.getByRole('region',{name:'Other collections',exact:true}).getByText('Archidekt folder · 1 deck · Bookmarked')).toBeVisible();
@@ -142,6 +146,7 @@ test('a friend\'s folders switch like yours, on this device only', async ({page}
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
   await expect(friend).toHaveCount(0);
   // Save to mine takes what's on.
+  await page.getByRole('button',{name:'Public shelf folders',exact:true}).click();
   await page.getByRole('button',{name:'Save to my collection',exact:true}).click();
   await expect(page.getByRole('button',{name:'Saved to my collection',exact:true})).toBeDisabled();
   const mine = JSON.parse((await personal(page))!);
@@ -153,12 +158,10 @@ test('a friend\'s folders switch like yours, on this device only', async ({page}
   await expect(page).toHaveURL('/');
 });
 
-// PROTOTYPE (#128): the quiet header and the art-and-bookmark option, chosen on the dev switch.
-test('the quiet header leads the menu with this shelf and keeps the page your own', async ({page}) => {
-  await page.addInitScript(()=>localStorage.setItem('deckshelf.dev.friend-shelf','quiet'));
+// A friend's shelf keeps its header quiet (#128): the menu leads with that shelf, and Bookmark,
+// Share and Save to mine sit on its folders page too.
+test('the menu leads with this shelf and its folders page holds the actions', async ({page}) => {
   await setup(page);
-  await expect(page.getByRole('navigation',{name:/read-only$/})).toHaveCount(0);
-  await expect(page.getByRole('button',{name:'Bookmark this collection',exact:true})).toHaveCount(0);
   await page.getByRole('button',{name:'Showing Public shelf, read-only. Switch collection'}).click();
   const menu = page.getByRole('group',{name:'Collections'});
   await expect(menu.getByRole('listitem').first()).toContainText('Public shelf1 deck · Read-only');
@@ -166,27 +169,42 @@ test('the quiet header leads the menu with this shelf and keeps the page your ow
   await expect(menu.getByRole('button',{name:'Remove the bookmark for Public shelf',exact:true})).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button',{name:'Showing Public shelf, read-only. Switch collection'})).toBeFocused();
-  // Share and Save to mine wait on their folders page.
   await page.getByRole('button',{name:'Public shelf folders',exact:true}).click();
-  await expect(page.getByRole('button',{name:'Bookmark this collection',exact:true})).toHaveAttribute('aria-pressed','true');
-  await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeEnabled();
-  expect(JSON.parse((await personal(page))!)).toEqual(JSON.parse(saved));
-});
-
-test('a phone shows a friend\'s name once, and the art option has its bookmark beside it on wider screens', async ({page}) => {
-  await page.setViewportSize({width:390,height:844});
-  await page.addInitScript(()=>localStorage.setItem('deckshelf.dev.friend-shelf','crumb'));
-  await setup(page);
-  const folders = page.getByRole('button',{name:'Public shelf folders',exact:true});
-  await expect(folders.getByText('Public shelf')).toBeHidden();
-  await expect(folders.locator('.count-badge')).toHaveText('1');
+  // Bookmark is a toggle: it stays in reach once pressed, so the bookmark can come off again.
   const bookmark = page.getByRole('button',{name:'Bookmark this collection',exact:true});
-  await expect(bookmark).toBeHidden();
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  await page.setViewportSize({width:1500,height:900});
-  await bookmark.click();
   await expect(bookmark).toHaveAttribute('aria-pressed','true');
   await bookmark.click();
   await expect(bookmark).toHaveAttribute('aria-pressed','false');
   expect(await page.evaluate(()=>localStorage.getItem('deckshelf.kept-shelves.v1'))).toBe('[]');
+  await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeEnabled();
+  expect(JSON.parse((await personal(page))!)).toEqual(JSON.parse(saved));
+});
+
+// PROTOTYPE (#128): where the shelf menu lives, chosen on the dev switch.
+test('the bare chevron names only someone else\'s shelf, and phones show that name once', async ({page}) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.addInitScript(()=>localStorage.setItem('deckshelf.dev.shelf-menu','chevron'));
+  await setup(page);
+  await expect(page.getByRole('button',{name:'Showing Public shelf, read-only. Switch collection'})).toHaveText('Public shelf');
+  const folders = page.getByRole('button',{name:'Public shelf folders',exact:true});
+  await expect(folders.getByText('Public shelf')).toBeHidden();
+  await expect(folders.locator('.count-badge')).toHaveText('1');
+  await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Showing Mine. Switch collection'})).toHaveText('');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+test('the people icon opens the same menu from the right, and its Mine row is the way back', async ({page}) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.addInitScript(()=>localStorage.setItem('deckshelf.dev.shelf-menu','icon'));
+  await setup(page);
+  await expect(page.getByRole('button',{name:'Back to my collection',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Public shelf folders',exact:true})).toContainText('Public shelf');
+  await page.getByRole('button',{name:'Showing Public shelf, read-only. Switch collection'}).click();
+  const box = await page.getByRole('group',{name:'Collections'}).boundingBox();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  await page.getByRole('group',{name:'Collections'}).getByRole('button',{name:/^Mine/}).click();
+  await expect(page).toHaveURL('/');
+  await expect(page.getByRole('button',{name:'Showing Mine. Switch collection'})).toBeFocused();
 });
