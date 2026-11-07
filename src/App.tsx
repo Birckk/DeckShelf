@@ -659,10 +659,10 @@ function App() {
   </>;
   // A friend's shelf keeps its header quiet: Bookmark is on the menu's first row, and Share and
   // Save to mine are on their folders page. PROTOTYPE (#128): where the shelf menu lives. By the
-  // logo, a friend's shelf gets an icon-only way back before their name; as a people icon on the
-  // right, the menu's Mine row is the way back.
+  // logo, a friend's shelf gets an icon-only way back before their name; as a people icon, on the
+  // right or by the logo, the menu's Mine row is the way back.
   const menuOnRight = openVariant.variant === 'icon';
-  const headerBack = sharedShelf && !showCollection && !menuOnRight;
+  const headerBack = sharedShelf && !showCollection && !openVariant.variant.startsWith('icon');
   const shelfMenu = <ShelfSwitcher
     current={isShared ? { id: sharedIdentity, name: shared.source?.name || sharedRoute.source?.value || "Shared" } : null}
     viewing={isShared && shared.source ? { source: shared.source, count: shared.decks.length } : null}

@@ -54,8 +54,8 @@ export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCou
   viewing: { source: SharedSource & { name: string }; count: number } | null;
   kept: KeptShelf[]; recent?: ShelfRef[]; personalCount: number; disabled: boolean;
   // PROTOTYPE (#128): "label" names the shelf by the logo, "chevron" names only someone else's
-  // shelf there, "icon" is a people icon beside Settings and Help.
-  placement?: "label" | "chevron" | "icon";
+  // shelf there, "icon" is a people icon beside Settings and Help, "icon-left" the same icon by the logo.
+  placement?: "label" | "chevron" | "icon" | "icon-left";
   onPersonal: () => void; onOpen: (source: SharedSource) => void; onBookmark: (source: SharedSource & { name: string }) => void; onUnbookmark: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -84,10 +84,10 @@ export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCou
     </li>;
   };
   return <div className={`shelf-switch shelf-switch-${placement}`} ref={root}>
-    <button ref={trigger} type="button" className={placement === "icon" ? `button button-outline header-icon shelf-menu-icon ${current ? "is-visiting" : ""}` : `shelf-switch-trigger ${placement === "chevron" && !current ? "is-bare" : ""}`}
+    <button ref={trigger} type="button" className={placement.startsWith("icon") ? `button button-outline header-icon shelf-menu-icon ${current ? "is-visiting" : ""} ${current && placement === "icon-left" ? "has-name" : ""}` : `shelf-switch-trigger ${placement === "chevron" && !current ? "is-bare" : ""}`}
       disabled={disabled} aria-expanded={open} aria-haspopup="true" title={placement === "label" ? undefined : "Collections"}
       aria-label={current ? `Showing ${current.name}, read-only. Switch collection` : "Showing Mine. Switch collection"} onClick={() => open ? close() : setOpen(true)}>
-      {placement === "icon" ? <Users size={18} />
+      {placement.startsWith("icon") ? <><Users size={18} />{current && placement === "icon-left" && <span className="shelf-menu-name">{current.name}</span>}</>
         : <>{(placement === "label" || current) && <span>{current?.name || "Mine"}</span>}<ChevronDown size={placement === "chevron" && !current ? 16 : 14} /></>}
     </button>
     {open && <div className="shelf-switch-menu" role="group" aria-label="Collections">

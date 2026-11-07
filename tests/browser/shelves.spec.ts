@@ -208,3 +208,21 @@ test('the people icon opens the same menu from the right, and its Mine row is th
   await expect(page).toHaveURL('/');
   await expect(page.getByRole('button',{name:'Showing Mine. Switch collection'})).toBeFocused();
 });
+
+test('the people icon by the logo stays put and names someone else\'s shelf after it', async ({page}) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.addInitScript(()=>localStorage.setItem('deckshelf.dev.shelf-menu','icon-left'));
+  await setup(page);
+  const menu = page.getByRole('button',{name:'Showing Public shelf, read-only. Switch collection'});
+  await expect(menu).toHaveText('Public shelf');
+  const iconAt = () => menu.locator('svg').evaluate(icon => Math.round(icon.getBoundingClientRect().left));
+  const friendAt = await iconAt();
+  // Their name shows once on a phone: the folders button keeps the icon and count.
+  await expect(page.getByRole('button',{name:'Public shelf folders',exact:true}).getByText('Public shelf')).toBeHidden();
+  await menu.click();
+  await page.getByRole('group',{name:'Collections'}).getByRole('button',{name:/^Mine/}).click();
+  const mine = page.getByRole('button',{name:'Showing Mine. Switch collection'});
+  await expect(mine).toHaveText('');
+  expect(await mine.locator('svg').evaluate(icon => Math.round(icon.getBoundingClientRect().left))).toBe(friendAt);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});

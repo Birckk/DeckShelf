@@ -2,6 +2,8 @@
 /* Menus that drop from the header must paint over the page below it (the window bar stays on top at 30). */
 .studio-header { position:relative; z-index:25; }
 .brand-cell { display:flex; align-items:center; gap:12px; min-width:0; }
+/* The logo keeps its size, so the shelf menu after it stays put when a name appears. */
+.brand-cell > .brand { flex-shrink:0; }
 
 /* The switcher sits after the brand, like a breadcrumb. */
 .shelf-switch { position:relative; min-width:0; }
@@ -60,15 +62,21 @@
 .shelf-switch-trigger.is-bare { justify-content:center; width:28px; padding:0; margin-left:-6px; border-radius:5px; }
 .shelf-switch-trigger.is-bare:hover:not(:disabled) { background:#ffffff0d; }
 .brand-cell:has(.shelf-switch-chevron) .shelf-back { border-left:0; margin-left:-6px; }
-/* Option C: a people icon beside Settings and Help. It turns gold while you're on someone's shelf. */
-.studio-header .header-icons .shelf-menu-icon { width:34px; padding:0; color:#d9d6de; }
-.studio-header .header-icons .shelf-menu-icon:hover:not(:disabled) { color:#ead5a5; }
-.studio-header .header-icons .shelf-menu-icon.is-visiting { color:#f2ddb0; }
+/* Options C and D: a people icon beside Settings and Help, or by the logo, where it never moves.
+   It turns gold while you're on someone's shelf. */
+.studio-header .shelf-menu-icon { width:34px; padding:0; color:#d9d6de; }
+.studio-header .shelf-menu-icon:hover:not(:disabled) { color:#ead5a5; }
+.studio-header .shelf-menu-icon.is-visiting { color:#f2ddb0; }
+.brand-cell .shelf-switch-icon-left { margin-left:-2px; }
+/* D on someone's shelf: their name follows the icon, so the icon itself never moves. */
+.studio-header .shelf-menu-icon.has-name { width:auto; gap:8px; padding:0 10px 0 7px; justify-content:flex-start; }
+.shelf-menu-name { max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#f3f1ec; font-size:14px; font-weight:400; }
 .shelf-switch-icon .shelf-switch-menu { left:auto; right:0; }
 /* A long username never pushes the header around: both places it shows have a fixed cap. */
 .app-shell .studio-header .header-actions > .button > .header-shelf-name { display:inline-block; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom; }
 @media (max-width:1100px) {
   .shelf-switch-trigger { max-width:140px; }
+  .shelf-menu-name { max-width:120px; }
   /* A friend's crumb shares one row with the view tabs here, so the mark stands alone. */
   .app-shell:has(.shelf-back) .studio-header .brand > span { display:none; }
   .app-shell .studio-header .header-actions > .button > .header-shelf-name { max-width:80px; }
@@ -101,10 +109,11 @@
   .shelf-back { min-height:32px; margin-left:0; }
   .shelf-back + .shelf-switch .shelf-switch-trigger { max-width:120px; }
   /* With their name by the logo, it shows once: the folders button keeps the icon and count. */
-  .app-shell:has(.shelf-back) .studio-header .header-actions > .button[data-friend] > .header-shelf-name { display:none; }
-  .app-shell:has(.shelf-back) .studio-header .header-actions > .button[data-friend] > svg,
-  .app-shell:has(.shelf-back) .studio-header .header-actions > .button[data-friend] > .count-badge { display:inline; }
-  .app-shell:has(.shelf-back) .studio-header .header-actions > .button[data-friend] { gap:5px; min-width:48px; justify-content:center; }
+  .app-shell:is(:has(.shelf-back), :has(.shelf-menu-name)) .studio-header .header-actions > .button[data-friend] > .header-shelf-name { display:none; }
+  .app-shell:is(:has(.shelf-back), :has(.shelf-menu-name)) .studio-header .header-actions > .button[data-friend] > svg,
+  .app-shell:is(:has(.shelf-back), :has(.shelf-menu-name)) .studio-header .header-actions > .button[data-friend] > .count-badge { display:inline; }
+  .app-shell:is(:has(.shelf-back), :has(.shelf-menu-name)) .studio-header .header-actions > .button[data-friend] { gap:5px; min-width:48px; justify-content:center; }
+  .shelf-menu-name { max-width:120px; font-size:13px; }
   /* With the menu on the right, the wordmark keeps its place by the mark. */
   .studio-header .brand-cell:not(:has(.shelf-switch)) .brand > span { display:inline; }
   /* The people icon's menu opens from the right page edge. */
@@ -117,10 +126,12 @@
 .workspace-shelf-actions .button { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
 @media (max-width:380px) {
   .shelf-back + .shelf-switch .shelf-switch-trigger { max-width:100px; }
+  .shelf-menu-name { max-width:96px; }
 }
 @media (max-width:700px) {
   /* The same size as the cog and ? beside it. */
-  .studio-header .header-icons .shelf-menu-icon { width:32px; min-height:32px; border-color:transparent; background:none; }
+  .studio-header .shelf-menu-icon { width:32px; min-height:32px; border-color:transparent; background:none; }
+  .studio-header .shelf-menu-icon.has-name { padding-left:6px; }
   .collection-workspace.is-read-only .workspace-heading { flex-wrap:wrap; }
   /* ← Mine leads the heading here, so a second back arrow would only confuse; Done closes the view. */
   .collection-workspace.is-read-only .workspace-back { display:none; }
