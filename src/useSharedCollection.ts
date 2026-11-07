@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CollectionSource, Deck } from './domain';
-import { parseSharePath } from './share-links';
+import { parseSharePath, type SharedSource } from './share-links';
 import { cacheShelf, cachedShelf, shelfFromFolders, shelfId, type LoadedShelf } from './shelves';
 import { listingDeck, type SharedFolder } from './collection';
 import { DeckLoadError, fillDecks, loadFullDeck } from './deckFill';
@@ -16,6 +16,16 @@ type SharedResult = {
   filling: number; failed: number;
 };
 
+// A shelf's public listing, with each deck as its listing name, art and colours.
+export async function fetchShelfListing(requested: SharedSource, signal: AbortSignal) {
+  const response = await fetch(`/api/source-folders?${new URLSearchParams({ ...requested, formats: 'all' })}`,
+    { signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]) });
+  // A proxy's or static host's own error page is not JSON and has no message for people.
+  const data = response.headers.get('content-type')?.includes('application/json') ? await response.json() : null;
+  if (!response.ok || !data) throw new Error(data?.error || 'This public collection is unavailable.');
+  return shelfFromFolders(requested, data);
+}
+
 // A shelf already loaded in this tab (or a kept snapshot from `lookup`) opens at once.
 // Otherwise the folder listing opens it, with each deck's listing name, art and colours,
 // and full details fill in behind it as they arrive.
@@ -25,28 +35,26 @@ export function useSharedCollection(route: ReturnType<typeof readSharedLocation>
   const callbacks = useRef({ lookup, onLoad });
   callbacks.current = { lookup, onLoad };
   // A link starts out loading, so the first paint never says the shelf is empty.
-  const [result, setResult] = useState<SharedResult>({ source: null, decks: [], error: route.error, loading: !!route.source, filling: 0, failed: 0 });
+  // Each result remembers the address it belongs to. On the first render after the address changes
+  // the effect hasn't run yet, so the new shelf's starting state is worked out here instead of
+  // showing the previous shelf, or an empty one, for a frame.
+  const [state, setState] = useState(() => ({ route, result: startOf(route, callbacks.current.lookup) }));
+  const setResult = (result: SharedResult) => setState({ route, result });
   useEffect(() => {
     const controller = new AbortController();
-    const hit = route.source && (cachedShelf(shelfId(route.source)) || callbacks.current.lookup?.(shelfId(route.source)));
-    if (hit) {
-      cacheShelf(hit);
-      setResult({ ...hit, error: '', loading: false, filling: 0, failed: 0 });
-      callbacks.current.onLoad?.(hit);
+    const start = startOf(route, callbacks.current.lookup);
+    setResult(start);
+    if (start.source) {
+      cacheShelf({ source: start.source, decks: start.decks, folders: start.folders });
+      callbacks.current.onLoad?.({ source: start.source, decks: start.decks, folders: start.folders });
       return;
     }
-    setResult({ source: null, decks: [], error: route.error, loading: !!route.source, filling: 0, failed: 0 });
     if (!route.source) return;
     const requested = route.source;
     let flushTimer: ReturnType<typeof setTimeout> | undefined;
     void (async () => {
       try {
-        const response = await fetch(`/api/source-folders?${new URLSearchParams({ ...requested, formats: 'all' })}`,
-          { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(60000)]) });
-        // A proxy's or static host's own error page is not JSON and has no message for people.
-        const data = response.headers.get('content-type')?.includes('application/json') ? await response.json() : null;
-        if (!response.ok || !data) throw new Error(data?.error || 'This public collection is unavailable.');
-        const { source, folders } = shelfFromFolders(requested, data);
+        const { source, folders } = await fetchShelfListing(requested, controller.signal);
         if (controller.signal.aborted) return;
         const decks = new Map(source.entries.map(entry => [entry.id, listingDeck(entry)]));
         const lost = new Set<string>();
@@ -84,5 +92,13 @@ export function useSharedCollection(route: ReturnType<typeof readSharedLocation>
     })();
     return () => { controller.abort(); clearTimeout(flushTimer); };
   }, [route]);
-  return result;
+  return state.route === route ? state.result : startOf(route, lookup);
+}
+
+// A shelf already loaded in this tab, or a complete kept snapshot, opens at once; anything else starts loading.
+function startOf(route: ReturnType<typeof readSharedLocation>, lookup?: (id: string) => LoadedShelf | undefined): SharedResult {
+  const hit = route.source && (cachedShelf(shelfId(route.source)) || lookup?.(shelfId(route.source)));
+  // A bookmark made before its details finished loads again until it has them.
+  if (hit && !hit.decks.some(deck => deck.partial)) return { ...hit, error: '', loading: false, filling: 0, failed: 0 };
+  return { source: null, decks: [], error: route.error, loading: !!route.source, filling: 0, failed: 0 };
 }

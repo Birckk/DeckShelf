@@ -40,3 +40,15 @@ test('page gutters come from --gutter, not fixed side padding', () => {
   }
   assert.deepEqual(fixed, []);
 });
+
+test('the header looks the same in every view', () => {
+  // Switching views must not resize the logo or move header controls, so no header rule may
+  // depend on which view's workspace is open.
+  const scoped = [];
+  for (const [file, css] of sheets) {
+    for (const [, selector] of css.matchAll(/([^{}@]*)\{[^{}]*\}/g)) {
+      if (/:has\(\.(studio|collection|help)-workspace\)[^,]*\.(studio-header|studio-nav|brand)/.test(selector)) scoped.push(`${file}: ${selector.trim()}`);
+    }
+  }
+  assert.deepEqual(scoped, []);
+});

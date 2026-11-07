@@ -6,6 +6,13 @@ const deck = {...seed[0], id:'987001', name:'Shared Commander'};
 const source = {key:'folder:42',kind:'folder',value:'42',name:'Public shelf',url:'https://archidekt.com/folders/42',checkedAt:new Date().toISOString(),entries:[{id:deck.id,name:deck.name,image:deck.commanders[0].art,colors:deck.colors}],knownIds:[deck.id]};
 // Shared links read the same folder listing as Add decks: one root folder here.
 const tree = <T extends {name:string}>(root: T) => ({name:root.name,folders:[{source:root,path:root.name,root:true}]});
+// The header menu's Mine row is the way back from someone else's shelf.
+async function toMine(page: import('@playwright/test').Page) {
+  await page.getByRole('button',{name:/^Showing .*, read-only\. Switch collection$/}).click();
+  await page.getByRole('group',{name:'Collections'}).getByRole('button',{name:/^Mine/}).click();
+}
+const onFriend = (page: import('@playwright/test').Page) => page.getByRole('button',{name:/^Showing .*, read-only\. Switch collection$/});
+const onMine = (page: import('@playwright/test').Page) => page.getByRole('button',{name:'Showing Mine. Switch collection'});
 async function mock(page: import('@playwright/test').Page) {
   await page.route('**/api/source-folders?*', route => route.fulfill({json:tree(source)}));
   await page.route('**/api/decks/987001', route => route.fulfill({json:deck}));
@@ -16,11 +23,16 @@ test('fresh shared visitor has no precons, persists only on explicit save, and c
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
   expect(await page.evaluate(key=>localStorage.getItem(key),key)).toBeNull();
   await expect(page.locator('.collection-tile')).toHaveCount(1);
+  // Share and Save to mine wait on the friend's folders page.
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Save to my collection',exact:true}).click();
   await expect(page.getByRole('button',{name:'Saved to my collection',exact:true})).toBeDisabled();
   expect(JSON.parse((await page.evaluate(key=>localStorage.getItem(key),key))!).sources[0].key).toBe(source.key);
-  await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
+  // The header menu's Mine row is the way back, and it keeps the folders page open.
+  await page.getByRole('button',{name:/Switch collection$/}).click();
+  await page.getByRole('button',{name:/^Mine/}).click();
   await expect(page).toHaveURL('/');
+  await expect(page.getByRole('main',{name:'My collection'})).toBeVisible();
 });
 test('existing saved collection survives browsing, back and forward and upstream failure', async ({page}) => {
   const saved = JSON.stringify({version:1,starter:false,hidden:[],excluded:[],added:[seed[1]],manualIds:[seed[1].id]});
@@ -31,11 +43,11 @@ test('existing saved collection survives browsing, back and forward and upstream
   expect(JSON.parse((await page.evaluate(key=>localStorage.getItem(key),key))!)).toEqual(JSON.parse(saved));
   await page.getByRole('button',{name:'Cards',exact:true}).click();
   await expect(page).toHaveURL('/f/42');
-  await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
+  await toMine(page);
   await page.goBack();
-  await expect(page.getByRole('region',{name:'Shared collection'})).toBeVisible();
+  await expect(onFriend(page)).toBeVisible();
   await page.goForward();
-  await expect(page.getByRole('region',{name:'Shared collection'})).toHaveCount(0);
+  await expect(onMine(page)).toBeVisible();
   expect(JSON.parse((await page.evaluate(key=>localStorage.getItem(key),key))!)).toEqual(JSON.parse(saved));
   await page.route('**/api/source-folders?*', route => route.fulfill({status:404,json:{error:'Source not found or not public.'}}));
   await page.goto('/f/99');
@@ -66,6 +78,8 @@ for (const [width,height] of [[1920,1080],[1500,900],[390,844]]) test(`shared co
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
   fs.mkdirSync('.codex-shots',{recursive:true});
   await page.screenshot({path:`.codex-shots/shared-${width}.png`,fullPage:false});
+  // Share waits on the friend's folders page.
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Share',exact:true}).click();
   await expect(page.getByLabel('Collection link')).toHaveValue(`${new URL(page.url()).origin}/f/42`);
   await page.getByRole('button',{name:'Copy link',exact:true}).click();
@@ -96,13 +110,14 @@ test('account links load the exact public account; its folders open read-only an
   await expect(workspace.getByRole('heading',{name:'A.b',exact:true})).toBeVisible();
   await workspace.getByRole('navigation',{name:'Collection sources'}).getByRole('button',{name:'Public shelf',exact:true}).click();
   await expect(workspace.locator('.workspace-tile')).toHaveCount(1);
-  await expect(workspace.getByRole('checkbox')).toHaveCount(0);
-  await expect(workspace.getByRole('switch')).toHaveCount(0);
+  // Its controls are the same as yours, but adding and removing stay on your own shelf.
+  await expect(workspace.getByRole('switch').first()).toBeVisible();
+  await expect(workspace.getByRole('button',{name:'Refresh',exact:true})).toHaveCount(0);
   await expect(workspace.getByRole('button',{name:'Add decks'})).toHaveCount(0);
   await expect(page).toHaveURL('/u/A.b?format=commander');
-  await page.getByRole('button',{name:'Showing A.b. Switch collection'}).click();
+  await page.getByRole('button',{name:'Showing A.b, read-only. Switch collection'}).click();
   await page.getByRole('group',{name:'Collections'}).getByRole('button',{name:/^Mine/}).click();
-  await expect(page.getByRole('region',{name:'Shared collection'})).toHaveCount(0);
+  await expect(onMine(page)).toBeVisible();
   await expect(page).toHaveURL('/');
   await page.getByRole('button',{name:'My collection',exact:true}).click();
   await expect(page.locator('.workspace-heading')).toBeVisible();
@@ -120,21 +135,27 @@ test('a shared shelf opens from its folder listing while deck details load behin
   await page.goto('/f/42');
   // The listing's name and art show at once; Save waits for the details.
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
-  const bar = page.getByRole('region',{name:'Shared collection'});
-  await expect(bar).toContainText('Read-only · 1 public deck · 1 loading · 1 couldn’t load');
+  const count = page.locator('.result-count');
+  await expect(count).toHaveText('1 deck · 1 loading · 1 couldn’t load');
+  const folders = page.getByRole('button',{name:'Public shelf folders',exact:true});
+  await folders.click();
   await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeDisabled();
+  await page.getByRole('button',{name:'Back to Public shelf',exact:true}).click();
   await page.getByRole('button',{name:'View Shared Commander',exact:true}).click();
   await expect(page.getByText('Loading details from Archidekt…')).toBeVisible();
   release();
   await expect(page.getByText('Loading details from Archidekt…')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(count).toHaveText('1 deck · 1 couldn’t load');
+  await folders.click();
   await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeEnabled();
-  await expect(bar).toContainText('Read-only · 1 public deck · 1 couldn’t load');
 });
 test("explicit save adds a source while preserving a visitor's personal deck and choices", async ({page}) => {
   const saved = {version:1,starter:false,hidden:[seed[1].id],excluded:[seed[1].id],added:[seed[1]],manualIds:[seed[1].id]};
   await page.addInitScript(({key,saved})=>localStorage.setItem(key,JSON.stringify(saved)),{key,saved});
   await mock(page);
   await page.goto('/f/42');
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Save to my collection',exact:true}).click();
   // Save is asynchronous (it waits for a Web Lock); read storage once it has finished.
   await expect(page.getByRole('button',{name:'Saved to my collection',exact:true})).toBeDisabled();
@@ -149,6 +170,7 @@ test('clipboard denial on phone offers a selectable manual link without changing
   await page.addInitScript(()=>Object.defineProperty(navigator,'clipboard',{value:{writeText:()=>Promise.reject(new Error('denied'))},configurable:true}));
   await mock(page);
   await page.goto('/f/42');
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Share',exact:true}).click();
   await page.getByRole('button',{name:'Copy link',exact:true}).click();
   await expect(page.getByText('Copy was unavailable. Select the link above and copy it.')).toBeVisible();
@@ -240,16 +262,14 @@ async function sharedTabWithNewerStorage(page: import('@playwright/test').Page, 
   return {other,raw,personal,newer};
 }
 
-for (const exit of ['Back to my collection','Mine','Help','history']) test(`leaving a shared tab via ${exit} reads newer storage without a collection write`, async ({page,context}) => {
+for (const exit of ['Mine','Help','history']) test(`leaving a shared tab via ${exit} reads newer storage without a collection write`, async ({page,context}) => {
   const {raw,newer} = await sharedTabWithNewerStorage(page,context);
-  if (exit==='Mine') {
-    await page.getByRole('button',{name:/^Showing .*Switch collection$/}).click();
-    await page.getByRole('group',{name:'Collections'}).getByRole('button',{name:/^Mine/}).click();
-  } else await page.getByRole('button',{name:exit==='history'?'Back to my collection':exit,exact:true}).click();
-  await expect(page.getByRole('region',{name:'Shared collection'})).toHaveCount(0);
+  if (exit==='Help') await page.getByRole('button',{name:'Help',exact:true}).click();
+  else await toMine(page);
+  await expect(onFriend(page)).toHaveCount(0);
   if (exit==='history') {
     await page.goBack();
-    await expect(page.getByRole('region',{name:'Shared collection'})).toBeVisible();
+    await expect(onFriend(page)).toBeVisible();
     await page.goForward();
   }
   if (exit==='Help') await page.getByRole('button',{name:'Collection',exact:true}).click();
@@ -260,6 +280,7 @@ for (const exit of ['Back to my collection','Mine','Help','history']) test(`leav
 
 test('shared Save merges newer data from another tab and returning preserves subsequent edits', async ({page,context}) => {
   const {other,personal,newer} = await sharedTabWithNewerStorage(page,context);
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Save to my collection',exact:true}).click();
   await expect(page.getByRole('button',{name:'Saved to my collection',exact:true})).toBeDisabled();
   const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)!),key);
@@ -268,7 +289,8 @@ test('shared Save merges newer data from another tab and returning preserves sub
   await other.evaluate(({key,saved,id})=>localStorage.setItem(key,JSON.stringify({...saved,hidden:[...saved.hidden,id]},null,2)),{key,saved,id:deck.id});
   const latest=await other.evaluate(key=>localStorage.getItem(key),key);
   await expect.poll(()=>page.evaluate(key=>localStorage.getItem(key),key)).toBe(latest);
-  await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
+  await page.getByRole('button',{name:'Back to Public shelf',exact:true}).click();
+  await toMine(page);
   await expect(page.getByRole('button',{name:`View ${newer.name}`,exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toHaveCount(0);
   expect(await page.evaluate(key=>localStorage.getItem(key),key)).toBe(latest);
@@ -318,6 +340,8 @@ test('two shared tabs queue Saves behind the same Web Lock and keep both sources
       }));
     });
   });
+  await page.getByRole('button',{name:/ folders$/}).click();
+  await other.getByRole('button',{name:/ folders$/}).click();
   await Promise.all([page.getByRole('button',{name:'Save to my collection',exact:true}).click(),other.getByRole('button',{name:'Save to my collection',exact:true}).click()]);
   await expect(page.getByRole('button',{name:'Save to my collection',exact:true})).toBeDisabled();
   await expect(other.getByRole('button',{name:'Save to my collection',exact:true})).toBeDisabled();
@@ -342,6 +366,7 @@ test('shared Save preserves an existing all-format source and Settings preferenc
   await page.goto('/f/42');
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'View Personal Modern deck',exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:/ folders$/}).click();
   await page.getByRole('button',{name:'Share',exact:true}).click();
   await expect(page.getByLabel('Collection link')).toHaveValue(`${new URL(page.url()).origin}/f/42`);
   await expect(page.locator('.share-dialog')).toContainText('public decks');
@@ -354,7 +379,8 @@ test('shared Save preserves an existing all-format source and Settings preferenc
   expect(result.added).toEqual([modern,deck]);
   expect(result.sources[0].formatScope).toBe('all');
   expect(result.sources[0].selectedIds).toEqual([modern.id,deck.id]);
-  await page.getByRole('button',{name:'Back to my collection',exact:true}).click();
+  await page.getByRole('button',{name:'Back to Public shelf',exact:true}).click();
+  await toMine(page);
   await page.getByRole('button',{name:'Filters',exact:true}).click();
   await page.getByLabel('Format',{exact:true}).selectOption('all');
   await page.getByRole('button',{name:'Close filters',exact:true}).click();
@@ -365,7 +391,7 @@ test('shared views include public decks in every format, Commander first', async
   await mock(page);
   await page.route('**/api/decks/987001',route=>route.fulfill({json:{...deck,format:{id:'modern',name:'Modern',sourceId:2},commanders:[],cover:{...deck.commanders[0],kind:'featured'}}}));
   await page.goto('/f/42');
-  await expect(page.getByRole('region',{name:'Shared collection'})).toContainText('1 public deck');
+  await expect(page.locator('.result-count')).toHaveText('0 of 1 decks');
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toHaveCount(0);
   await page.getByRole('button',{name:'Filters',exact:true}).click();
   await page.getByLabel('Format',{exact:true}).selectOption('all');

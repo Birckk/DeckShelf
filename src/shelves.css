@@ -2,13 +2,11 @@
 /* Menus that drop from the header must paint over the page below it (the window bar stays on top at 30). */
 .studio-header { position:relative; z-index:25; }
 .brand-cell { display:flex; align-items:center; gap:12px; min-width:0; }
+/* The logo keeps its size, so the shelf menu after it stays put when a name appears. */
+.brand-cell > .brand { flex-shrink:0; }
 
-/* The switcher sits after the brand, like a breadcrumb. */
-.shelf-switch { position:relative; min-width:0; }
-.shelf-switch-trigger { display:flex; align-items:center; gap:6px; min-height:36px; max-width:200px; padding:0 4px 0 12px; border-left:1px solid #ffffff24; color:#e7e1d5; font-size:14px; white-space:nowrap; }
-.shelf-switch-trigger > span { overflow:hidden; text-overflow:ellipsis; }
-.shelf-switch-trigger > svg { flex-shrink:0; color:#a9a9af; }
-.shelf-switch-trigger:hover > svg, .shelf-switch-trigger[aria-expanded="true"] > svg { color:#f2ddb0; }
+/* The collections menu: a people icon right after the wordmark. */
+.shelf-switch { position:relative; min-width:0; margin-left:-2px; }
 .shelf-switch-menu { position:absolute; z-index:70; top:calc(100% + 10px); left:0; width:300px; max-width:calc(100vw - 2 * var(--gutter)); padding:6px; border:1px solid #37363a; border-radius:8px; background:#17181b; box-shadow:0 18px 40px #0009; }
 .shelf-switch-actions { padding:6px 6px 10px; margin-bottom:6px; border-bottom:1px solid #ffffff12; }
 .shelf-switch-actions > small { display:block; margin:0 4px 6px; color:var(--muted); font-size:11px; }
@@ -29,28 +27,72 @@
 .shelf-switch-menu h4 { margin:8px 10px 2px; padding-top:8px; border-top:1px solid #ffffff12; color:var(--muted); font-size:11px; font-weight:500; }
 .shelf-switch-menu p { margin:6px 10px 4px; padding-top:8px; border-top:1px solid #ffffff12; color:var(--muted); font-size:11px; line-height:1.5; }
 
+/* Opening someone's collection by username or link. */
+.shelf-open { display:grid; gap:6px; padding:8px 10px 10px; }
+.shelf-open label { color:#e7e1d5; font-size:13px; }
+.shelf-open-line { display:flex; gap:6px; }
+.shelf-open input { flex:1; min-width:0; min-height:38px; padding:0 10px; border:1px solid #37363a; border-radius:5px; background:#0f1012; color:#f3f1ec; font-size:14px; }
+.shelf-open input:focus-visible { outline:1px solid #f2ddb0; outline-offset:0; }
+.shelf-open input[aria-invalid="true"] { border-color:#a8674a; }
+.shelf-open-line button { flex:0 0 auto; display:grid; place-items:center; width:38px; min-height:38px; border:1px solid #37363a; border-radius:5px; color:#f2ddb0; }
+.shelf-open-line button:hover { background:#ffffff0d; }
+.shelf-open small { line-height:1.4; }
+.shelf-open small.shelf-open-error { color:#e6b29a; }
+.shelf-switch-open { margin-top:6px; border-top:1px solid #ffffff12; }
+.shelf-open-row { display:flex; align-items:center; gap:10px; width:100%; min-height:var(--tap); margin-top:6px; padding:6px 10px; border-top:1px solid #ffffff12; color:#e7e1d5; font-size:14px; text-align:left; }
+.shelf-open-row:hover { background:#ffffff08; }
+.shelf-open-row svg { flex-shrink:0; color:#a9a9af; }
+.shelf-switch-menu .is-current > button:first-child { color:#f2ddb0; }
+.shelf-switch-menu .shelf-forget.is-marked { color:#f2ddb0; }
+.shelf-add-tile { display:flex; flex-direction:column; justify-content:center; }
+.shelf-add-tile .shelf-open { padding:14px; }
+.shelf-add-tile .shelf-open label { font-size:15px; font-weight:500; }
+
+/* The icon turns gold on someone else's shelf, and their name follows it so the icon never moves. */
+.studio-header .shelf-menu-icon { width:34px; padding:0; color:#d9d6de; }
+.studio-header .shelf-menu-icon:hover:not(:disabled) { color:#ead5a5; }
+.studio-header .shelf-menu-icon.is-visiting { color:#f2ddb0; }
+.studio-header .shelf-menu-icon.has-name { width:auto; gap:8px; padding:0 10px 0 7px; justify-content:flex-start; }
+.shelf-menu-name { max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#f3f1ec; font-size:14px; font-weight:400; }
+/* A long username never pushes the header around: both places it shows have a fixed cap. */
+.app-shell .studio-header .header-actions > .button > .header-shelf-name { display:inline-block; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom; }
+@media (max-width:1100px) {
+  .shelf-menu-name { max-width:120px; }
+  .app-shell .studio-header .header-actions > .button > .header-shelf-name { max-width:80px; }
+}
 /* Recently viewed, under the overview's own collections. */
 .recent-shelves { margin-top:32px; }
 .recent-shelves .overview-intro { display:flex; justify-content:space-between; }
 .recent-shelves-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr)); gap:16px; }
 .recent-shelf .overview-group-top { display:flex; justify-content:space-between; align-items:center; }
-.recent-shelf .shelf-forget { margin:-8px -8px -8px 0; }
+.recent-shelf-actions { display:flex; margin:-8px -8px -8px 0; }
+.recent-shelf .shelf-forget.is-marked { color:#f2ddb0; }
 .recent-shelf small { color:var(--muted); font-size:11px; }
 
 @media (max-width:550px) {
   .brand-cell { gap:8px; }
-  .shelf-switch-trigger { max-width:112px; padding-left:8px; font-size:13px; }
   /* Open from the page edge so the menu never runs off a phone screen. */
   .brand-cell { position:relative; }
   .shelf-switch { position:static; }
   .shelf-switch-menu { left:0; width:calc(100vw - 2 * var(--gutter)); }
+  /* 16px stops iOS zooming the page when the field takes focus. */
+  .shelf-open input { font-size:16px; }
+  /* With the menu in the header, phones show the mark alone so the row doesn't crowd. */
+  .studio-header .brand > span { display:none; }
+  /* Phones show the collection button as the book and its count, on your shelf and a friend's alike,
+     so it never changes shape beside the cog and ?. Its accessible name still says whose it is. */
+  .studio-header .header-actions > .button.header-collection > span:not(.count-badge) { display:none; }
+  .studio-header .header-actions > .button.header-collection > svg,
+  .studio-header .header-actions > .button.header-collection > .count-badge { display:inline; }
+  .studio-header .header-actions > .button.header-collection { gap:5px; min-width:48px; justify-content:center; }
+  .shelf-menu-name { max-width:120px; font-size:13px; }
 }
 
-/* A shared shelf's folders, read-only in the My collection workspace: its actions sit in the heading. */
-.workspace-heading > .workspace-shelf-actions { flex:0 0 auto; display:flex; align-items:center; gap:8px; }
-.workspace-shelf-actions .button { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
+@media (max-width:380px) {
+  .shelf-menu-name { max-width:96px; }
+}
 @media (max-width:700px) {
-  .collection-workspace.is-read-only .workspace-heading { flex-wrap:wrap; }
-  .workspace-heading > .workspace-shelf-actions { flex-basis:100%; order:1; }
-  .workspace-shelf-actions .button { flex:1; justify-content:center; margin-left:0; }
+  /* The same size as the cog and ? beside it. */
+  .studio-header .shelf-menu-icon { width:32px; min-height:32px; border-color:transparent; background:none; }
+  .studio-header .shelf-menu-icon.has-name { padding-left:6px; }
 }

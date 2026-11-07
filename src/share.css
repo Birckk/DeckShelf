@@ -12,7 +12,8 @@
 /* Slim bar: one row, the shelf's name and its few actions. */
 .shared-bar-slim { flex-wrap:nowrap; gap:12px; padding:6px 0 10px; }
 .shared-bar-slim > .icon-button { flex-shrink:0; }
-.shared-bar-slim > .icon-button:first-child { margin-left:-8px; }
+.shared-bar-back { flex-shrink:0; display:inline-flex; align-items:center; gap:6px; min-height:36px; padding:0 10px; border:1px solid #37363a; border-radius:5px; color:#e7e1d5; font-size:12px; white-space:nowrap; }
+.shared-bar-back:hover { background:#ffffff0d; }
 .shared-bar-slim > .icon-button:last-child { margin-right:-8px; }
 .shared-bar-slim p { flex:1 1 auto; min-width:0; }
 .shared-bar-slim strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; }
@@ -21,11 +22,15 @@
 .shared-bar-actions .button { display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:0 12px; font-size:12px; white-space:nowrap; }
 @media(max-width:550px) {
   .shared-collection-bar { gap:10px; }
-  /* Phones: name on the first row, the actions in one even row below it. */
-  .shared-bar-slim { flex-wrap:wrap; gap:6px 8px; }
-  .shared-bar-slim p { flex:1 1 0; }
-  .shared-bar-actions { order:1; flex-basis:100%; }
-  .shared-bar-actions .button { flex:1; justify-content:center; padding:0 8px; }
+  /* Phones: one row. Back, the name, then icons; Share and Save wait in the folders view. */
+  .shared-bar-slim { gap:8px; padding:4px 0 8px; }
+  .shared-bar-slim strong { font-size:14px; }
+  .shared-bar-slim small { font-size:11px; }
+  .shared-bar-actions { gap:6px; }
+  .shared-bar-actions .button { justify-content:center; width:36px; padding:0; }
+  .shared-bar-actions .button > span { display:none; }
+  .shared-bar-actions .shelf-secondary { display:none; }
 }
 
-.share-dialog { padding:0 20px 16px; }
+.share-dialog { padding:16px 20px; }
+.share-dialog > :first-child { margin-top:0; }

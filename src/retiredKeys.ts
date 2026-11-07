@@ -4,11 +4,15 @@
 export const RETIRED_KEYS = [
   "commander-archive.list-columns.v1",
   "commander-archive.manager-list-columns.v1",
+  "deckshelf.dev.bar-hidden",
+  "deckshelf.dev.bar-variant",
+  "deckshelf.dev.friend-shelf",
   "deckshelf.dev.list-columns-variant",
   "deckshelf.dev.list-variant",
   "deckshelf.dev.shelf-bar",
   "deckshelf.dev.shelf-variant",
   "deckshelf.dev.sort-variant",
+  "deckshelf.shelf-bar-hidden",
   "deckshelf.follow-prototype",
   "deckshelf.follow-variant",
 ];

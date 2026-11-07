@@ -82,11 +82,16 @@ own picker scope. DeckShelf displays the source format; it does not check legali
 ## Sharing shelves
 
 **Share** in My collection gives a link to one of your Archidekt accounts or
-folders (`/u/<username>` or `/f/<folder id>`). Opening it shows that public shelf
-read-only, beside your own: browse and pick from it, **Keep** it in the shelf
-switcher, or **Save to mine** to add its decks to your collection. Recently viewed
-shelves are listed in My collection. Nothing about your own shelf is changed or
-sent anywhere; the link only names the Archidekt source.
+folders (`/u/<username>` or `/f/<folder id>`). You can also open someone's
+collection without a link: the people icon after the DeckShelf name opens the
+collections menu, where **Open a collection…** takes an Archidekt username or
+link. A friend's shelf opens read-only, beside your own. Browse and pick from it,
+switch their folders and decks on and off (remembered per friend on this device),
+**Bookmark** it so it stays in the menu and opens offline, or **Save to mine** to
+add the decks you have on to your collection. The menu's **Mine** row takes you
+back, and switching from the menu keeps the page you're on. Bookmarks and recently
+viewed shelves are also listed in My collection. Nothing about your own shelf is
+changed or sent anywhere; the link only names the Archidekt source.
 
 ## Settings
 
