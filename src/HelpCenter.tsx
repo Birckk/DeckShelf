@@ -141,7 +141,7 @@ const featureGroups: { label: string; items: Feature[] }[] = [
   ] },
   { label: "Your shelf", items: [
     { target: "collection", title: "Your Archidekt decks", caption: "Paste a username, folder or deck link. Folders you add whole pick up new decks by themselves.", action: "Open My collection", art: 10, Icon: Link2 },
-    { target: "collection", title: "Share and keep shelves", caption: "Send a link to your shelf, or keep a friend’s beside yours to browse.", action: "Open My collection", art: 7, Icon: Share2 },
+    { target: "collection", title: "Share and keep shelves", caption: "Send a link to your shelf, or open a friend’s by username and bookmark it.", action: "Open My collection", art: 7, Icon: Share2 },
     { target: "precons", title: "Official precons", caption: "Commander precons to start with. Hide them any time.", action: "View precons", art: 11, Icon: Library },
     { target: "saving", title: "Saved in this browser", caption: "No account. Export a backup to move your shelf.", action: "Read Saving and devices", art: 6, Icon: HardDriveDownload },
     { target: "settings", title: "Settings", caption: "Card backs, artwork, List columns and how new decks arrive.", action: "Open Settings", art: 8, Icon: Settings },

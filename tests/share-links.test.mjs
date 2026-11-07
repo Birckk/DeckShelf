@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseSharePath, buildSharePath, buildShareUrl, shareSourceOptions } from '../src/share-links.ts';
+import { parseSharePath, parseShelfInput, buildSharePath, buildShareUrl, shareSourceOptions } from '../src/share-links.ts';
 
 test('source links round trip account and numeric Archidekt folder IDs', () => {
   for (const source of [{kind:'account',value:'A.b + user'}, {kind:'folder',value:'1916319'}]) {
@@ -27,4 +27,24 @@ test('share options reconstruct and deduplicate accounts while retaining direct 
   assert.deepEqual(options.map(option => buildSharePath(option)), ['/u/birckk', '/f/42', '/f/43']);
   assert.equal(options[0].name, 'Birckk');
   assert.deepEqual(shareSourceOptions([{ ...folder, connectionKey: 'account:https://evil.example' }]).map(option => option.key), ['folder:42']);
+});
+
+test('a typed username or pasted link opens as a shelf', () => {
+  const account = {kind:'account',value:'Birckk'}, folder = {kind:'folder',value:'1916319'};
+  for (const input of ['Birckk', '  Birckk  ', 'https://archidekt.com/u/Birckk', 'https://www.archidekt.com/u/Birckk#decks', 'archidekt.com/u/Birckk',
+    'https://deckshelf.example/u/Birckk', 'http://localhost:4317/u/Birckk?format=commander']) assert.deepEqual(parseShelfInput(input), account);
+  for (const input of ['https://archidekt.com/folders/1916319', 'archidekt.com/folders/1916319/Name', 'https://deckshelf.example/f/1916319']) assert.deepEqual(parseShelfInput(input), folder);
+  assert.deepEqual(parseShelfInput('Some Name'), {kind:'account',value:'Some Name'});
+});
+
+test('what cannot open as a shelf says why', () => {
+  assert.throws(() => parseShelfInput('   '), /username or link/);
+  assert.throws(() => parseShelfInput('https://archidekt.com/decks/123/name'), /single deck/);
+  assert.throws(() => parseShelfInput('http://archidekt.com/u/Birckk'), /https:\/\/archidekt\.com/);
+  assert.throws(() => parseShelfInput('https://archidekt.com/search/decks'), /profile, folder/);
+  assert.throws(() => parseShelfInput('https://elsewhere.example/profile'), /DeckShelf collection link/);
+  assert.throws(() => parseShelfInput('https://a:b@elsewhere.example/u/Birckk'), /DeckShelf collection link/);
+  assert.throws(() => parseShelfInput('https://deckshelf.example/u/%2Fetc'));
+  assert.throws(() => parseShelfInput('bad/name'), /username/);
+  assert.throws(() => parseShelfInput('x'.repeat(101)), /username/);
 });

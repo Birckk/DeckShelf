@@ -1557,7 +1557,6 @@ body:has(.studio-workspace) { min-width:320px; }
  .studio-header .studio-nav { gap:2px; }
  .studio-header .studio-nav button { padding-inline:7px; gap:5px; }
  .studio-header .brand { font-size:18px; gap:6px; }
- .studio-header .brand img { width:23px; }
 }
 
 @media(max-width:380px) { .studio-color-controls { padding-inline:6px; gap:6px; } .inline-colors { gap:1px; } .inline-colors .color-button { width:29px; } .studio-color-controls .switch-label { padding-left:8px; gap:6px; } }

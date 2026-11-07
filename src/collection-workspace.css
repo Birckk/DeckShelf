@@ -1,5 +1,4 @@
 body:has(.collection-workspace) { min-width:320px; }
-@media(max-width:380px) { body:has(.collection-workspace) .studio-nav { gap:2px; } body:has(.collection-workspace) .studio-nav button { padding-inline:7px; gap:5px; } body:has(.collection-workspace) .studio-header .brand { font-size:18px; gap:6px; } body:has(.collection-workspace) .studio-header .brand img { width:23px; } }
 .collection-workspace { position:relative; padding:var(--page-top) var(--gutter) 40px; }
 .workspace-heading { display:flex; align-items:center; gap:24px; padding:4px 0 24px; }
 .workspace-heading > div { flex:1; }
@@ -37,7 +36,8 @@ body:has(.collection-workspace) { min-width:320px; }
 .overview-precon-actions { display:flex; flex-wrap:wrap; gap:10px 18px; margin-top:16px; color:#aaa6a0; font-size:11px; }
 .overview-precon-actions a { display:flex; align-items:center; gap:6px; }
 .overview-provenance { margin:8px 0 0 28px; font-size:11px; color:#aaa6a0; }
-.collection-workspace .overview-expand { margin-bottom:10px; }
+/* Expand and Enable all act on the collections below, so they share the heading's row. */
+.overview-intro > .overview-intro-actions { flex:0 0 auto; display:flex; align-items:center; gap:8px; }
 .collection-workspace .workspace-decks { max-height:none; overflow:visible; }
 .workspace-decks:not(.layout-list) { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(var(--manager-card-size),100%),1fr)); gap:24px 18px; align-items:start; }
 /* Phones set S/M/L as a column count (collectionPhoneColumns); pixel minimums would collapse them. */
@@ -260,3 +260,27 @@ body:has(.collection-workspace) { min-width:320px; }
   font-size: 12px;
 }
 .source-refresh-status span { overflow-wrap: anywhere; }
+
+/* My collection's actions travel as one group: a quiet way back, then Share and Add decks.
+   On phones the group takes its own slim row under the title instead of squeezing beside it. */
+.workspace-heading > .workspace-actions { flex:0 0 auto; display:flex; align-items:center; gap:8px; }
+.workspace-actions .button { min-height:36px; padding:0 13px; gap:7px; white-space:nowrap; }
+.workspace-actions .workspace-back { margin-right:6px; padding:0; color:#a5a6af; font-size:12px; }
+.workspace-actions .workspace-back:hover { color:#eddfc4; }
+@media(max-width:700px) {
+  .workspace-heading:has(> .workspace-actions) { flex-wrap:wrap; row-gap:10px; }
+  .workspace-heading:has(> .workspace-actions) > div:first-child { flex-basis:100%; column-gap:10px; }
+  .workspace-heading:has(> .workspace-actions) p { width:auto; }
+  .workspace-heading > .workspace-actions { flex-basis:100%; }
+  .workspace-actions .button { min-height:32px; padding:0 11px; }
+  .workspace-actions .workspace-back { min-height:32px; margin-right:auto; padding:0 6px 0 0; }
+  .workspace-actions .workspace-back span { display:inline; }
+  .collection-workspace .workspace-mobile-toggle { min-height:32px; }
+}
+/* Phones keep one row: Bookmark shows its icon (filled when on); below 380px a friend's four buttons also drop the word Back. */
+@media(max-width:550px) {
+  .workspace-actions .workspace-back .workspace-back-target { display:none; }
+  .workspace-actions .shelf-bookmark { width:32px; padding:0; }
+  .workspace-actions .shelf-bookmark > span { display:none; }
+}
+@media(max-width:380px) { .workspace-actions:has(.shelf-bookmark) .workspace-back > span { display:none; } .workspace-actions:has(.shelf-bookmark) .workspace-back { min-width:32px; padding:0; } }

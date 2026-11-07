@@ -131,7 +131,7 @@ The concrete rules above reflect this project's owner feedback; the references s
 - Number shortlisted cards by the current displayed order, updating after sorting/filtering or deselection. The quick-choice bar fits its contents, has no appearing outer border, and keeps a stable left edge; do not reserve a visibly oversized bar.
 - Quick-choice entry, empty selection and Pick from N share identical button dimensions, typography and icon sizing.
 - Remember collapsed folder branches and Overview folder-summary expansion locally across navigation and reload. Search may reveal matching branches temporarily without replacing saved folds; invalid/unavailable browser storage must fall back safely.
-- My collection actions use compact rectangular buttons with familiar icons and visible labels. Keep folder navigation lightweight, and preserve keyboard focus indicators.
+- My collection actions use compact rectangular buttons with familiar icons and visible labels. Your collection and a friend's folders share one heading: the title with its count, then one group holding a quiet way back and the actions (Share and Add decks; Bookmark, Share and Save to mine). On phones the group gets its own 32px row under the title, and Bookmark shows only its icon (owner direction, November 8). Keep folder navigation lightweight, and preserve keyboard focus indicators.
 - Keep shortlist clearing visually consistent across browsing views. In the picker, a selected-count button returns to Collection to edit the same shortlist.
 - Instant pick controls only the selection animation, independently of automatic drift. Paused drift still permits manual drag momentum to coast and decay. System reduced-motion preferences start with drift paused and instant picking, and suppress passive release motion while paused.
 
@@ -152,7 +152,8 @@ The concrete rules above reflect this project's owner feedback; the references s
 
 ### Compact phone browsing controls (October 8)
 
-- The header carries only the Settings and Help icons and My collection beside the view switch, on phones too.
+- The header carries only the Settings and Help icons and My collection beside the view switch, on phones too. On phones (550px and narrower), the collection button shows only the book icon and deck count, whether you are viewing your own collection or a friend's, so it never changes shape. Wider screens keep its label (owner decision, November 8).
+- Collections menu (#128, owner pick November 8, option D): a people icon right after the wordmark opens the menu. On someone else's shelf it turns gold and their name follows it, so the icon never moves; phones show that name once. The menu leads with the shelf you're on, then Mine (the way back), bookmarks, recently viewed and Open a collection. Tried and not chosen: the name by the logo with a ← crumb, a bare chevron, and the icon beside Settings and Help (it slid between shelves). Switching from the menu keeps the page you're on, and a shelf that is still loading says so in place instead of showing a bar.
 - Phone color identity/exact controls live in Filters. Active filters retain their indicator and removable chips.
 - Keep Details / Cards only / List in a slim, visibly bounded button group. Size and sort expand together from its adjacent control; do not leave a floating sort row by default.
 - Quick choice is compact until selection actions are needed. An inactive phone picker shortlist occupies no row; clearing it reclaims space while preserving scene dimensions. Desktop toolbar stability remains unchanged.

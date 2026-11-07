@@ -19,6 +19,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Share2,
   Upload,
   X,
 } from "lucide-react";
@@ -33,6 +34,7 @@ import {
   type SourceEntry,
 } from "./domain";
 import { clearResults, type Notify } from "./Notices";
+import { parseShelfInput, type SharedSource } from "./share-links";
 import {
   parseSourceInput,
   sourceMembership,
@@ -83,6 +85,7 @@ type Props = {
   undoTo: (before: Collection, after: Collection) => () => void;
   onShare: () => void;
   overviewExtra?: ReactNode;
+  onBrowse?: (source: SharedSource) => void;
   /** A shared shelf shown read-only: its folders and decks, with the shelf's own actions. */
   readOnly?: { name: string; actions: ReactNode };
   startPersonal?: boolean;
@@ -152,6 +155,7 @@ export default function CollectionManager({
   notify,
   onShare,
   overviewExtra,
+  onBrowse,
   readOnly,
   undoTo,
   startPersonal = false,
@@ -592,7 +596,7 @@ export default function CollectionManager({
       { label: "All folders off", icon: <PowerOff size={14} />, run: () => setCollection(c => enableGroups(c, scopedKeys, false, true)) },
     ] : []),
     ...(!headerHidden && headerKeys.length ? [{ label: section === "demo" ? "Hide precons" : "Hide", icon: <EyeOff size={14} />, run: () => hide(headerKeys) }] : []),
-    ...(scopedSources.length ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(scopedKeys, headerName, sourceIds.size) }] : []),
+    ...(scopedSources.length && !readOnly ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(scopedKeys, headerName, sourceIds.size) }] : []),
     ...(section === "starter" ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(["starter"], headerName, 0) }] : []),
   ];
   const deckRows = shown.map((row) => {
@@ -604,41 +608,43 @@ export default function CollectionManager({
       !!deck &&
       !source.entries.some((e) => e.id === row.id);
     const toggle = (on: boolean) => {
-      if (readOnly) return;
       if (member) return setCollection(c => scopedSources.length ? setSourceSelection(c, scopedKeys, [row.id], on, decks) : setShown(c, [row.id], on));
       // A deck still waiting to download keeps its choice across the next check.
       if (followEnabled) setCollection(c => setPendingSourceSelection(c, scopedKeys, [row.id], on));
       setSelected(ids => on ? [...new Set([...ids, row.id])] : ids.filter(id => id !== row.id));
     };
     const status = missing ? 'No longer listed · saved copy kept' : !member ? 'Not added' : !displayedHere(row.id) && checked ? (headerHidden ? 'Hidden · selection kept' : 'Collection off · selection kept') : '';
-    return { row, deck, member, checked, toggle, status, busy: !!busy, selectable: !readOnly };
+    return { row, deck, member, checked, toggle, status, busy: !!busy, selectable: true };
   });
   const deckViews = layout === "list" && deckRows.length
-    ? <DeckTable label="Decks in this collection" sort={sort} onSort={setSort} size={size} lead={readOnly ? undefined : "Shown"} trail="Archidekt"
+    ? <DeckTable label="Decks in this collection" sort={sort} onSort={setSort} size={size} lead="Shown" trail="Archidekt"
         rows={deckRows.map(item => ({
           deck: item.deck ? tableDeck(item.deck, collectionNames.get(item.row.id)) : tableEntry(item.row),
           className: `workspace-tile ${item.checked ? "" : "is-hidden"}`,
           onActivate: () => { if (!busy) item.toggle(!item.checked); },
           title: <h4>{item.deck?.name || item.row.name}</h4>,
           note: item.status || undefined,
-          lead: readOnly ? undefined : <ShownCheckbox {...item} />,
+          lead: <ShownCheckbox {...item} />,
           trail: <span className="workspace-tile-controls"><DeckLink {...item} /></span>,
         }))} />
     : deckRows.map(item => <CollectionDeckTile key={item.row.id} layout={layout} {...item} />);
+  const backTarget = readOnly ? readOnly.name : "collection";
   return (
     <main className={`collection-workspace ${readOnly ? "is-read-only" : ""}`} aria-label={readOnly ? `${readOnly.name} folders` : "My collection"}>
-      {readOnly
-        ? <header className="workspace-heading">
-            <div><h1 ref={heading} tabIndex={-1}>{readOnly.name}</h1><p>{decks.length} public {decks.length === 1 ? "deck" : "decks"} · Read-only</p></div>
-            <button className="text-button workspace-back" aria-label="Back to collection" title="Back to collection" onClick={onClose}><ArrowLeft size={15} /><span>Back to collection</span></button>
-            <div className="workspace-shelf-actions">{readOnly.actions}</div>
-          </header>
-        : <header className="workspace-heading">
-        <div><h1 ref={heading} tabIndex={-1}>My collection</h1><p>{onDisplay} on display</p></div>
-        <button className="button button-outline" onClick={onShare}>Share</button>
-        <button className="text-button workspace-back" aria-label="Back to collection" title="Back to collection" onClick={onClose}><ArrowLeft size={15} /><span>Back to collection</span></button>
-        <button className="button button-gold" disabled={!!busy} onClick={() => { setConnecting(true); resetSourceForm(); }}><Plus size={16} /> Add decks</button>
-      </header>}
+      {/* One heading for your collection and a friend's: title, then the way back and the actions as one group. */}
+      <header className="workspace-heading">
+        <div>
+          <h1 ref={heading} tabIndex={-1}>{readOnly ? readOnly.name : "My collection"}</h1>
+          <p>{readOnly ? `${decks.length} public ${decks.length === 1 ? "deck" : "decks"} · Read-only` : `${onDisplay} on display`}</p>
+        </div>
+        <div className="workspace-actions">
+          <button className="text-button workspace-back" aria-label={`Back to ${backTarget}`} title={`Back to ${backTarget}`} onClick={onClose}><ArrowLeft size={15} /><span>Back<span className="workspace-back-target"> to {backTarget}</span></span></button>
+          {readOnly ? readOnly.actions : <>
+            <button className="button button-outline" onClick={onShare}><Share2 size={15} /> Share</button>
+            <button className="button button-gold" disabled={!!busy} onClick={() => { setConnecting(true); resetSourceForm(); }}><Plus size={15} /> Add decks</button>
+          </>}
+        </div>
+      </header>
       <div className="collection-manager">
         <div className="manager-body">
           <button className="workspace-mobile-toggle button button-outline" aria-expanded={mobileNav} onClick={() => setMobileNav(v => !v)}><FolderTree size={15} />{readOnly ? "Folders" : "Sources and folders"}</button>
@@ -687,7 +693,8 @@ export default function CollectionManager({
                 formatScope={formatScope} setFormatScope={changeFormatScope}
                 selected={selected} setSelected={setSelected} busy={!!busy}
                 back={() => { if (!discovery) setConnecting(false); resetSourceForm(); }}
-                connect={connect} save={addFolders} />
+                connect={connect} save={addFolders}
+                browse={onBrowse && (() => { try { onBrowse(parseShelfInput(value)); } catch (problem) { setError((problem as Error).message); } })} />
             ) : (
               <>
               {section === "overview" && (
@@ -741,7 +748,7 @@ export default function CollectionManager({
                     </a>
                   )}
                 </div>
-                {!readOnly && headerKeys.length > 0 && <div className="manager-toolbar">
+                {headerKeys.length > 0 && <div className="manager-toolbar">
                   {headerHidden
                     ? <div className="collection-hidden-state"><EyeOff size={14} /><span>Hidden</span>
                         <button className="text-button" disabled={!!busy} onClick={() => setCollection(c => hideGroups(c, headerKeys, false))}><Eye size={14} />Show</button></div>
@@ -757,7 +764,7 @@ export default function CollectionManager({
                           : onlyGroup(c, section, groups))}><Focus size={14} />Only this</button>
                       </div>}
                   <div className="manager-toolbar-end">
-                    {source && <button className="text-button" disabled={!!busy || !!sourceRefresh.checking || followEnabled && Date.now() < Date.parse(source.refresh?.retryAt || "1970-01-01")} onClick={refreshSource}><RefreshCw size={14} />{sourceRefresh.checking === source.key ? "Checking…" : "Refresh"}</button>}
+                    {source && !readOnly && <button className="text-button" disabled={!!busy || !!sourceRefresh.checking || followEnabled && Date.now() < Date.parse(source.refresh?.retryAt || "1970-01-01")} onClick={refreshSource}><RefreshCw size={14} />{sourceRefresh.checking === source.key ? "Checking…" : "Refresh"}</button>}
                     {section === "demo" && !headerHidden && <button className="text-button" disabled={!!busy} title="Check Archidekt for precons released since this snapshot" onClick={updatePrecons}><RefreshCw size={14} />Refresh</button>}
                     <CollectionMenu name={headerName} busy={!!busy} items={menuItems} />
                   </div>
@@ -780,7 +787,7 @@ export default function CollectionManager({
                     />
                   </label>
                   <FormatSelect label="Collection format" value={browseFormat} onChange={setBrowseFormat} items={rows} all disabled={!!busy} />
-                  {!readOnly && <select
+                  <select
                     aria-label="Deck display status"
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
@@ -788,19 +795,19 @@ export default function CollectionManager({
                     <option value="all">All decks</option>
                     <option value="shown">On display</option>
                     <option value="hidden">Hidden</option>
-                    {scopedSources.length > 0 && <option value="new">Not added</option>}
-                  </select>}
+                    {scopedSources.length > 0 && !readOnly && <option value="new">Not added</option>}
+                  </select>
                 </div>
                 <div className="workspace-display-controls">
                 <div className="manager-bulk">
                   <span>
                     {shown.length} {shown.length === 1 ? "deck" : "decks"}
                   </span>
-                  {!readOnly && <label className="manager-select-all" title={allChecked ? "Deselect every deck in the current results" : "Select every deck in the current results. New decks wait for Add selected decks."}>
+                  <label className="manager-select-all" title={allChecked ? "Deselect every deck in the current results" : "Select every deck in the current results. New decks wait for Add selected decks."}>
                     <input ref={selectAllBox} type="checkbox" checked={allChecked} disabled={!!busy || !shown.length}
                       onChange={() => selectAll(!allChecked)} />
                     <span>Select all</span>
-                  </label>}
+                  </label>
                 </div>
                 <CollectionViewControls display={display} onChange={setDisplay} sort={sort} onSort={setSort} />
                 </div>

@@ -1,10 +1,11 @@
 import { saveSharedCollectionWithLock } from './shared-collection-storage';
 import ShareCollection from './ShareCollection';
-import { readSharedLocation, useSharedCollection } from './useSharedCollection';
+import { fetchShelfListing, readSharedLocation, useSharedCollection } from './useSharedCollection';
 import { buildSharePath, type SharedSource } from './share-links';
-import { addRecent, keepShelf, readKept, readRecent, shelfId, shelfRef, writeKept, writeRecent, type KeptShelf, type ShelfRef } from './shelves';
-import { RecentShelves, ShelfSwitcher } from './SharedShelves';
+import { addRecent, applyShelfView, cachedShelf, keepShelf, putShelfView, readKept, readRecent, readShelfViews, shelfCollection, shelfId, shelfRef, shelfViewOf, writeKept, writeRecent, writeShelfViews, type KeptShelf, type ShelfRef, type ShelfViews } from './shelves';
+import { OtherCollections, ShelfSwitcher } from './SharedShelves';
 import { coverOf, formatOf, formatName } from './domain';
+import { listingDeck } from './collection';
 import QuickChoiceControls from './QuickChoiceControls';
 import './recovery.css';
 import FormatSelect from './FormatSelect';
@@ -21,7 +22,6 @@ import {
   ArrowLeft,
   BookmarkCheck,
   BookmarkPlus,
-  ChevronUp,
   Plus,
   Share2,
   Check,
@@ -79,7 +79,6 @@ import { ENABLE_FIRST_VISIT_IN_PRODUCTION, isFreshProfile, markFirstVisit } from
 
 const catalog = seed as Deck[];
 // Blocked storage throws on access; shelf lists then live in memory only.
-const BAR_HIDDEN_KEY = "deckshelf.shelf-bar-hidden";
 const shelfStorage = () => { try { return localStorage; } catch { return undefined; } };
 const STORAGE_KEY = "commander-archive.collection.v1";
 // More chips than this fold behind a "+N more" button.
@@ -119,31 +118,50 @@ function App() {
     },
   });
   useEffect(() => { writeRecent(shelfStorage(), recent); }, [recent]);
+  // What's switched on or off on friends' shelves, kept apart from your own collection.
+  const [shelfViews, setShelfViews] = useState<ShelfViews>(() => readShelfViews(shelfStorage()));
+  useEffect(() => { writeShelfViews(shelfStorage(), shelfViews); }, [shelfViews]);
   function changeKept(next: KeptShelf[]) {
     if (!writeKept(shelfStorage(), next)) notify("This browser couldn't keep that collection. It stays here until you close this tab.");
     setKept(next);
   }
   // Every way back to a shared shelf goes through its address, so browser Back keeps working.
-  function openSharedShelf(source: SharedSource) {
+  // Switching from the header menu keeps the page you're on: the folders page stays the folders page.
+  function openSharedShelf(source: SharedSource, { stay = false } = {}) {
     if (spinning) return;
     history.pushState(null, '', buildSharePath(source));
     setSharedRoute(readSharedLocation());
-    setShowCollection(false);
+    if (!stay) setShowCollection(false);
     setHelp(null);
   }
   function openPersonalShelf() {
     if (isShared) leaveShared();
-    setShowCollection(false);
   }
   const isShared = !!sharedRoute.source || !!sharedRoute.error;
   const sharedIdentity = sharedRoute.source
     ? sharedRoute.source.kind + ':' + sharedRoute.source.value.toLowerCase()
     : sharedRoute.error ? 'invalid-shared-link' : '';
   const [showShare, setShowShare] = useState(false);
-  const [barHidden, setBarHidden] = useState(() => { try { return localStorage.getItem(BAR_HIDDEN_KEY) === "true"; } catch { return false; } });
-  function changeBarHidden(hidden: boolean) {
-    setBarHidden(hidden);
-    try { localStorage.setItem(BAR_HIDDEN_KEY, String(hidden)); } catch { /* Stays hidden for this tab. */ }
+  // Bookmarking never leaves the page: a shelf that isn't open is read from its listing.
+  async function bookmarkShelf(target: SharedSource & { name: string }) {
+    const id = shelfId(target);
+    const loaded = id === sharedIdentity && shared.source ? { source: shared.source, decks: shared.decks, folders: shared.folders } : cachedShelf(id);
+    try {
+      const shelf = loaded || await (async () => {
+        const { source, folders } = await fetchShelfListing(target, AbortSignal.timeout(60000));
+        return { source, folders, decks: source.entries.map(entry => listingDeck(entry)) };
+      })();
+      setKept(list => {
+        const next = keepShelf(list, shelf);
+        if (!writeKept(shelfStorage(), next)) notify("This browser couldn't keep that collection. It stays here until you close this tab.");
+        return next;
+      });
+    } catch (error) { notify((error as Error).message); }
+  }
+  function removeBookmark(id: string) {
+    const shelf = kept.find(item => shelfId(item.source) === id);
+    changeKept(kept.filter(item => shelfId(item.source) !== id));
+    if (shelf && !recent.some(ref => shelfId(ref) === id)) setRecent(list => addRecent(list, shelfRef(shelf)));
   }
   const [sharedSaved, setSharedSaved] = useState(false);
   const [sharedSaving, setSharedSaving] = useState(false);
@@ -360,9 +378,25 @@ function App() {
     () => collectionDecks(collection, catalog),
     [collection],
   );
+  // A friend's shelf uses the My collection screens. Its choices are never saved into yours.
+  const sharedBase = useMemo(
+    () => shared.source ? shelfCollection({ source: shared.source, decks: shared.decks, folders: shared.folders }) : null,
+    [shared.source, shared.decks, shared.folders],
+  );
+  const sharedWorkspace = useMemo(
+    () => sharedBase && applyShelfView(sharedBase, shelfViews[sharedIdentity]),
+    [sharedBase, shelfViews, sharedIdentity],
+  );
+  const setSharedWorkspace = (update: Collection | ((c: Collection) => Collection)) => {
+    if (!sharedBase) return;
+    setShelfViews(views => {
+      const current = applyShelfView(sharedBase, views[sharedIdentity]);
+      return putShelfView(views, sharedIdentity, shelfViewOf(typeof update === 'function' ? update(current) : update));
+    });
+  };
   const owned = useMemo(
-    () => isShared ? shared.decks : showcaseDecks(collection, catalog, allDecks),
-    [allDecks, collection, isShared, shared.decks],
+    () => isShared ? (sharedWorkspace ? showcaseDecks(sharedWorkspace, [], shared.decks) : shared.decks) : showcaseDecks(collection, catalog, allDecks),
+    [allDecks, collection, isShared, shared.decks, sharedWorkspace],
   );
   const tableSettings = useMemo(() => listSettings(collection), [collection.list]);
   // The List table's Collection column and the Collection name sort use these.
@@ -577,52 +611,57 @@ function App() {
           </div>);
   const sharedName = shared.source?.name || sharedRoute.source?.value || 'Shared collection';
   const isKept = !!shared.source && kept.some(shelf => shelfId(shelf.source) === sharedIdentity);
-  // Keep and Save wait until every deck's details have loaded.
-  const canKeep = !!shared.source && shared.decks.length > 0 && !shared.filling && !isKept;
-  const canSave = !!shared.source && shared.decks.length > 0 && !shared.filling && !sharedSaved && !sharedSaving && !storageLocked;
-  const sharedSummary = [
-    `Read-only · ${shared.decks.length} public ${shared.decks.length === 1 ? 'deck' : 'decks'}`,
-    shared.filling ? `${shared.filling} loading` : '',
-    shared.failed ? `${shared.failed} couldn’t load` : '',
-  ].filter(Boolean).join(' · ');
-  function keepCurrent() {
-    if (canKeep) changeKept(keepShelf(kept, { source: shared.source!, decks: shared.decks, folders: shared.folders }));
+  // A bookmark is instant and its snapshot fills in behind it. Save waits for every deck's details.
+  const canSave = !!shared.source && owned.length > 0 && !shared.filling && !sharedSaved && !sharedSaving && !storageLocked;
+  // One toggle: pressed once bookmarked, and pressing it again removes the bookmark.
+  function toggleBookmark() {
+    if (!shared.source || !shared.decks.length) return;
+    if (isKept) removeBookmark(sharedIdentity);
+    else changeKept(keepShelf(kept, { source: shared.source, decks: shared.decks, folders: shared.folders }));
   }
+  // A bookmark made while details were loading takes the finished snapshot.
+  useEffect(() => {
+    if (!isKept || !shared.source || shared.filling || shared.loading) return;
+    if (kept.find(shelf => shelfId(shelf.source) === sharedIdentity)?.decks.some(deck => deck.partial))
+      changeKept(keepShelf(kept, { source: shared.source, decks: shared.decks, folders: shared.folders }));
+  }, [isKept, shared.source, shared.filling, shared.loading, sharedIdentity]);
   async function saveShared() {
     if (!canSave) return;
     setSharedSaving(true);
     const identity = sharedIdentity;
     try {
-      const next = await saveSharedCollectionWithLock(localStorage, STORAGE_KEY, shared.source!, shared.decks, catalog,
+      const next = await saveSharedCollectionWithLock(localStorage, STORAGE_KEY, shared.source!, owned, catalog,
         () => freshCollection(precons as { snapshotAt: string; decks: Deck[] }), undefined, shared.folders);
       // A queued Save may finish after the visitor has left this shelf.
       if (activeSharedIdentity.current !== identity) return;
       persistedCollection.current = next;
       setCollection(next);
       setSharedSaved(true);
+      notify('Saved to your collection. Refresh it in My collection.');
     } catch (error) { notify((error as Error).message); }
     finally { setSharedSaving(false); }
   }
-  // A loaded shared shelf: the header button, bar and read-only workspace follow it.
+  // A loaded shared shelf: the header button, dock and read-only workspace follow it.
   const sharedShelf = isShared && !!shared.source && !shared.loading && !shared.error && shared.decks.length > 0;
+  // Labels keep one width whatever the state; the icon and aria-pressed show it.
+  const bookmarkIcon = (size: number) => isKept ? <BookmarkCheck size={size} /> : <BookmarkPlus size={size} />;
+  const saveLabel = sharedSaved ? 'Saved to my collection' : 'Save to my collection';
+  const saveTitle = sharedSaved ? 'Saved to your collection' : 'Add the decks you have on to your own collection';
   const shelfButtons = <>
-    <button className="button button-outline" disabled={!canKeep} aria-label={isKept ? 'Kept' : 'Keep as a collection'}
-      title="Keep this shelf as its own collection beside yours. Your collection is not changed." onClick={keepCurrent}>
-      {isKept ? <BookmarkCheck size={15} /> : <BookmarkPlus size={15} />}<span>{isKept ? 'Kept' : 'Keep'}</span></button>
-    <button className="button button-outline" onClick={() => setShowShare(true)}><Share2 size={15} /><span>Share</span></button>
-    <button className="button button-gold" disabled={!canSave} aria-label={sharedSaved ? 'Saved to my collection' : 'Save to my collection'}
-      title="Add these decks to your own collection" onClick={saveShared}>{sharedSaved ? <Check size={15} /> : <Plus size={15} />}<span>{sharedSaved ? 'Saved' : 'Save to mine'}</span></button>
+    <button className={`button button-outline shelf-bookmark ${isKept ? 'is-marked' : ''}`} aria-pressed={isKept} aria-label="Bookmark this collection"
+      title={isKept ? 'Bookmarked. Press again to remove the bookmark.' : 'Bookmark this collection so it stays one click away, and opens offline. Your own collection is not changed.'} onClick={toggleBookmark}>
+      {bookmarkIcon(15)}<span>Bookmark</span></button>
+    <button className="button button-outline shelf-secondary" aria-label="Share" onClick={() => setShowShare(true)}><Share2 size={15} /><span>Share</span></button>
+    <button className="button button-gold shelf-secondary" disabled={!canSave} aria-label={saveLabel}
+      title={saveTitle} onClick={saveShared}>{sharedSaved ? <Check size={15} /> : <Plus size={15} />}<span>{sharedSaved ? 'Saved' : 'Save to mine'}</span></button>
   </>;
-  // The shared shelf as a collection of its folders, for the read-only workspace. Never saved.
-  const sharedWorkspace = useMemo<Collection | null>(() => {
-    if (!shared.source) return null;
-    const source = shared.source;
-    const folders = shared.folders?.filter(folder => folder.source.entries.length) || [];
-    const sources = folders.length
-      ? folders.map(folder => ({ ...folder.source, folderPath: folder.path, connectionKey: source.key, connectionName: source.name, selectedIds: folder.source.knownIds }))
-      : [{ ...source, selectedIds: source.knownIds }];
-    return { version: 1, starter: false, hidden: [], excluded: [], added: shared.decks, manualIds: [], sources };
-  }, [shared.source, shared.decks, shared.folders]);
+  // A friend's shelf keeps its header quiet: Bookmark is on the menu's first row, and Share and
+  // Save to mine are on their folders page. The menu's Mine row is the way back.
+  const shelfMenu = <ShelfSwitcher
+    current={isShared ? { id: sharedIdentity, name: shared.source?.name || sharedRoute.source?.value || "Shared" } : null}
+    viewing={isShared && shared.source ? { source: shared.source, count: shared.decks.length } : null}
+    kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length} disabled={spinning}
+    onPersonal={openPersonalShelf} onOpen={source => openSharedShelf(source, { stay: true })} onBookmark={bookmarkShelf} onUnbookmark={removeBookmark} />;
   const activeFilterChips = [
     view !== 'picker' && filters.format !== 'commander' && <button key="format" disabled={spinning} onClick={() => updateFilter('format', 'commander')}>{filters.format === 'all' ? 'All formats' : formatName(filters.format || 'commander')}<X size={12} /></button>,
     filters.query && <button key="query" disabled={spinning} onClick={() => updateFilter("query", "")}>“{filters.query}” <X size={12} /></button>,
@@ -662,19 +701,7 @@ function App() {
             Deck<span className="brand-sub">Shelf</span>
           </span>
         </a>
-        {(kept.length > 0 || recent.length > 0 || isShared) && <ShelfSwitcher
-          current={isShared ? { id: sharedIdentity, name: shared.source?.name || sharedRoute.source?.value || "Shared" } : null}
-          viewing={isShared && shared.source ? { source: shared.source, count: shared.decks.length } : null}
-          kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length} disabled={spinning}
-          onPersonal={openPersonalShelf} onOpen={openSharedShelf}
-          onForget={id => changeKept(kept.filter(shelf => shelfId(shelf.source) !== id))}
-          onForgetRecent={id => setRecent(list => list.filter(ref => shelfId(ref) !== id))}
-          actions={isShared && shared.source && shared.decks.length > 0 ? <>
-            <button type="button" disabled={!canKeep} onClick={keepCurrent}>{isKept ? <BookmarkCheck size={15} /> : <BookmarkPlus size={15} />}{isKept ? 'Kept' : 'Keep'}</button>
-            <button type="button" onClick={() => setShowShare(true)}><Share2 size={15} />Share</button>
-            <button type="button" disabled={!canSave} onClick={saveShared}>{sharedSaved ? <Check size={15} /> : <Plus size={15} />}{sharedSaved ? 'Saved' : 'Save to mine'}</button>
-            {barHidden && <button type="button" onClick={() => changeBarHidden(false)}><ChevronDown size={15} />Show bar</button>}
-          </> : undefined} />}
+        {shelfMenu}
         </div>
         <div className="studio-nav" role="group" aria-label="Collection view">
           {(
@@ -732,27 +759,23 @@ function App() {
             </button>
           </span>
           <button
-            className="button button-outline"
+            className="button button-outline header-collection"
             disabled={spinning}
             ref={collectionTrigger}
             aria-label={sharedShelf ? `${sharedName} folders` : "My collection"}
+            data-friend={sharedShelf || undefined}
             onClick={openMyCollection}
           >
             <Library size={16} />
-            <span>{sharedShelf ? sharedName : "My collection"}</span>
-            <span className="count-badge">{sharedShelf ? shared.decks.length : isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length}</span>
+            <span className={sharedShelf ? "header-shelf-name" : undefined} title={sharedShelf ? sharedName : undefined}>{sharedShelf ? sharedName : "My collection"}</span>
+            <span className="count-badge">{sharedShelf ? owned.length : isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length}</span>
           </button>
         </div>
       </header>
-      {isShared && !sharedShelf && <section className="shared-collection-bar shared-bar-slim" aria-label="Shared collection">
-        <button className="icon-button" aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={17} /></button>
+      {/* Only a shelf that failed or came back empty needs this bar; while one loads, the page says so in place. */}
+      {isShared && !sharedShelf && !shared.loading && <section className="shared-collection-bar shared-bar-slim" aria-label="Shared collection">
+        <button className="shared-bar-back" aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={16} /><span>Mine</span></button>
         <p><strong>{sharedName}</strong><small role={shared.error ? "alert" : undefined}>{shared.loading ? 'Loading public decks…' : shared.error || 'No public decks found. The source may be empty, unavailable or private.'}</small></p>
-      </section>}
-      {sharedShelf && !showCollection && !barHidden && <section className="shared-collection-bar shared-bar-slim" aria-label="Shared collection">
-        <button className="icon-button" aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={17} /></button>
-        <p><strong>{sharedName}</strong><small role={sharedSaved ? "status" : undefined}>{sharedSaved ? 'Saved to your collection. Refresh it in My collection.' : sharedSummary}</small></p>
-        <div className="shared-bar-actions">{shelfButtons}</div>
-        <button className="icon-button" aria-label="Hide this bar" title="Hide this bar. Its actions stay in the menu by the logo." onClick={() => changeBarHidden(true)}><ChevronUp size={17} /></button>
       </section>}
       {showShare && <ShareCollection sources={isShared ? (shared.source ? [shared.source] : []) : collection.sources || []} onClose={() => setShowShare(false)} />}
       {storageError && (
@@ -786,7 +809,7 @@ function App() {
             <Search size={16} />
             <input
               aria-label="Search decks"
-              placeholder="Search decks, commanders, or themes…"
+              placeholder={sharedShelf ? `Search ${sharedName}'s decks…` : "Search decks, commanders, or themes…"}
               value={filters.query}
               onChange={(e) => updateFilter("query", e.target.value)}
             />
@@ -932,6 +955,8 @@ function App() {
                   {visible.length === owned.length
                     ? `${visible.length} ${visible.length === 1 ? "deck" : "decks"}`
                     : <>{visible.length} of {owned.length}<span className="count-unit"> decks</span></>}
+                  {sharedShelf && shared.filling > 0 && ` · ${shared.filling} loading`}
+                  {sharedShelf && shared.failed > 0 && ` · ${shared.failed} couldn’t load`}
                 </span>
               </div>
               <QuickChoiceControls view={view} selecting={selecting} total={shortlist.length} eligible={view === 'picker' ? eligible.length : browsingEligible.length} busy={spinning}
@@ -1022,6 +1047,8 @@ function App() {
                   ))}
                 </div>
               )
+            ) : isShared && shared.loading ? (
+              <div className="empty-state" role="status"><Library size={32} strokeWidth={1} /><h3>Loading {sharedName}'s decks…</h3></div>
             ) : (
               <div className="empty-state">
                 <Search size={32} strokeWidth={1} />
@@ -1173,13 +1200,13 @@ function App() {
         <CollectionManager
           key={`${sharedIdentity}:${collectionVisit}`}
           readOnly={{ name: sharedName, actions: shelfButtons }}
-          // Someone else's shelf is never checked or changed from here.
+          // Someone else's shelf is never checked from here, and your choices stay on this device.
           sourceRefresh={sourceRefresh}
           followEnabled={false}
           catalog={[]}
           decks={shared.decks}
           collection={sharedWorkspace}
-          setCollection={() => {}}
+          setCollection={setSharedWorkspace}
           initialSection="overview"
           onLocationChange={() => {}}
           onRestore={() => {}}
@@ -1190,7 +1217,11 @@ function App() {
           onShare={() => setShowShare(true)}
         />
       )}
-      {showCollection && !sharedShelf && (
+      {/* While a friend's shelf loads, its folders page says so; your own folders never stand in for it. */}
+      {showCollection && isShared && shared.loading && (
+        <main className="collection-workspace" aria-label={`${sharedName} folders`}><div className="empty-state" role="status"><Library size={32} strokeWidth={1} /><h3>Loading {sharedName}'s decks…</h3></div></main>
+      )}
+      {showCollection && !isShared && (
         <CollectionManager
           sourceRefresh={sourceRefresh}
           followEnabled={followEnabled}
@@ -1209,8 +1240,9 @@ function App() {
           notify={notify}
           undoTo={undoTo}
           onShare={() => setShowShare(true)}
-          overviewExtra={<RecentShelves list={recent} kept={kept.map(shelf => shelfId(shelf.source))} onOpen={openSharedShelf}
-            onForget={id => setRecent(list => list.filter(ref => shelfId(ref) !== id))} onClear={() => setRecent([])} />}
+          onBrowse={openSharedShelf}
+          overviewExtra={<OtherCollections kept={kept} recent={recent} onOpen={openSharedShelf} onBookmark={bookmarkShelf} onUnbookmark={removeBookmark}
+            onForget={id => setRecent(list => list.filter(ref => shelfId(ref) !== id))} />}
         />
       )}
     </div>

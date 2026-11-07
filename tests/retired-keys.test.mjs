@@ -11,7 +11,7 @@ function storage(entries = {}) {
 }
 
 test('retired prototype keys are cleared and current saves are left alone', () => {
-  const current = { [COLLECTION_KEY]: '{"version":1}', [FIRST_VISIT_KEY]: '1', [KEPT_KEY]: '[]', [RECENT_KEY]: '[]', 'deckshelf.shelf-bar-hidden': 'true' };
+  const current = { [COLLECTION_KEY]: '{"version":1}', [FIRST_VISIT_KEY]: '1', [KEPT_KEY]: '[]', [RECENT_KEY]: '[]', 'deckshelf.shelf-views.v1': 'true' };
   const saved = storage({ ...current, ...Object.fromEntries(RETIRED_KEYS.map(key => [key, 'old'])) });
   clearRetiredKeys(saved);
   assert.deepEqual(Object.fromEntries(saved.values), current);
