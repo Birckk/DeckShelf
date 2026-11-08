@@ -16,6 +16,7 @@ import { trackFocusInput } from "./focusInput";
 import { registerServiceWorker } from "./pwa";
 import { clearRetiredKeys } from "./retiredKeys";
 import { WindowBar } from "./WindowBar";
+import { CrashBoundary, CrashProbe } from "./CrashScreen";
 
 try { clearRetiredKeys(localStorage); } catch { /* Reading localStorage itself can throw when storage is blocked. */ }
 
@@ -24,7 +25,10 @@ trackFocusInput();
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <WindowBar />
-    <App />
+    <CrashBoundary>
+      <CrashProbe />
+      <App />
+    </CrashBoundary>
   </React.StrictMode>,
 );
 

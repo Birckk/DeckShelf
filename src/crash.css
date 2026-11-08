@@ -1,0 +1,9 @@
+/* Shown instead of the app after a render error; depends on nothing else having loaded. */
+.crash-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px var(--gutter); background: var(--bg); }
+.crash-panel { width: min(100%, 460px); padding: 24px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.crash-panel h1 { margin: 0 0 12px; font: 500 22px var(--display); color: var(--ink); }
+.crash-panel p { margin: 0 0 12px; line-height: 1.55; color: #c9c7c1; }
+.crash-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.crash-actions button { min-height: var(--tap); padding: 7px 14px; border: 1px solid #45433d; border-radius: 5px; background: #1b1c1e; color: #e7e1d5; }
+.crash-actions .crash-primary { border-color: var(--gold); background: var(--gold); color: #1a1916; font-weight: 600; }
+.crash-status { min-height: 1.55em; margin: 12px 0 0 !important; font-size: 12px; }
