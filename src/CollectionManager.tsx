@@ -72,6 +72,7 @@ import CollectionOverview from "./CollectionOverview";
 import SourceSetup, { type FolderDiscovery } from "./SourceSetup";
 import FormatSelect from './FormatSelect';
 import "./collection.css";
+import { apiJson, UNREACHABLE } from "./api";
 
 type Props = {
   sourceRefresh: { checking: string; refresh: (key: string, manual?: boolean) => Promise<void> };
@@ -97,16 +98,7 @@ type Props = {
 async function jsonRequest(path: string, signal: AbortSignal) {
   if (!navigator.onLine)
     throw new Error("You're offline. Connect to the internet to read Archidekt.");
-  const response = await fetch(path, {
-    signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]),
-  });
-  if (!response.headers.get("content-type")?.includes("application/json"))
-    throw new Error(
-      "Connecting sources needs the local app server. Start the app with npm start or npm run dev.",
-    );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Could not read the source.");
-  return data;
+  return apiJson(path, { signal, fallback: "Could not read the source." });
 }
 async function loadSource(
   kind: string,
@@ -311,8 +303,8 @@ export default function CollectionManager({
   // where they started, so they become notices that stay until dismissed.
   function report(error: unknown, inline = false) {
     if ((error as Error).name === "AbortError") return;
-    const message = (error as Error).message === "Failed to fetch"
-      ? "Could not reach Archidekt. Your saved decks are still available."
+    const message = (error as Error).message.startsWith(UNREACHABLE)
+      ? `${(error as Error).message} Your saved decks are still available.`
       : (error as Error).message;
     if (inline) setError(message);
     else notify(message, { tone: "problem" });

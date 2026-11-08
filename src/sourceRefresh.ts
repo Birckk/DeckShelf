@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { parseCollection, validateDeck, validateSource, type Collection, type CollectionSource, type Deck } from './domain.ts';
+import { apiJson } from './api.ts';
 import { refreshSourceMembership, sourceDue, sourceMembership, sourceRefreshFailure } from './collection.ts';
 
-async function read(path: string, signal: AbortSignal) {
-  const response = await fetch(path, { signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]) });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Could not check Archidekt.');
-  return data;
-}
+const read = (path: string, signal: AbortSignal) => apiJson(path, { signal, fallback: 'Could not check Archidekt.' });
 
 export type RefresherOptions = {
   collection: () => Collection;

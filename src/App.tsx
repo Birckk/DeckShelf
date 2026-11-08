@@ -72,6 +72,7 @@ import { useSourceRefresh } from './sourceRefresh';
 import { Notices, notify } from "./Notices";
 import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshCollection, addDemo, fillDeck, dropPartialDecks, mergeSnapshot, saveSnapshots } from "./collection";
 import { DeckLoadError, fillDecks, loadFullDeck } from "./deckFill";
+import { apiJson } from "./api";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 import FirstVisitHint, { TourPopover } from "./FirstVisitHint";
 import { COLLECTION_KEY as STORAGE_KEY, ENABLE_FIRST_VISIT_IN_PRODUCTION, isFreshProfile, markFirstVisit } from "./firstVisit";
@@ -531,12 +532,7 @@ function App() {
     setRefreshing(true);
     setRefreshError(null);
     try {
-      const response = await fetch(`/api/decks/${deck.id}?refresh=1`, {
-        signal: AbortSignal.timeout(25000),
-      });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Could not refresh this deck.");
+      const data = await apiJson(`/api/decks/${deck.id}?refresh=1`, { timeout: 25000, fallback: "Could not refresh this deck." });
       if (!validateDeck(data) || data.id !== deck.id)
         throw new Error("The source returned incomplete deck information.");
       const updated = mergeSnapshot(deck, data);
