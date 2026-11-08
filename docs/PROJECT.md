@@ -1,6 +1,6 @@
 # Project work
 
-[DeckShelf — Feature releases](https://github.com/users/Bircck/projects/4) is the
+[DeckShelf — Feature releases](https://github.com/orgs/Birckk/projects/1) is the
 release-planning overview. Its items are the real
 [GitHub issues](https://github.com/Birckk/DeckShelf/issues), not duplicate tasks.
 Use [First-use polish](https://github.com/Birckk/DeckShelf/milestone/1) for the next
