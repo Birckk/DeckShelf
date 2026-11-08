@@ -1289,9 +1289,19 @@ option {
   opacity: 0.29;
   transition: opacity 1200ms ease;
 }
+/* The blur sits on a layer behind the header, not on the header itself: Firefox paints the
+   page's toolbar over popovers (the collection menu) that open from a backdrop-filter box. */
 .studio-header {
+  background: none;
+}
+.studio-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: #111214b8;
   backdrop-filter: blur(18px);
+  pointer-events: none;
 }
 .helix-picker {
   background: #10111462;
