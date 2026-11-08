@@ -27,6 +27,13 @@ textarea {
   outline-offset: var(--focus-offset, 2px);
 }
 
+/* Firefox keeps a menu opened with the mouse "not focus-visible" when the arrow keys move focus
+   inside it, so once a key is pressed its items light on plain :focus. */
+:root[data-input="keyboard"] .collection-menu-popover > button:focus {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset, 2px);
+}
+
 /* Headings take focus only so screen readers land on the new page; they aren't controls. */
 :is(h1, h2, h3):focus-visible {
   outline: none;

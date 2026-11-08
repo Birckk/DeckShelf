@@ -241,7 +241,7 @@ body:has(.collection-workspace) { min-width:320px; }
 .collection-workspace .text-button.collection-menu-trigger { width:32px; padding-inline:0; }
 .collection-menu-popover { position:fixed; z-index:60; display:grid; min-width:170px; padding:4px; border:1px solid #3a3936; border-radius:5px; background:#1b1c1f; box-shadow:0 10px 30px #0008; }
 .collection-menu-popover > button { display:flex; align-items:center; gap:8px; padding:8px 10px; border:0; border-radius:3px; background:none; color:#d8d4cb; font:inherit; font-size:12px; text-align:left; white-space:nowrap; cursor:pointer; }
-.collection-menu-popover > button:hover, :root:not([data-input="pointer"]) .collection-menu-popover > button:focus-visible { background:#2a2925; color:#f0e2c6; }
+.collection-menu-popover > button:hover, :root:not([data-input="pointer"]) .collection-menu-popover > button:focus-visible, :root[data-input="keyboard"] .collection-menu-popover > button:focus { background:#2a2925; color:#f0e2c6; }
 .collection-menu-confirm { width:240px; padding:12px; gap:10px; }
 .collection-menu-confirm p { margin:0; font-size:12px; line-height:1.5; color:#d8d4cb; }
 .collection-menu-confirm div { display:flex; justify-content:flex-end; gap:8px; }
