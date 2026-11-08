@@ -3,6 +3,13 @@ import { archidektFormat } from '../shared/formats.mjs';
 const ORIGIN = "https://archidekt.com";
 const idPattern = /^\d{1,12}$/;
 
+function validateSource(kind, value, formatScope) {
+  if (!['commander', 'all'].includes(formatScope)) throw new Error('Choose Commander or All formats.');
+  if (!['account', 'folder'].includes(kind) || typeof value !== 'string' ||
+      !(kind === 'folder' ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(value))
+    throw new Error('Use an Archidekt username or folder ID.');
+}
+
 // Archidekt serves a deck's featured art from its card-image host or as a
 // storage.googleapis.com art crop. Both name the card, so keep only its ID.
 export function featuredCardId(url) {
@@ -229,15 +236,17 @@ export async function discoverFolders(kind, value, { signal: outerSignal, format
 
 // Public discovery cache is shared by visitors, including in-flight work and failures.
 // Manual checks can bypass the 24h TTL, but never the five-minute burst guard.
-export function createSourceCache(discover = discoverSource, now = Date.now, cooldown = createUpstreamCooldown(now)) {
+export function createSourceCache(discover = discoverSource, now = Date.now, cooldown = createUpstreamCooldown(now), { ttl = 86400000, manualTtl = 300000 } = {}) {
   const cache = new Map();
   let queue = Promise.resolve();
   return async function cachedSource(kind, value, manual = false, formatScope = 'commander') {
+    // Invalid requests must not consume capacity or evict a real source.
+    validateSource(kind, value, formatScope);
     const key = JSON.stringify([kind, String(value).toLowerCase(), formatScope]);
     let entry = cache.get(key);
     if (entry?.pending) return entry.pending;
     if (entry?.retryAt > now()) throw new Error(entry.error);
-    if (entry?.data && now() - entry.time < (manual ? 300000 : 86400000)) return entry.data;
+    if (entry?.data && now() - entry.time < (manual ? manualTtl : ttl)) return entry.data;
     if (!entry) {
       if (cache.size >= 200) {
         const oldest = [...cache].find(([, value]) => !value.pending);
@@ -268,3 +277,5 @@ export function createSourceCache(discover = discoverSource, now = Date.now, coo
   };
 }
 export const cachedSource = createSourceCache(discoverSource, Date.now, upstreamCooldown);
+// Folder previews change often; share bursts without hiding edits for a day.
+export const cachedFolders = createSourceCache(discoverFolders, Date.now, upstreamCooldown, { ttl: 60000, manualTtl: 60000 });

@@ -23,7 +23,7 @@ async function fixture(t, api) {
   }));
   // Raw HTTP paths keep encoded traversal intact instead of normalizing it in fetch.
   return (path, method = 'GET', headers = {}) => new Promise((resolve, reject) => {
-    const req = request({ host: '127.0.0.1', port: server.address().port, path, method, headers }, res => {
+    const req = request({ host: '127.0.0.1', port: server.address().port, path, method, headers, agent: false }, res => {
       let body = '';
       res.setEncoding('utf8');
       res.on('data', chunk => { body += chunk; });
@@ -91,7 +91,7 @@ test('production handler caps API work at eight and releases slots after success
   const get = await fixture(t, (req, res, next) => {
     if (!req.url.startsWith('/api/')) return next();
     return new Promise((resolve, reject) => {
-      pending.push({ finish() { if (!res.writableEnded) res.end('ok'); resolve(); }, reject });
+      pending.push({ url: req.url, finish() { if (!res.writableEnded) res.end('ok'); resolve(); }, reject });
       nextAccepted?.();
       if (pending.length === 8) ready();
     });
@@ -110,8 +110,10 @@ test('production handler caps API work at eight and releases slots after success
   assert.equal((await get('/assets/app.js')).status, 200);
   const replacements = [];
   for (const [index, fail] of [[0, false], [1, true]]) {
-    if (fail) pending[index].reject(new Error('upstream failed'));
-    else pending[index].finish();
+    // Requests can reach the server out of order; settle the one this step awaits.
+    const held = pending.find(item => item.url === `/api/decks/${index}`);
+    if (fail) held.reject(new Error('upstream failed'));
+    else held.finish();
     const completed = await requests[index];
     assert.equal(completed.status, fail ? 500 : 200);
     if (fail) assert.deepEqual(JSON.parse(completed.body), { error: 'Could not complete the source request.' });
@@ -120,7 +122,7 @@ test('production handler caps API work at eight and releases slots after success
     await accepted;
     assert.equal((await get('/api/sources')).status, 503);
   }
-  for (const item of pending.slice(2)) item.finish();
+  for (const item of pending) item.finish();
   await Promise.all(requests);
   for (const result of await Promise.all(replacements)) assert.equal(result.status, 200);
   assert.equal((await get('/healthz', 'HEAD')).body, '');
