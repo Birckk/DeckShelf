@@ -222,8 +222,9 @@ test('show folder switches only keeps its focus ring for keyboard focus', async 
   const checkbox = nav.getByRole('checkbox', { name: 'Show folder switches' });
   const option = nav.locator('.navigator-switch-option');
   await checkbox.click();
-  await expect(checkbox).toBeFocused();
+  // WebKit on Windows and macOS doesn't focus a clicked checkbox; either way no ring shows.
   await expect(option).toHaveCSS('outline-style', 'none');
+  await checkbox.focus();
   await page.keyboard.press('Shift+Tab');
   await page.keyboard.press('Tab');
   await expect(checkbox).toBeFocused();
@@ -490,6 +491,9 @@ test('collection results bar stays one unchanging row above phone width', async 
   });
   for (const width of [1920, 1500, 1100, 1068, 1000, 944, 900, 850, 800, 760, 701]) {
     await page.setViewportSize({ width, height: 900 });
+    // WebKit leaves the scrollbar out when it matches media queries, so just above 700px it
+    // already uses the compact layout. Check only widths the browser treats as above it.
+    if (await page.evaluate(() => matchMedia('(max-width: 700px)').matches)) continue;
     const idle = await snap();
     expect(idle.overflow, `${width}px`).toBe(false);
     // One row: the layout switch sits level with the quick-choice group.

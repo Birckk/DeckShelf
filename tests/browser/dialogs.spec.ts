@@ -12,24 +12,24 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
-test('dialog keeps keyboard focus, closes with Escape, and restores the deck trigger', async ({ page, browserName }) => {
+test('dialog keeps keyboard focus, closes with Escape, and restores the deck trigger', async ({ page }) => {
   const trigger = page.getByRole('button', { name: `View ${first.name}`, exact: true });
   // WebKit pointer clicks need not focus buttons; open with the keyboard to test focus restoration.
   await trigger.focus();
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Deck details', exact: true });
   await expect(dialog.getByRole('heading', { name: 'Deck details', exact: true })).toBeVisible();
-  await expect(dialog.getByRole('button', { name: 'Close dialog' })).toBeFocused();
-  // WebKit's default keyboard navigation skips links, so the Tab order there is Close → Refresh.
-  const link = browserName === 'webkit' ? dialog.getByRole('button', { name: 'Close dialog' }) : dialog.getByRole('link', { name: /View deck on/ });
-  if (browserName !== 'webkit') {
-    await page.keyboard.press('Tab');
-    await expect(link).toBeFocused();
-  }
+  const close = dialog.getByRole('button', { name: 'Close dialog' });
+  await expect(close).toBeFocused();
+  // Whether Tab stops on links is a browser setting (WebKit skips them on Windows and macOS by
+  // default, but not on Linux), so the order is Close → link → Refresh or Close → Refresh.
+  const link = dialog.getByRole('link', { name: /View deck on/ });
   await page.keyboard.press('Tab');
+  const tabsToLinks = await link.evaluate(element => element === document.activeElement);
+  if (tabsToLinks) await page.keyboard.press('Tab');
   await expect(dialog.getByRole('button', { name: 'Refresh snapshot' })).toBeFocused();
   await page.keyboard.press('Shift+Tab');
-  await expect(link).toBeFocused();
+  await expect(tabsToLinks ? link : close).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();

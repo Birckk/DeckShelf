@@ -266,10 +266,12 @@ for (const flow of ['individual', 'folders', 'selected']) test(`background snaps
 
 test('restoring a backup invalidates an in-flight refresh, even for the same source key', async ({ page }) => {
   await prepare(page, { fresh: true });
-  let release!: () => void, requested = false;
+  let release!: () => void, answered!: () => void, requested = false;
   const gate = new Promise<void>(resolve => { release = resolve; });
-  const aborted = page.waitForEvent('requestfailed', request => request.url().includes(`/api/decks/${decks[2].id}`));
-  await page.route(`**/api/decks/${decks[2].id}`, async route => { requested = true; await gate; await route.fulfill({ json: decks[2] }).catch(() => {}); });
+  // The late answer is sent (or refused, when the app has aborted it) once the backup is restored.
+  // Linux WebKit doesn't report an aborted request that a route is holding, so wait for the route.
+  const late = new Promise<void>(resolve => { answered = resolve; });
+  await page.route(`**/api/decks/${decks[2].id}`, async route => { requested = true; await gate; await route.fulfill({ json: decks[2] }).catch(() => {}); answered(); });
   await openSource(page);
   await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   await expect(page.locator('.source-refresh-status')).toContainText('Checking');
@@ -278,7 +280,7 @@ test('restoring a backup invalidates an in-flight refresh, even for the same sou
   await page.locator('input[type=file]').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
   release();
-  await aborted;
+  await late;
   await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key)).toEqual(backup);
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key)).toEqual(backup);

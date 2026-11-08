@@ -287,7 +287,7 @@ for (const viewport of reviewSizes) test.describe(`owner phone pre-pass ${viewpo
     await fits(page);
   });
 
-  test('long details scroll independently, keep close reachable, and restore focus and page scrolling', async ({ page, browserName }) => {
+  test('long details scroll independently, keep close reachable, and restore focus and page scrolling', async ({ page }) => {
     const long = { ...decks[0], description: 'Long Commander description with a card reference [[Sol Ring]]. '.repeat(120) + 'End of the saved description.' };
     await page.addInitScript(({ key, long }) => {
       const saved = JSON.parse(localStorage.getItem(key)!);
@@ -314,11 +314,12 @@ for (const viewport of reviewSizes) test.describe(`owner phone pre-pass ${viewpo
     await page.keyboard.press('Tab');
     await expect(dialog.getByRole('button', { name: 'Refresh snapshot' })).toBeFocused();
     await page.keyboard.press('Shift+Tab');
-    // WebKit skips links and returns to the last tag button (or Close when there are no tags).
+    // Browsers that skip links when tabbing (a setting; WebKit's default on Windows and macOS)
+    // return to the last tag button, or Close when there are no tags; the others return to the link.
     const previousButton = long.tags.length
       ? dialog.getByRole('group', { name: 'Tags', exact: true }).getByRole('button').last()
       : dialog.getByRole('button', { name: 'Close dialog' });
-    await expect(browserName === 'webkit' ? previousButton : link).toBeFocused();
+    if (!await link.evaluate(element => element === document.activeElement)) await expect(previousButton).toBeFocused();
     await trigger.focus();
     await expect(trigger).not.toBeFocused();
     await dialog.getByRole('button', { name: 'Close dialog' }).click();
