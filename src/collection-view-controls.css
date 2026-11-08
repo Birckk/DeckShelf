@@ -40,9 +40,12 @@
 /* Above phone width the Collection results row's controls fill what the row leaves, right-aligned, and
    compact in place as that space shrinks: first Size and sort fold behind the options
    button into a panel below it, then the layouts drop their labels. Each threshold is the
-   width of the controls at the step above (full 657px, folded with labels 356px). */
+   width of the controls at the step above (full 657px; folded with labels 363px: the
+   311px layout switch, an 18px gap and the 34px options button). Neither part shrinks, so a
+   wrong threshold shows up as overflow in the tests instead of a quietly squeezed button. */
 @media(min-width:701px) {
   .results-toolbar .shared-view-controls.collection-display-toolbar { container:display-controls / inline-size; position:relative; flex-wrap:nowrap; justify-content:flex-end; }
+  .results-toolbar .shared-view-controls.collection-display-toolbar > * { flex-shrink:0; }
   @container display-controls (max-width:656px) {
     .results-toolbar .shared-view-controls .display-options-toggle { display:flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; color:#c3bdaf; background:#171719; border:1px solid #37363a; border-radius:5px; cursor:pointer; }
     .results-toolbar .shared-view-controls .display-options-toggle:hover { color:#f2e5c9; background:#2a2a2d; }
@@ -50,7 +53,7 @@
     .results-toolbar .shared-view-controls .display-tools { display:none; }
     .results-toolbar .shared-view-controls.options-open .display-tools { display:flex; position:absolute; top:calc(100% + 6px); right:0; z-index:5; align-items:center; gap:18px; padding:8px 12px; background:#171719; border:1px solid #37363a; border-radius:6px; box-shadow:0 8px 24px #0008; }
   }
-  @container display-controls (max-width:355px) {
+  @container display-controls (max-width:362px) {
     .results-toolbar .shared-view-controls .collection-layout-switch button > span { display:none; }
   }
 }
