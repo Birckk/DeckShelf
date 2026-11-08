@@ -63,7 +63,10 @@ release. A pushed `vX.Y.Z` tag must match `package.json` and the release-notes
 version. It packages and tests the Windows app and runs the browser suite in
 Chromium, Firefox and WebKit. Only when all of those pass does it publish `ghcr.io/birckk/deckshelf:vX.Y.Z`
 and `:latest`, then a separate job with contents-write permission creates a
-**draft** GitHub release. It never publishes the draft. No upload token is baked
+**draft** GitHub release with three files: the setup executable, the portable ZIP
+and `SHA256SUMS.txt`. Its text is `docs/RELEASE_NOTES.md`; GitHub keeps line breaks
+in release text, so write each paragraph on one line and use absolute links and image
+URLs. It never publishes the draft. No upload token is baked
 into the executable and electron-builder publishing is disabled.
 
 For a release:

@@ -111,4 +111,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
-        run: gh release create "$RELEASE_TAG" assets/* --verify-tag --draft --title "DeckShelf $RELEASE_TAG" --notes-file assets/RELEASE_NOTES.md
+        # A release offers three files: the installer, the portable ZIP and their checksums.
+        run: gh release create "$RELEASE_TAG" assets/*Setup*.exe assets/*.zip assets/SHA256SUMS.txt --verify-tag --draft --title "DeckShelf $RELEASE_TAG" --notes-file assets/RELEASE_NOTES.md
