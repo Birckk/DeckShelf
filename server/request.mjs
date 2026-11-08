@@ -2,9 +2,10 @@ import { createReadStream } from 'node:fs';
 import { pipeline } from 'node:stream';
 import { handleApi } from './api.mjs';
 import { staticFile } from './static.mjs';
+import { createImportSlots } from './import-slots.mjs';
 
 export function createRequestHandler(root, api = handleApi) {
-  let activeImports = 0;
+  const acquire = createImportSlots();
   return (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -17,16 +18,16 @@ export function createRequestHandler(root, api = handleApi) {
     // Bound upstream work globally without trusting spoofable forwarding headers.
     if (req.url?.startsWith('/api/')) {
       res.setHeader('Cache-Control', 'no-store');
-      if (activeImports >= 8) {
+      const release = acquire(req);
+      if (!release) {
         res.writeHead(503, { 'Content-Type': 'application/json', 'Retry-After': '5' });
         res.end(JSON.stringify({ error: 'Source imports are busy. Please try again shortly.' }));
         return;
       }
-      activeImports++;
       Promise.resolve(api(req, res)).catch(() => {
         if (!res.headersSent) res.writeHead(500);
         res.end(JSON.stringify({ error: 'Could not complete the source request.' }));
-      }).finally(() => { activeImports--; });
+      }).finally(release);
       return;
     }
     return api(req, res, async () => {

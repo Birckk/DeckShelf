@@ -3,11 +3,11 @@ import { archidektFormat } from '../shared/formats.mjs';
 const ORIGIN = "https://archidekt.com";
 const idPattern = /^\d{1,12}$/;
 
-function validateSource(kind, value, formatScope) {
+function validateSource(kind, value, formatScope, invalid = 'Use an Archidekt username or folder ID.') {
   if (!['commander', 'all'].includes(formatScope)) throw new Error('Choose Commander or All formats.');
   if (!['account', 'folder'].includes(kind) || typeof value !== 'string' ||
       !(kind === 'folder' ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(value))
-    throw new Error('Use an Archidekt username or folder ID.');
+    throw new Error(invalid);
 }
 
 // Archidekt serves a deck's featured art from its card-image host or as a
@@ -236,12 +236,12 @@ export async function discoverFolders(kind, value, { signal: outerSignal, format
 
 // Public discovery cache is shared by visitors, including in-flight work and failures.
 // Manual checks can bypass the 24h TTL, but never the five-minute burst guard.
-export function createSourceCache(discover = discoverSource, now = Date.now, cooldown = createUpstreamCooldown(now), { ttl = 86400000, manualTtl = 300000 } = {}) {
+export function createSourceCache(discover = discoverSource, now = Date.now, cooldown = createUpstreamCooldown(now), { ttl = 86400000, manualTtl = 300000, invalid } = {}) {
   const cache = new Map();
   let queue = Promise.resolve();
   return async function cachedSource(kind, value, manual = false, formatScope = 'commander') {
     // Invalid requests must not consume capacity or evict a real source.
-    validateSource(kind, value, formatScope);
+    validateSource(kind, value, formatScope, invalid);
     const key = JSON.stringify([kind, String(value).toLowerCase(), formatScope]);
     let entry = cache.get(key);
     if (entry?.pending) return entry.pending;
@@ -278,4 +278,4 @@ export function createSourceCache(discover = discoverSource, now = Date.now, coo
 }
 export const cachedSource = createSourceCache(discoverSource, Date.now, upstreamCooldown);
 // Folder previews change often; share bursts without hiding edits for a day.
-export const cachedFolders = createSourceCache(discoverFolders, Date.now, upstreamCooldown, { ttl: 60000, manualTtl: 60000 });
+export const cachedFolders = createSourceCache(discoverFolders, Date.now, upstreamCooldown, { ttl: 60000, manualTtl: 60000, invalid: 'Enter an Archidekt username, profile or folder link.' });

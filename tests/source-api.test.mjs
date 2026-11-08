@@ -182,21 +182,17 @@ test('web deck cache keeps a 300+ deck shelf warm and evicts at its bound', asyn
   assert.equal(store.size, 1000);
 });
 
-test('one client cannot consume all import slots and total concurrency stays at eight', () => {
+test('source listings hold at most half the import slots, so deck loads keep working', () => {
   const acquire = createImportSlots();
-  const client = address => ({ socket: { remoteAddress: address }, headers: { 'x-forwarded-for': 'other-client' } });
-  const a = Array.from({ length: 4 }, () => acquire(client('a')));
-  assert.ok(a.every(release => typeof release === 'function'));
-  assert.equal(acquire(client('a')), undefined);
-  const b = Array.from({ length: 4 }, () => acquire(client('b')));
-  assert.ok(b.every(release => typeof release === 'function'));
-  assert.equal(acquire(client('c')), undefined);
-  a[0]();
-  const c = acquire(client('c'));
-  assert.equal(typeof c, 'function');
-  assert.equal(acquire(client('a')), undefined);
-  for (const release of [...a.slice(1), ...b, c]) release();
-  const next = Array.from({ length: 4 }, () => acquire(client('a')));
-  assert.ok(next.every(release => typeof release === 'function'));
-  next.forEach(release => release());
+  const at = url => ({ url });
+  const listings = Array.from({ length: 4 }, (_, i) => acquire(at(i % 2 ? '/api/source-folders?kind=folder&value=1' : '/api/sources?kind=folder&value=1')));
+  assert.ok(listings.every(release => typeof release === 'function'));
+  assert.equal(acquire(at('/api/sources?kind=folder&value=2')), undefined);
+  const decks = Array.from({ length: 4 }, (_, i) => acquire(at(`/api/decks/${i}`)));
+  assert.ok(decks.every(release => typeof release === 'function'));
+  assert.equal(acquire(at('/api/decks/9')), undefined, 'eight in total');
+  listings[0]();
+  listings[0]();
+  assert.equal(typeof acquire(at('/api/sources?kind=folder&value=2')), 'function', 'a freed slot is reusable, and releasing twice is harmless');
+  assert.equal(acquire(at('/api/decks/9')), undefined);
 });
