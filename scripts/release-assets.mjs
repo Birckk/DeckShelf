@@ -25,7 +25,8 @@ await copyFile(join(root, 'docs/RELEASE_NOTES.md'), join(output, 'RELEASE_NOTES.
 await copyFile(join(root, 'docs/VALIDATION.md'), join(output, 'VALIDATION.md'));
 const metadata = { version: pkg.version, platform: 'win32', arch: 'x64', electron: pkg.devDependencies.electron, revision: process.env.GITHUB_SHA || 'local-build', signed: false };
 await writeFile(join(output, 'build-info.json'), JSON.stringify(metadata, null, 2) + '\n');
-const files = [installer, zip, 'DESKTOP.md', 'THIRD_PARTY_NOTICES.md', 'RELEASE_NOTES.md', 'VALIDATION.md', 'build-info.json'];
+// Only the downloads get checksums; the docs ship inside the app and link from the release notes.
+const files = [installer, zip];
 const checksums = await Promise.all(files.map(async file => `${createHash('sha256').update(await readFile(join(output, file))).digest('hex')}  ${file}`));
 await writeFile(join(output, 'SHA256SUMS.txt'), checksums.join('\n') + '\n');
 console.log(`Release assets ready in ${output}. Nothing published.`);
