@@ -7,10 +7,15 @@ npm ci
 npm run dev        # http://127.0.0.1:4317 with the Archidekt adapter
 npm test           # unit tests
 npm run check      # Oxlint with type-aware rules (Vite+)
-npm run test:dialogs   # Playwright browser regressions (starts its own server)
+npm run test:dialogs   # dialog and focus regressions (starts its own server)
 npm run build      # type-check and production build
 npm start          # serve dist/ with the production server
 ```
+
+`test:dialogs` runs `dialogs.spec.ts` and `focus-ring.spec.ts`, including dialog
+keyboard and focus behavior. Use `npx playwright test` for the full browser suite;
+CI runs that full suite for each selected browser. Set `BASE_URL` to test against
+a server you started yourself.
 
 On Windows, `scripts/start-windows.cmd` installs dependencies on first run,
 rebuilds and starts the production server.
