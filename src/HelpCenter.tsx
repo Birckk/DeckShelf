@@ -36,7 +36,7 @@ const parentOf = (entry: Entry) => "parent" in entry ? entry.parent : undefined;
 const childrenOf = (id: HelpSection) => helpSections.filter(s => parentOf(s) === id);
 const FOLDS_KEY = "deckshelf.help-folds";
 // The public repository keeps this name when it is published (#36).
-const REPO_URL = "https://github.com/Bircck/DeckShelf";
+const REPO_URL = "https://github.com/Birckk/DeckShelf";
 const external = (href: string, text: string) => <a href={href} target="_blank" rel="noreferrer">{text} <ExternalLink size={12} /></a>;
 
 /** `/help` opens Start here; unknown sections fall back to it rather than leaving Help. `/settings` is Help's Settings section. */

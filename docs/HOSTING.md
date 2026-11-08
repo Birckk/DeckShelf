@@ -19,7 +19,7 @@ same limit).
 
 ## Docker
 
-Images are published to `ghcr.io/bircck/deckshelf`: `sha-<commit>` and `main` for
+Images are published to `ghcr.io/birckk/deckshelf`: `sha-<commit>` and `main` for
 every green main commit, `vX.Y.Z` and `latest` for releases. Pin deployments by
 digest.
 
@@ -34,7 +34,7 @@ Behind an existing reverse proxy on a shared Docker network named `proxy`, with
 no host ports published:
 
 ```sh
-echo "DECKSHELF_IMAGE=ghcr.io/bircck/deckshelf@sha256:..." > .env
+echo "DECKSHELF_IMAGE=ghcr.io/birckk/deckshelf@sha256:..." > .env
 docker compose -f deploy/compose.proxy.yaml pull
 docker compose -f deploy/compose.proxy.yaml up -d --wait
 ```

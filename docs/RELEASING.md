@@ -60,7 +60,7 @@ profile/installation.
 
 `release.yml` can be dispatched manually to produce reviewable artifacts without a
 release. A pushed `vX.Y.Z` tag must match `package.json` and the release-notes
-version. After the Windows checks pass it publishes `ghcr.io/bircck/deckshelf:vX.Y.Z`
+version. After the Windows checks pass it publishes `ghcr.io/birckk/deckshelf:vX.Y.Z`
 and `:latest`, then a separate job with contents-write permission creates a
 **draft** GitHub release. It never publishes the draft. No upload token is baked
 into the executable and electron-builder publishing is disabled.
@@ -79,7 +79,7 @@ Do not reuse or overwrite a published version/tag; draft creation fails on an
 existing release rather than replacing its assets.
 
 The source code is MIT licensed, and bundled card art follows the Wizards Fan
-Content Policy (issue #9). The repository `Bircck/DeckShelf` is public; history
+Content Policy (issue #9). The repository `Birckk/DeckShelf` is public; history
 before 2026-10-19 was recreated from a private archive (#122). No workflow
 changes repository visibility.
 

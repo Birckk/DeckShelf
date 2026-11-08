@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "A personal Commander collection viewer and deck picker",
-  "author": "Bircck",
+  "author": "Birckk",
   "license": "MIT",
   "main": "desktop/main.mjs",
   "type": "module",

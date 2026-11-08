@@ -129,6 +129,6 @@ jobs:
           provenance: true
           sbom: true
           tags: |
-            ghcr.io/bircck/deckshelf:sha-${{ github.sha }}
-            ghcr.io/bircck/deckshelf:main
-          labels: org.opencontainers.image.source=https://github.com/Bircck/DeckShelf
+            ghcr.io/birckk/deckshelf:sha-${{ github.sha }}
+            ghcr.io/birckk/deckshelf:main
+          labels: org.opencontainers.image.source=https://github.com/Birckk/DeckShelf
