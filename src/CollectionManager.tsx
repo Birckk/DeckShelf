@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Search,
   Share2,
+  SlidersHorizontal,
   Upload,
   X,
 } from "lucide-react";
@@ -181,6 +182,7 @@ export default function CollectionManager({
   const [status, setStatus] = useState("all");
   const [formatScope, setFormatScope] = useState('commander');
   const [browseFormat, setBrowseFormat] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -721,6 +723,7 @@ export default function CollectionManager({
               )}
               {section === "overview" && overviewExtra}
               {section !== "overview" && <>
+                <div className="manager-scope-head">
                 <div className="manager-section-heading">
                   <div>
                     <h3>
@@ -771,6 +774,7 @@ export default function CollectionManager({
                   {section === "starter" && !collection.demo && <div className="manager-precon-link"><button className="text-button" disabled={!!busy} onClick={addPrecons}>
                     <Plus size={14} />Add all Official Commander precons</button></div>}
                 </div>}
+                </div>
                 {followEnabled && source && <div className="source-refresh-status" aria-live="polite">
                   <span>Checked {new Date(source.checkedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
                   {sourceRefresh.checking === source.key ? <span>Checking…</span> : source.refresh?.error ? <span>Couldn’t check · {source.refresh.error} Trying again after {new Date(source.refresh.retryAt!).toLocaleTimeString([], { timeStyle: 'short' })}</span>
@@ -786,6 +790,11 @@ export default function CollectionManager({
                       onChange={(e) => setSearch(e.target.value)}
                     />
                   </label>
+                  <button className="button manager-filters-toggle" aria-expanded={showFilters} aria-controls="manager-filters"
+                    onClick={() => setShowFilters(open => !open)}>
+                    <SlidersHorizontal size={15} />Filters{(browseFormat !== 'all' || status !== 'all') && <span className="filter-dot" />}
+                  </button>
+                  <div className={`manager-filters ${showFilters ? "is-open" : ""}`} id="manager-filters">
                   <FormatSelect label="Collection format" value={browseFormat} onChange={setBrowseFormat} items={rows} all disabled={!!busy} />
                   <select
                     aria-label="Deck display status"
@@ -797,6 +806,7 @@ export default function CollectionManager({
                     <option value="hidden">Hidden</option>
                     {scopedSources.length > 0 && !readOnly && <option value="new">Not added</option>}
                   </select>
+                  </div>
                 </div>
                 <div className="workspace-display-controls">
                 <div className="manager-bulk">

@@ -259,7 +259,11 @@ for (const width of [1440, 390]) test(`folder pills preserve subsets and scoped 
   await expect(page.locator('.workspace-heading')).toContainText('3 on display');
   await page.screenshot({ path: `qa/collection/folder-pills-${width}.png`, fullPage: true });
   await nav.getByRole('button', { name: 'Mono-color', exact: true }).click();
+  // Phones fold format and status behind Filters beside search; it marks a filter that isn't the default.
+  const filters = page.getByRole('button', { name: 'Filters', exact: true });
+  if (width < 751) await filters.click();
   await page.getByRole('combobox', { name: 'Deck display status' }).selectOption('shown');
+  if (width < 751) await expect(filters.locator('.filter-dot')).toBeVisible();
   await expect(page.locator('.workspace-tile')).toHaveCount(0);
   await page.getByRole('combobox', { name: 'Deck display status' }).selectOption('all');
   await expect(page.getByRole('checkbox', { name: `Show ${decks[0].name}`, exact: true })).toBeChecked();

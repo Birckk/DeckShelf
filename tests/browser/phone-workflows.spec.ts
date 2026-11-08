@@ -35,6 +35,23 @@ for (const width of [320, 390, 800, 1440]) {
       expect(box.height).toBeLessThanOrEqual(34);
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    // A typical phone fits the pill, Only this and More beside the scope title instead of a row of their own.
+    if (width === 390) {
+      const heading = (await page.locator('.manager-section-heading h3').boundingBox())!;
+      const pill = (await page.locator('.manager-toolbar .overview-switch').boundingBox())!;
+      expect(pill.y).toBeLessThan(heading.y + heading.height);
+      expect(pill.x).toBeGreaterThan(heading.x + heading.width);
+    }
+    // Phones keep format and status behind Filters, in the search row, until asked for.
+    const status = page.getByRole('combobox', { name: 'Deck display status' });
+    if (width <= 700) {
+      const filters = page.getByRole('button', { name: 'Filters', exact: true });
+      await expect(status).toBeHidden();
+      expect(Math.abs((await filters.boundingBox())!.y - (await page.locator('.manager-search label').first().boundingBox())!.y)).toBeLessThan(2);
+      await filters.click();
+      await expect(status).toBeVisible();
+      await filters.click();
+    } else await expect(status).toBeVisible();
     const tile = page.locator('.workspace-tile').first();
     const art = (await tile.locator('.workspace-tile-art').boundingBox())!;
     const title = (await tile.locator('h4').boundingBox())!;

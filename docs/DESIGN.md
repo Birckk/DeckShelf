@@ -187,6 +187,7 @@ Layout, the same on overview boxes, source headers and phones:
 
 - Box: title and pill on top; then the active count, Only this and a ⋯ More menu on one row.
 - Header: pill and Only this on the left; Refresh (sources only) and ⋯ More at the far edge. A hidden collection shows Hidden · Show in place of the pill.
+- On phones (700px and narrower) the header controls sit beside the title when they fit, and drop to their own row, laid out as above, when a Refresh button or a long name needs the room. Format and status fold behind a Filters button beside the deck search, with a gold dot while either isn't the default (owner request, November 8).
 - More holds the rarer actions in a fixed order: All folders on / All folders off (folder scopes), Hide, Remove. The menu supports arrow keys and Escape and returns focus to its button.
 - Do not reintroduce Disable/Disconnect/Remove precons synonyms, a phone-only Actions toggle, or a restore banner.
 
