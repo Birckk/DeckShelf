@@ -225,15 +225,15 @@ body:has(.collection-workspace) { min-width:320px; }
 .manager-toolbar-end > .text-button { white-space:nowrap; }
 .collection-workspace .manager-group-control { gap:8px 12px; }
 /* Phones fold the folder tree behind an icon at the right end of the scope title (Help's menu
-   button is the same idea), with the Archidekt link right after the name, so there's no Folders row. */
+   button is the same idea), just after the Archidekt link, so there's no Folders row. */
 .scope-folders-toggle { display:none; }
 @media(max-width:700px) {
   .collection-workspace.has-scope .workspace-mobile-toggle { display:none; }
   .collection-workspace.has-scope .workspace-navigation.is-open { margin-bottom:10px; }
-  .collection-workspace .manager-section-heading { justify-content:flex-start; gap:4px; }
-  .collection-workspace .manager-section-heading > div { min-width:0; overflow-wrap:anywhere; }
-  .collection-workspace .manager-section-heading > .scope-source-link { width:26px; height:26px; flex:none; color:#9a978f; }
-  .collection-workspace .button.scope-folders-toggle { display:inline-flex; flex:none; width:32px; height:32px; min-height:0; padding:0; justify-content:center; margin-left:auto; }
+  .collection-workspace .manager-section-heading { gap:8px; }
+  .collection-workspace .manager-section-heading > div { flex:1; min-width:0; overflow-wrap:anywhere; }
+  .collection-workspace .manager-section-heading > .scope-source-link { width:32px; height:32px; flex:none; }
+  .collection-workspace .button.scope-folders-toggle { display:inline-flex; flex:none; width:32px; height:32px; min-height:0; padding:0; justify-content:center; }
 }
 .collection-hidden-state { display:flex; align-items:center; gap:8px 10px; flex-wrap:wrap; font-size:12px; color:#aaa6a0; }
 

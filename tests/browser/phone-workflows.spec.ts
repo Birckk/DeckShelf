@@ -35,8 +35,8 @@ for (const width of [320, 390, 800, 1440]) {
       expect(box.height).toBeLessThanOrEqual(34);
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-    // Phones open the folder tree from an icon at the end of the scope title instead of a Folders row,
-    // and the Archidekt link sits by the name.
+    // Phones open the folder tree from an icon at the end of the scope title, just after the Archidekt link,
+    // instead of a Folders row.
     if (width <= 700) {
       const heading = (await page.locator('.manager-section-heading h3').boundingBox())!;
       const folders = page.getByRole('button', { name: 'Sources and folders', exact: true });
