@@ -9,6 +9,7 @@ import {
   setShown,
   setDeckSelection,
   showcaseGroups,
+  archidektPage,
   showcaseDecks,
   deckCollections,
   enableGroup,
@@ -455,4 +456,18 @@ test("removing the old included precons switches the set off for good", async ()
   assert.deepEqual(after.archivedGroups, []);
   assert.deepEqual(collectionDecks(after, catalog), []);
   assert.equal(showcaseGroups(after, catalog, []).some(g => g.key === "starter"), false);
+});
+
+test("every Archidekt heading links to its folder, or the closest folder or account above it", () => {
+  const folder = (id, path) => ({ key: `folder:${id}`, kind: "folder", value: String(id), url: `https://archidekt.com/folders/${id}`, folderPath: path, connectionKey: "account:marf", connectionName: "Marf" });
+  const sources = [folder(1, "Home"), folder(2, "Home / Cubes / Vintage")];
+  assert.equal(archidektPage("folder:2", sources), "https://archidekt.com/folders/2");
+  assert.equal(archidektPage("scope:account:marf/Home", sources), "https://archidekt.com/folders/1");
+  // Cubes has no decks of its own, so it opens Home, the closest folder above it.
+  assert.equal(archidektPage("scope:account:marf/Home/Cubes", sources), "https://archidekt.com/folders/1");
+  assert.equal(archidektPage("scope:account:marf", sources), "https://archidekt.com/u/marf");
+  assert.equal(archidektPage("scope:connection:account:marf", sources), "https://archidekt.com/u/marf");
+  assert.equal(archidektPage("scope:folder:9", []), "https://archidekt.com/folders/9");
+  assert.equal(archidektPage("manual", sources), undefined);
+  assert.equal(archidektPage("all", sources), undefined);
 });

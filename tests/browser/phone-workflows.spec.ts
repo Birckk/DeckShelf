@@ -35,12 +35,19 @@ for (const width of [320, 390, 800, 1440]) {
       expect(box.height).toBeLessThanOrEqual(34);
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-    // A typical phone fits the pill, Only this and More beside the scope title instead of a row of their own.
-    if (width === 390) {
+    // Phones open the folder tree from an icon at the end of the scope title instead of a Folders row,
+    // and the Archidekt link sits by the name.
+    if (width <= 700) {
       const heading = (await page.locator('.manager-section-heading h3').boundingBox())!;
-      const pill = (await page.locator('.manager-toolbar .overview-switch').boundingBox())!;
-      expect(pill.y).toBeLessThan(heading.y + heading.height);
-      expect(pill.x).toBeGreaterThan(heading.x + heading.width);
+      const folders = page.getByRole('button', { name: 'Sources and folders', exact: true });
+      await expect(folders).toHaveCount(1);
+      const icon = (await folders.boundingBox())!;
+      expect(icon.y).toBeLessThan(heading.y + heading.height);
+      expect(icon.x + icon.width).toBeGreaterThan(width - 40);
+      await expect(page.getByRole('link', { name: 'Open on Archidekt' })).toHaveAttribute('href', 'https://archidekt.com/u/test');
+      await folders.click();
+      await expect(page.locator('.workspace-navigation')).toBeVisible();
+      await folders.click();
     }
     // Phones keep format and status behind Filters, in the search row, until asked for.
     const status = page.getByRole('combobox', { name: 'Deck display status' });
