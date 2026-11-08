@@ -240,9 +240,10 @@ export function imageUrl(value: unknown): value is string {
 export function validateSource(value: unknown): value is CollectionSource {
   if (!value || typeof value !== "object") return false;
   const s = value as CollectionSource;
+  const knownIds = new Set(Array.isArray(s.knownIds) ? s.knownIds : []);
   return (
-    (s.excludedIds === undefined || (Array.isArray(s.excludedIds) && s.excludedIds.length <= 2000 && s.excludedIds.every(id => typeof id === "string" && Array.isArray(s.knownIds) && s.knownIds.includes(id)))) &&
-    (s.pendingIds === undefined || (Array.isArray(s.pendingIds) && s.pendingIds.length <= 2000 && s.pendingIds.every(id => typeof id === "string" && Array.isArray(s.knownIds) && s.knownIds.includes(id)))) &&
+    (s.excludedIds === undefined || (Array.isArray(s.excludedIds) && s.excludedIds.length <= 2000 && s.excludedIds.every(id => typeof id === "string" && knownIds.has(id)))) &&
+    (s.pendingIds === undefined || (Array.isArray(s.pendingIds) && s.pendingIds.length <= 2000 && s.pendingIds.every(id => typeof id === "string" && knownIds.has(id)))) &&
     (s.membership === undefined || ["follow", "selected"].includes(s.membership)) &&
     (s.refresh === undefined || (!!s.refresh && Number.isInteger(s.refresh.failures) && s.refresh.failures >= 0 && s.refresh.failures <= 20 &&
       (s.refresh.retryAt === undefined || (typeof s.refresh.retryAt === "string" && Number.isFinite(Date.parse(s.refresh.retryAt)))) &&
@@ -271,9 +272,9 @@ export function validateSource(value: unknown): value is CollectionSource {
       (Array.isArray(s.selectedIds) &&
         s.selectedIds.length <= 2000 &&
         s.selectedIds.every(
-          (id) => typeof id === "string" && s.knownIds.includes(id),
+          (id) => typeof id === "string" && knownIds.has(id),
         ))) &&
-    (s.ownedIds === undefined || (Array.isArray(s.ownedIds) && s.ownedIds.length <= 2000 && s.ownedIds.every(id => typeof id === "string" && s.knownIds.includes(id)))) &&
+    (s.ownedIds === undefined || (Array.isArray(s.ownedIds) && s.ownedIds.length <= 2000 && s.ownedIds.every(id => typeof id === "string" && knownIds.has(id)))) &&
     Array.isArray(s.entries) &&
     s.entries.length <= 1000 &&
     new Set(s.entries.map((e) => e?.id)).size === s.entries.length &&
@@ -287,7 +288,7 @@ export function validateSource(value: unknown): value is CollectionSource {
         (e.image === "" || imageUrl(e.image)) &&
         Array.isArray(e.colors) &&
         e.colors.every((c) => COLORS.some((v) => v.id === c)) &&
-        s.knownIds.includes(e.id),
+        knownIds.has(e.id),
     )
   );
 }

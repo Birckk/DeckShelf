@@ -455,3 +455,32 @@ test("every Archidekt heading links to its folder, or the closest folder or acco
   assert.equal(archidektPage("manual", sources), undefined);
   assert.equal(archidektPage("all", sources), undefined);
 });
+
+
+test("source validation preserves membership rules at collection limits", () => {
+  const ids = Array.from({ length: 2000 }, (_, i) => String(i + 1));
+  const large = {
+    ...source,
+    knownIds: ids,
+    entries: ids.slice(0, 1000).map(id => ({ ...entry, id })),
+    selectedIds: ids,
+    ownedIds: ids,
+    pendingIds: ids,
+    excludedIds: ids,
+  };
+  assert.equal(validateSource(large), true);
+  // History and selection arrays may repeat IDs; listing entries must stay unique.
+  assert.equal(validateSource({ ...large, knownIds: [...ids.slice(1), ids[1]], entries: [], selectedIds: [], ownedIds: [], pendingIds: [], excludedIds: [] }), true);
+  for (const field of ["selectedIds", "ownedIds", "pendingIds", "excludedIds"]) {
+    assert.equal(validateSource({ ...large, [field]: [ids[0], ids[0]] }), true);
+    for (const invalid of [["999999"], [1], null, "1", [...ids, ids[0]]]) {
+      assert.equal(validateSource({ ...large, [field]: invalid }), false, field);
+    }
+  }
+  for (const knownIds of [undefined, null, "1", [1], ["bad"], [...ids, ids[0]]]) {
+    assert.equal(validateSource({ ...large, knownIds }), false);
+  }
+  assert.equal(validateSource({ ...large, entries: [large.entries[0], large.entries[0]] }), false);
+  assert.equal(validateSource({ ...large, entries: [{ ...entry, id: "999999" }] }), false);
+  assert.equal(validateSource({ ...source, knownIds: [], entries: [] }), true);
+});
