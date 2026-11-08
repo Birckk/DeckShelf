@@ -51,8 +51,8 @@ is not a USB-portable profile: data belongs to the Windows user, not the ZIP fol
 
 ## CI and release workflow
 
-`ci.yml` and `desktop.yml` run manually for now (see
-[DEVELOPMENT.md](DEVELOPMENT.md#cicd)). `desktop.yml` packages the app, tests the
+`ci.yml` runs on every pull request and `desktop.yml` on desktop packaging changes
+(see [DEVELOPMENT.md](DEVELOPMENT.md#cicd)). `desktop.yml` packages the app, tests the
 ZIP and runs the install/reinstall/uninstall lifecycle on a disposable Windows
 runner. The
 installer lifecycle script refuses to run locally or over an existing

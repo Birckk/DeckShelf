@@ -4,9 +4,9 @@ What is checked before a DeckShelf build is released, and what is not.
 
 ## Automated (CI)
 
-GitHub checks run manually for now (see [DEVELOPMENT.md](DEVELOPMENT.md#cicd)); run
-the Linux checks locally before merging. A default `ci.yml` run covers the first
-column, a full run adds the second, and `desktop.yml` tests the Windows package.
+Every pull request gets the default `ci.yml` run (see
+[DEVELOPMENT.md](DEVELOPMENT.md#cicd)), which covers the first column. A full run,
+started by hand, adds the second, and `desktop.yml` tests the Windows package.
 
 | Check | Default run | Full run |
 | --- | --- | --- |

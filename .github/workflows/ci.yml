@@ -1,13 +1,11 @@
 name: CI
-# Manual only for now, to stay within the free Actions minutes; run the checks locally
-# before merging (docs/DEVELOPMENT.md). To check every change on GitHub again, restore
-# these triggers; publish-image then resumes on main pushes.
+# Runs on every pull request and main push. Pull requests have no path filter, so the
+# checks the main ruleset requires always report. Green main pushes publish the image.
 on:
-  # push:
-  #   branches: [main]
-  #   paths-ignore: ['**.md', 'docs/**']
-  # pull_request:
-  #   paths-ignore: ['**.md', 'docs/**']
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
+  pull_request:
   workflow_dispatch:
     inputs:
       full:

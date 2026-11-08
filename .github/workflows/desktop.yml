@@ -1,17 +1,16 @@
 name: Desktop
-# The Windows runner bills at 2x, so this runs on demand, e.g. before a release;
-# release.yml repeats the package checks for tags. To run it automatically when
-# desktop packaging changes, restore the pull_request trigger.
+# Runs on pull requests that change desktop packaging, and on demand before a release;
+# release.yml repeats the package checks for tags.
 on:
-  # pull_request:
-  #   paths:
-  #     - 'desktop/**'
-  #     - 'scripts/after-pack.mjs'
-  #     - 'scripts/release-assets.mjs'
-  #     - 'scripts/smoke-desktop.mjs'
-  #     - 'scripts/smoke-installer.ps1'
-  #     - 'scripts/smoke-upgrade.mjs'
-  #     - '.github/workflows/desktop.yml'
+  pull_request:
+    paths:
+      - 'desktop/**'
+      - 'scripts/after-pack.mjs'
+      - 'scripts/release-assets.mjs'
+      - 'scripts/smoke-desktop.mjs'
+      - 'scripts/smoke-installer.ps1'
+      - 'scripts/smoke-upgrade.mjs'
+      - '.github/workflows/desktop.yml'
   workflow_dispatch:
 permissions:
   contents: read

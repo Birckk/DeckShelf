@@ -143,8 +143,8 @@ With the dev server running, `npm run screenshots` regenerates
 
 ## CI/CD
 
-GitHub checks are manual for now to stay within the free Actions minutes. Before
-merging, run the checks locally:
+`ci.yml` runs on every pull request and on pushes to `main` that change more than
+docs; the `main` ruleset requires it to pass. Run the same checks locally first:
 
 ```sh
 npm test
@@ -152,22 +152,19 @@ npm run build
 npx playwright test --browser=chromium
 ```
 
-Run `.github/workflows/ci.yml` from the Actions tab when a change needs more. By
-default it runs on Linux; tick **full** for the bracketed platforms (Windows runners
-bill 2x, macOS 10x):
+Pull requests and pushes get the Linux run. Run `ci.yml` from the Actions tab with
+**full** ticked for the bracketed platforms, for example before a release:
 
 - **unit**: tests and build on Ubuntu, Node 22 [plus Windows, macOS and Node 24].
 - **browsers**: Playwright regressions in Chromium [plus Firefox and WebKit].
 - **container**: builds `deploy/Dockerfile`, runs it hardened and smoke-tests it.
 - **publish-image**: pushes `ghcr.io/bircck/deckshelf:sha-<commit>` and `:main` with
-  provenance and SBOM after a green `main` push. Dormant while push triggers are off.
+  provenance and SBOM after a green `main` push.
 
 `desktop.yml` packages the Windows app, smoke-tests it and runs the installer
-lifecycle, including the upgrade from Commander Archive. Run it manually; its
-`windows-candidate` artifact (about 256 MB) is kept for 3 days.
-
-To check every change on GitHub again, restore the commented `push` and
-`pull_request` triggers in `ci.yml` (and `desktop.yml` for desktop packaging).
+lifecycle, including the upgrade from Commander Archive. It runs on pull requests
+that change desktop packaging and can be run by hand; its `windows-candidate`
+artifact (about 256 MB) is kept for 3 days.
 
 `release.yml` handles `vX.Y.Z` tags (see [RELEASING.md](RELEASING.md)).
 `codeql.yml` runs code scanning once the repository is public. Dependabot
