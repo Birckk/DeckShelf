@@ -62,7 +62,7 @@ import {
   importFolderSelection,
   listingDeck,
 } from "./collection";
-import precons from "./data/precons.json";
+import { loadPrecons } from "./precons";
 import CollectionNavigator from "./CollectionNavigator";
 import CollectionViewControls, { collectionPhoneColumns, collectionTileSize, sortCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
 import "./collection-workspace.css";
@@ -592,7 +592,7 @@ export default function CollectionManager({
     }
   }
   function addPrecons() {
-    setCollection(c => addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
+    void loadPrecons().then(snapshot => setCollection(c => addDemo(c, snapshot)));
     navigate("demo");
   }
   const headerKeys = scope ? scopedKeys : activeGroup || section === "demo" ? [section] : [];

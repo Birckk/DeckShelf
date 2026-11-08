@@ -105,6 +105,8 @@ for (const width of [1920, 1500, 390, 320]) test(`New? sits in the header row an
   await page.setViewportSize({ width, height: width < 500 ? 740 : 1080 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
+  // A new shelf renders once the precon snapshot has loaded.
+  await expect(page.locator('.studio-header .brand')).toBeVisible();
   // Everything in the header row sits side by side: logo, offer, Help, Library.
   const row = await page.evaluate(() => {
     const range = document.createRange();

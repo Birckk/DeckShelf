@@ -11,6 +11,8 @@ import './recovery.css';
 import FormatSelect from './FormatSelect';
 import TagFilter from './TagFilter';
 import {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -38,7 +40,7 @@ import {
   X,
   Settings,
 } from "lucide-react";
-import precons from "./data/precons.json";
+import { loadPrecons, loadedPrecons } from "./precons";
 import {
   COLORS,
   descriptionParts,
@@ -65,7 +67,9 @@ import Picker from "./HelixPicker";
 import ShufflePicker from "./ShufflePicker";
 import { savedPresentation, savePresentation, type Presentation } from "./PickerControls";
 import CardStudio from "./CardStudio";
-import HelpCenter, { helpSectionFromPath, type FeatureTarget, type HelpSection } from "./HelpCenter";
+import { helpSectionFromPath, type FeatureTarget, type HelpSection } from "./helpSections";
+// Help (with Settings) is a separate chunk; most visits never open it.
+const HelpCenter = lazy(() => import("./HelpCenter"));
 import { CardBackContext } from "./placeholders/CardBackArt";
 import CollectionManager from "./CollectionManager";
 import { useSourceRefresh } from './sourceRefresh';
@@ -88,7 +92,8 @@ function readSaved(): { collection: Collection; error: string; raw?: string | nu
   try {
     raw = localStorage.getItem(STORAGE_KEY);
     return {
-      collection: raw !== null ? parseCollection(raw) : freshCollection(precons as { snapshotAt: string; decks: Deck[] }),
+      // main.tsx loads the precons first whenever nothing is saved.
+      collection: raw !== null ? parseCollection(raw) : loadedPrecons() ? freshCollection(loadedPrecons()!) : { ...EMPTY_COLLECTION },
       error: "",
       fresh: isFreshProfile(localStorage),
     };
@@ -484,9 +489,10 @@ function App() {
   function toggleTag(tag: string) {
     changeFilters(f => ({ ...f, tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag] }));
   }
-  function openPrecons() {
+  async function openPrecons() {
+    const snapshot = await loadPrecons();
     if (isShared) leaveShared();
-    setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
+    setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, snapshot));
     setHelp(null);
     setPersonalStart(false);
     setCollectionSection("demo");
@@ -646,8 +652,9 @@ function App() {
     setSharedSaving(true);
     const identity = sharedIdentity;
     try {
+      const snapshot = await loadPrecons();
       const next = await saveSharedCollectionWithLock(localStorage, STORAGE_KEY, shared.source!, owned,
-        () => freshCollection(precons as { snapshotAt: string; decks: Deck[] }), undefined, shared.folders);
+        () => freshCollection(snapshot), undefined, shared.folders);
       // A queued Save may finish after the visitor has left this shelf.
       if (activeSharedIdentity.current !== identity) return;
       persistedCollection.current = next;
@@ -747,7 +754,7 @@ function App() {
           />}
           {tourOpen && <TourPopover
             present={!!collection.demo && !collection.demo.removed}
-            onPrecons={() => { setTourOpen(false); openPrecons(); }}
+            onPrecons={() => { setTourOpen(false); void openPrecons(); }}
             onClose={closeTour}
           />}
           <span className="header-icons">
@@ -1094,7 +1101,7 @@ function App() {
       </div>
       }
       <Notices />
-      {help && !showCollection && <HelpCenter
+      {help && !showCollection && <Suspense fallback={null}><HelpCenter
         section={help}
         onSection={setHelp}
         onClose={() => { setHelp(null); requestAnimationFrame(() => (helpOpener.current === "settings" ? settingsTrigger : helpTrigger).current?.focus()); }}
@@ -1112,7 +1119,7 @@ function App() {
             });
           },
         }}
-      />}
+      /></Suspense>}
       {detail && (
         <Modal
           title="Deck details"
