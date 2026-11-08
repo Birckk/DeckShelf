@@ -702,7 +702,7 @@
 .hf-input > span { flex:1; }
 .hf-tree { display:grid; gap:2px; padding:8px; border:1px solid #ffffff10; border-radius:7px; }
 .hf-row { display:flex; align-items:center; gap:9px; padding:8px; border-radius:5px; }
-.hf-row > span:not(.hf-box):not(.hf-tag):not(.hf-n) { flex:1; }
+.hf-row > span:not(.hf-box):not(.hf-tag):not(.hf-n):not(.hf-pill) { flex:1; }
 .hf-row small { color:#8f8d97; }
 .hf-indent { margin-left:22px; background:#ffffff05; }
 .hf-skip { color:#8f8d97; }
