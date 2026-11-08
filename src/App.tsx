@@ -378,7 +378,7 @@ function App() {
     () => collectionDecks(collection, catalog),
     [collection],
   );
-  // A friend's shelf uses the My collection screens. Its choices are never saved into yours.
+  // A friend's shelf uses the Library screens. Its choices are never saved into yours.
   const sharedBase = useMemo(
     () => shared.source ? shelfCollection({ source: shared.source, decks: shared.decks, folders: shared.folders }) : null,
     [shared.source, shared.decks, shared.folders],
@@ -637,7 +637,7 @@ function App() {
       persistedCollection.current = next;
       setCollection(next);
       setSharedSaved(true);
-      notify('Saved to your collection. Refresh it in My collection.');
+      notify('Saved to your library. Refresh it there.');
     } catch (error) { notify((error as Error).message); }
     finally { setSharedSaving(false); }
   }
@@ -645,7 +645,7 @@ function App() {
   const sharedShelf = isShared && !!shared.source && !shared.loading && !shared.error && shared.decks.length > 0;
   // Labels keep one width whatever the state; the icon and aria-pressed show it.
   const bookmarkIcon = (size: number) => isKept ? <BookmarkCheck size={size} /> : <BookmarkPlus size={size} />;
-  const saveLabel = sharedSaved ? 'Saved to my collection' : 'Save to my collection';
+  const saveLabel = sharedSaved ? 'Saved to my library' : 'Save to my library';
   const saveTitle = sharedSaved ? 'Saved to your collection' : 'Add the decks you have on to your own collection';
   const shelfButtons = <>
     <button className={`button button-outline shelf-bookmark ${isKept ? 'is-marked' : ''}`} aria-pressed={isKept} aria-label="Bookmark this collection"
@@ -762,19 +762,20 @@ function App() {
             className="button button-outline header-collection"
             disabled={spinning}
             ref={collectionTrigger}
-            aria-label={sharedShelf ? `${sharedName} folders` : "My collection"}
+            aria-label={sharedShelf ? `${sharedName} library` : "Library"}
             data-friend={sharedShelf || undefined}
             onClick={openMyCollection}
           >
             <Library size={16} />
-            <span className={sharedShelf ? "header-shelf-name" : undefined} title={sharedShelf ? sharedName : undefined}>{sharedShelf ? sharedName : "My collection"}</span>
+            {/* Library on every shelf; someone else's name shows once, by the people icon. */}
+            <span>Library</span>
             <span className="count-badge">{sharedShelf ? owned.length : isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length}</span>
           </button>
         </div>
       </header>
       {/* Only a shelf that failed or came back empty needs this bar; while one loads, the page says so in place. */}
       {isShared && !sharedShelf && !shared.loading && <section className="shared-collection-bar shared-bar-slim" aria-label="Shared collection">
-        <button className="shared-bar-back" aria-label="Back to my collection" title="Back to my collection" onClick={leaveShared}><ArrowLeft size={16} /><span>Mine</span></button>
+        <button className="shared-bar-back" aria-label="Back to my library" title="Back to my library" onClick={leaveShared}><ArrowLeft size={16} /><span>Mine</span></button>
         <p><strong>{sharedName}</strong><small role={shared.error ? "alert" : undefined}>{shared.loading ? 'Loading public decks…' : shared.error || 'No public decks found. The source may be empty, unavailable or private.'}</small></p>
       </section>}
       {showShare && <ShareCollection sources={isShared ? (shared.source ? [shared.source] : []) : collection.sources || []} onClose={() => setShowShare(false)} />}
@@ -1058,7 +1059,7 @@ function App() {
                 <p>
                   {owned.length
                     ? "Try another color, release, or search. Your decks are still here."
-                    : "Enable a collection or select decks in My collection."}
+                    : "Enable a collection or select decks in Library."}
                 </p>
                 <button
                   className="button button-gold"

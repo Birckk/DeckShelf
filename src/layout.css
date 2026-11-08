@@ -12,13 +12,13 @@
                           and, as on phones, folds its controls into one Options menu
    Content-driven exceptions live beside their component with a comment (Help's 1280px figure).
 
-   Every top-level view (header, Collection, Cards, picker, My collection, Help) pads its
+   Every top-level view (header, Collection, Cards, picker, Library, Help) pads its
    sides with --gutter, so their edges line up; full-bleed stages cancel it with a negative
    margin of the same size. Components keep their own inner spacing. */
 :root {
   --gutter: 32px;
   --page-top: 20px;   /* header to the first row of a view */
-  --sidebar: 260px;   /* section trees in My collection and Help */
+  --sidebar: 260px;   /* section trees in Library and Help */
   --measure: 620px;   /* readable text column, about 75 characters */
   --tap: 44px;        /* minimum touch target on coarse pointers */
 }

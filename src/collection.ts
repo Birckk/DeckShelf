@@ -154,7 +154,7 @@ export function saveSharedCollection(collection: Collection, source: CollectionS
 export type SharedFolder = { source: CollectionSource; path: string; root: boolean };
 
 // A shared account or folder tree saves like Add decks: one source per folder, grouped under
-// the account so My collection shows the tree. Each folder goes through the same add-only
+// the account so Library shows the tree. Each folder goes through the same add-only
 // Save as a single source; folders with nothing new are skipped, as Add decks skips them.
 export function saveSharedShelf(collection: Collection, source: CollectionSource, decks: Deck[], folders: SharedFolder[] | undefined, catalog: Deck[] = []): Collection {
   if (!folders?.length) return saveSharedCollection(collection, source, decks, collectionDecks(collection, catalog), catalog);

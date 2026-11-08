@@ -25,7 +25,7 @@ your default browser, where deck editing belongs.
 
 ## Your collection
 
-Open **My collection → Add decks**, enter a public Archidekt username, folder or
+Open **Library → Add decks**, enter a public Archidekt username, folder or
 deck link, select the decks you own, and choose **Add selected decks**. Refresh is
 manual and read-only. No platform password is requested.
 
@@ -40,8 +40,8 @@ The profile is local to your Windows account; it is not an online account or syn
 
 ## Move from the browser, back up, or restore
 
-1. In the existing browser app, open My collection and export a collection backup.
-2. Open the desktop app and restore that JSON backup through My collection.
+1. In the existing browser app, open Library and export a collection backup.
+2. Open the desktop app and restore that JSON backup through Library.
 3. Confirm the replacement only after checking that it is the intended file.
 
 Version-1 backups remain supported. Restore replaces the destination collection.

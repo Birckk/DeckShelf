@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Check, Dices, Link2 } from "lucide-react";
 import decks from "./data/decks.json";
 
 const pages = [
-  { title: "Bring your decks", caption: "My collection → paste an Archidekt username or link." },
+  { title: "Bring your decks", caption: "Library → paste an Archidekt username or link." },
   { title: "Find tonight’s deck", caption: "Choose what’s shown. Browse, or pick at random." },
   { title: "Or start with precons", caption: "Official Commander precons · Curated by Archidekt" },
 ];

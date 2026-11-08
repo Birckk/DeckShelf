@@ -37,7 +37,7 @@ export function parseShelfInput(input: string): SharedSource {
     }
   }
   const parsed = parseSourceInput(value, 'account');
-  if (parsed.kind === 'deck') throw new Error('That link is a single deck. Use a username, profile or folder link, or add the deck in My collection.');
+  if (parsed.kind === 'deck') throw new Error('That link is a single deck. Use a username, profile or folder link, or add the deck in Library.');
   return { kind: parsed.kind as SharedSource['kind'], value: parsed.value };
 }
 

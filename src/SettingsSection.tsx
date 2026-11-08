@@ -113,12 +113,12 @@ function SettingsFolds({ groups }: { groups: Group[] }) {
   </div>;
 }
 
-/** The List layout's table on Collection and My collection. */
+/** The List layout's table on Collection and Library. */
 function ListSettingsFields({ value, onChange }: { value: ListSettings; onChange: (value: ListSettings) => void }) {
   const toggle = (column: ListColumn, on: boolean) =>
     onChange({ ...value, columns: LIST_COLUMNS.filter(c => c === column ? on : value.columns.includes(c)) });
   return <div className="list-settings">
-    <p className="settings-help">How the List layout’s table looks on Collection and My collection.</p>
+    <p className="settings-help">How the List layout’s table looks on Collection and Library.</p>
     <div className="list-settings-group" role="group" aria-labelledby="list-columns-label" aria-describedby="list-columns-hint">
       <h4 id="list-columns-label">Columns</h4>
       <div className="list-settings-choices">

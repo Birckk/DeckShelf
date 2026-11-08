@@ -21,7 +21,7 @@ const menu = async (page: import('@playwright/test').Page, name: string, item: s
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(({ key, fixture }) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(fixture)); }, { key, fixture });
   await page.goto('/');
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
 });
 
 test('source selections survive reload without hiding overlaps or resetting picker exclusions', async ({ page }) => {
@@ -32,7 +32,7 @@ test('source selections survive reload without hiding overlaps or resetting pick
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
   await expect(page.getByRole('button', { name: `View ${decks[0].name}`, exact: true })).toBeVisible();
   await page.reload();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await nav.getByRole('button', { name: 'Mono-color', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: `Show ${decks[0].name}`, exact: true })).not.toBeChecked();
   await nav.getByRole('button', { name: 'Multicolor', exact: true }).click();
@@ -137,7 +137,7 @@ test('the 30-deck folder fixture imports with hierarchy and a version-1 backup r
 test('returning to browsing preserves gallery search and layout', async ({ page }) => {
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
   await page.getByRole('textbox', { name: 'Search decks', exact: true }).fill(decks[0].name);
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Search decks', exact: true })).toHaveValue(decks[0].name);
   await expect(page.getByRole('button', { name: `View ${decks[0].name}`, exact: true })).toBeVisible();
@@ -147,7 +147,7 @@ test('overview is source-only and built-in collections can be paused, hidden and
   const profile = { ...fixture, manualIds: [decks[4].id], hidden: [decks[1].id], demo: { snapshotAt: '2026-10-04T12:00:00Z', decks: decks.slice(0, 2), removed: false } };
   await page.evaluate(({ key, profile }) => localStorage.setItem(key, JSON.stringify(profile)), { key, profile });
   await page.reload();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await expect(page.locator('.workspace-tile')).toHaveCount(0);
   await expect(page.getByRole('textbox', { name: 'Find a deck in collection settings' })).toHaveCount(0);
   const nav = page.getByRole('navigation', { name: 'Collection sources' });
@@ -165,13 +165,13 @@ test('overview is source-only and built-in collections can be paused, hidden and
   await page.setViewportSize({ width: 390, height: 900 });
   await page.screenshot({ path: 'qa/collection/precons-hidden-390.png', fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await expect(page.getByRole('button', { name: 'More actions for Official Commander precons', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Enable all', exact: true }).click();
   await expect(nav.getByRole('switch', { name: 'Enable Official Commander precons in sidebar', exact: true })).toHaveCount(0);
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).demo.removed, key)).toBe(true);
   await page.reload();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await nav.getByRole('button', { name: /^Hidden/ }).click();
   await nav.getByRole('button', { name: 'Show Official Commander precons', exact: true }).click();
   await expect(nav.getByRole('switch', { name: 'Enable Official Commander precons in sidebar', exact: true })).toBeChecked();
@@ -186,7 +186,7 @@ test('overview is source-only and built-in collections can be paused, hidden and
 for (const width of [1440, 390, 320]) test(`workspace layouts, artwork selection and keyboard controls fit ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(page.getByRole('heading', { name: 'My collection', exact: true })).toBeFocused();
+  await expect(page.getByRole('heading', { name: 'Library', exact: true })).toBeFocused();
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: `qa/collection/overview-${width}.png`, fullPage: true });
   await page.getByRole('button', { name: 'Expand collections', exact: true }).click();
@@ -211,7 +211,7 @@ for (const width of [1440, 390, 320]) test(`workspace layouts, artwork selection
     await page.screenshot({ path: `qa/collection/workspace-${width}-${layout.replace(' ', '-')}.png`, fullPage: true });
   }
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'My collection', exact: true })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Library', exact: true })).toBeFocused();
   await expect(page.getByRole('textbox', { name: 'Search decks', exact: true })).toBeVisible();
 });
 
@@ -232,12 +232,12 @@ for (const width of [1440, 390]) test(`folder pills preserve subsets and scoped 
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
   await expect(page.getByRole('button', { name: `View ${decks[1].name}`, exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: `View ${decks[0].name}`, exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   if (width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
   await nav.getByRole('switch', { name: 'Enable Birckk in sidebar', exact: true }).uncheck();
   await expect(page.locator('.workspace-heading')).toContainText('0 on display');
   await page.reload();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   if (width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
   await expect(nav.getByRole('checkbox', { name: 'Show folder switches' })).toBeChecked();
   await nav.getByRole('switch', { name: 'Enable Birckk in sidebar', exact: true }).check();
@@ -385,7 +385,7 @@ for (const width of [1440, 390]) test(`remove an imported collection acts at onc
   expect(saved.excluded).toEqual(fixture.excluded);
   await expect(page.locator('.workspace-heading')).toContainText('0 on display');
   await page.reload();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Open Birckk', exact: true })).toHaveCount(0);
   await expect(page.locator('.workspace-heading')).toContainText('0 on display');
 });
@@ -400,16 +400,16 @@ test('folder folds and overview expansion survive navigation and reload without 
   await nav.getByRole('textbox', { name: 'Find a source or folder' }).clear();
   await expect(nav.getByRole('button', { name: 'Expand Home', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await expect(nav.getByRole('button', { name: 'Expand Home', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Collapse collections', exact: true })).toBeVisible();
   await page.reload();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await expect(nav.getByRole('button', { name: 'Expand Home', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Collapse collections', exact: true })).toBeVisible();
   await nav.getByRole('button', { name: 'Expand Home', exact: true }).click();
   await page.reload();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await expect(nav.getByRole('button', { name: 'Collapse Home', exact: true })).toBeVisible();
 });
 
@@ -538,13 +538,13 @@ for (const width of [1440, 390, 320]) test(`selected-count control, logo and sea
   }
 });
 
-for (const width of [1440, 390]) test('My collection remembers pages and folder scopes at ' + width + 'px', async ({ page }) => {
+for (const width of [1440, 390]) test('Library remembers pages and folder scopes at ' + width + 'px', async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 });
   const nav = page.getByRole('navigation', { name: 'Collection sources' });
   const openNav = async () => { if (width < 700) await page.getByRole('button', { name: 'Sources and folders' }).click(); };
   const reopen = async () => {
     await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
-    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
   };
   await openNav();
   await nav.getByRole('button', { name: 'Mono-color', exact: true }).click();
@@ -555,7 +555,7 @@ for (const width of [1440, 390]) test('My collection remembers pages and folder 
   await reopen();
   await expect(page.getByRole('heading', { name: 'Test collection', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'More actions for Test collection', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Collections', exact: true })).toBeVisible();
   await openNav();
   await nav.getByRole('button', { name: /All saved decks/ }).click();
@@ -571,7 +571,7 @@ for (const width of [1440, 390]) test('hidden collections stay out of bulk enabl
   await expect(page.getByRole('button', { name: 'Open Birckk', exact: true })).toHaveCount(0);
   await page.screenshot({ path: 'qa/collection/hidden-' + width + '.png', fullPage: true });
   await page.reload();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   if (width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
   const nav = page.getByRole('navigation', { name: 'Collection sources' });
   await nav.getByRole('button', { name: /^Hidden/ }).click();
@@ -593,7 +593,7 @@ for (const width of [1440, 390]) test(`a deck added to a collection that is off 
   await page.route('**/api/decks/*', route => route.fulfill({ json: decks.find(d => d.id === new URL(route.request().url()).pathname.split('/').pop()) }));
   const paste = async (deck: typeof decks[number]) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
     await page.getByRole('button', { name: 'Add decks', exact: true }).click();
     await page.getByRole('textbox', { name: 'Username, profile, folder or deck link' }).fill(`https://archidekt.com/decks/${deck.id}`);
     await page.keyboard.press('Enter');

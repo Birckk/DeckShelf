@@ -104,7 +104,7 @@ export function ShelfSwitcher({ current, viewing, kept, recent = [], personalCou
   </div>;
 }
 
-// Other people's collections, in My collection: bookmarks first, then recently viewed.
+// Other people's collections, in Library: bookmarks first, then recently viewed.
 export function OtherCollections({ kept, recent, currentId = "", onOpen, onBookmark, onUnbookmark, onForget }: {
   kept: KeptShelf[]; recent: ShelfRef[]; currentId?: string;
   onOpen: (source: SharedSource) => void; onBookmark: (source: SharedSource & { name: string }) => void; onUnbookmark: (id: string) => void; onForget: (id: string) => void;

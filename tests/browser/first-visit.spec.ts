@@ -91,7 +91,7 @@ test('the offer waits, disabled, while a pick is spinning', async ({ page }) => 
 test('restoring a backup during the first visit ends the invitation', async ({ page }) => {
   await page.goto('/');
   await expect(pill(page)).toBeVisible();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   const backup = { version: 1, starter: false, added: [], hidden: [], excluded: [] };
   await page.locator('input[type=file]').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
@@ -105,7 +105,7 @@ for (const width of [1920, 1500, 390, 320]) test(`New? sits in the header row an
   await page.setViewportSize({ width, height: width < 500 ? 740 : 1080 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  // Everything in the header row sits side by side: logo, offer, Help, My collection.
+  // Everything in the header row sits side by side: logo, offer, Help, Library.
   const row = await page.evaluate(() => {
     const range = document.createRange();
     range.selectNodeContents(document.querySelector('.studio-header .brand')!);

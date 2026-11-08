@@ -26,7 +26,7 @@ for (const trial of [false, true]) test(`All-formats refresh preserves scope wit
   await page.route('**/api/decks/*', route => route.fulfill({ json: decks.find(deck => new URL(route.request().url()).pathname.endsWith(deck.id)) }));
   await page.route('https://card-images.archidekt.com/**', route => route.abort());
   await page.goto('/');
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('navigation', { name: 'Collection sources' }).getByRole('button', { name: 'Mixed formats', exact: true }).click();
   if (trial) await expect.poll(() => scopes).toEqual(['all']);
   await expect(page.getByRole('button', { name: 'Refresh', exact: true })).toBeEnabled();

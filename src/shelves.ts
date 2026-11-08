@@ -3,7 +3,7 @@ import type { SharedSource } from './share-links.ts';
 import type { SharedFolder } from './collection.ts';
 
 // Shared shelves the visitor has looked at, kept apart from the v1 collection.
-// Nothing here is read or written by backups, Save to my collection or restore.
+// Nothing here is read or written by backups, Save to my library or restore.
 export type LoadedShelf = { source: CollectionSource; decks: Deck[]; folders?: SharedFolder[] };
 export type ShelfRef = SharedSource & { name: string; count: number; art: string[]; at: string };
 export type KeptShelf = LoadedShelf & { keptAt: string };
@@ -111,7 +111,7 @@ export type ShelfView = {
 };
 export type ShelfViews = Record<string, ShelfView>;
 
-// A friend's shelf as a collection of its folders, so it can use the My collection screens.
+// A friend's shelf as a collection of its folders, so it can use the Library screens.
 export function shelfCollection({ source, decks, folders }: LoadedShelf): Collection {
   const parts = folders?.filter(folder => folder.source.entries.length) || [];
   const sources = parts.length

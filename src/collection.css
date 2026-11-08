@@ -579,7 +579,7 @@
 .about-copy .about-credits { font-size:12px; color:#aaa6b3; line-height:1.6; }
 @media(max-width:550px) { .about-copy { padding:22px; } .guide-actions .button { font-size:13px; } }
 
-/* Help: a workspace like My collection with a bordered menu on the logo's edge. Text stays at a readable
+/* Help: a workspace like Library with a bordered menu on the logo's edge. Text stays at a readable
    measure (about 620px, ~75 characters); wide screens fill with each topic's figure, not longer lines.
    Side padding and the menu width come from layout.css, so the menu and Back line up with the header. */
 .help-body { display:grid; grid-template-columns:var(--sidebar) minmax(0,1fr); border-top:1px solid #ffffff18; }
