@@ -78,7 +78,7 @@ test('desktop copies a Commander Archive profile into a new DeckShelf profile on
 test('desktop bundle includes all local server module dependencies', async () => {
   const config = await readFile(new URL('../desktop/electron-builder.yml', import.meta.url), 'utf8');
   const bundled = new Set([...config.matchAll(/^  - ((?:server|shared)\/.+\.mjs)$/gm)].map(match => match[1]));
-  const queue = ['server/api.mjs'];
+  const queue = ['server/api.mjs', 'server/static.mjs'];
   const visited = new Set();
   while (queue.length) {
     const name = queue.shift();

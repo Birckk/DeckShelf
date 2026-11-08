@@ -12,6 +12,7 @@ files:
   - '!desktop/electron-builder.yml'
   - '!desktop/installer.nsh'
   - '!desktop/icon.ico'
+  - server/static.mjs
   - server/api.mjs
   - server/sources.mjs
   - server/archidekt.mjs
