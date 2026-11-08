@@ -5,7 +5,10 @@ const cache = new Map();
 const pendingDecks = new Map();
 const failedDecks = new Map();
 const colors = { White:'W', Blue:'U', Black:'B', Red:'R', Green:'G' };
-const plain = value => String(value || '').replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+const entities = { '&amp;':'&', '&quot;':'"', '&#39;':"'", '&lt;':'<', '&gt;':'>' };
+const stripTags = value => { let text = value, previous; do { previous = text; text = text.replace(/<[^<>]*>/g, ''); } while (text !== previous); return text; };
+// Strip tags until none remain, then decode entities in one pass so &amp;quot; stays &quot;. React escapes the result on render.
+const plain = value => stripTags(String(value || '')).replace(/&(?:amp|quot|#39|lt|gt);/g, entity => entities[entity]).trim();
 export function descriptionText(value) {
   if (!value) return '';
   try {
