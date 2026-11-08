@@ -2,14 +2,14 @@ import { useEffect, useRef, useState, type ComponentType, type MouseEvent, type 
 import {
   ArrowLeft, ArrowRight, BookOpen, ChevronRight, Dices, Eye, ExternalLink, Folder, FolderOpen, HardDrive,
   HardDriveDownload, Info, LayoutGrid, Library, Link2, ListChecks, Map as MapIcon, Menu, MessageCircleQuestion, Puzzle,
-  RefreshCw, Search, Settings, Share2, X,
+  RefreshCw, Search, Settings, Share2, Users, X,
 } from "lucide-react";
 import { CardFanIcon } from "./CardFanIcon";
 import CollectionGuide from "./CollectionGuide";
 import SettingsSection, { type Settings as SettingsValue } from "./SettingsSection";
 import decks from "./data/decks.json";
 import { roadmap, roadmapStages } from "./data/roadmap";
-import { AboutPreview, AddingFigure, FeaturesPreview, PickingFigure, RoadmapPreview, SavingFigure, ShowingFigure, UpdatesFigure } from "./HelpFigures";
+import { AboutPreview, AddingFigure, FeaturesPreview, FriendsFigure, PickingFigure, RoadmapPreview, SavingFigure, ShowingFigure, UpdatesFigure } from "./HelpFigures";
 
 type Icon = ComponentType<{ size?: number }>;
 // Groups are folders in the navigation with their own overview page; the rest are topics.
@@ -20,6 +20,7 @@ export const helpSections = [
   { id: "showing", label: "Showing and hiding", Icon: Eye, parent: "core", summary: "Pills, Only this, Hide and Remove." },
   { id: "updates", label: "Refreshing decks", Icon: RefreshCw, parent: "core", summary: "What refresh changes, and what it keeps." },
   { id: "picking", label: "Finding and picking", Icon: Dices, parent: "core", summary: "Colors, search, shortlists and fair odds." },
+  { id: "friends", label: "Friends’ collections", Icon: Users, parent: "core", summary: "Opening, bookmarking and saving someone else’s shelf." },
   { id: "saving", label: "Saving and devices", Icon: HardDrive, parent: "core", summary: "Where your shelf lives and how to move it." },
   { id: "faq", label: "FAQ", Icon: MessageCircleQuestion, summary: "Missing decks, old versions and other surprises." },
   { id: "project", label: "Project", Icon: Folder, group: true, summary: "What DeckShelf does today and what’s planned." },
@@ -91,6 +92,17 @@ const topics: Partial<Record<HelpSection, Topic>> = {
     ],
     action: { label: "Open the picker", target: "picker" },
   },
+  friends: {
+    lead: <>Open anyone’s public Archidekt collection from the people icon beside the DeckShelf name, by username or link. It opens read-only, beside your own shelf.</>,
+    Figure: FriendsFigure,
+    rules: [
+      { title: "Their shelf stays theirs", text: "Browse, search and pick from it like your own. Switching their folders and decks on and off is remembered for each friend on this device, and never changes your collection or anything on Archidekt." },
+      { title: "A bookmark is a saved copy", text: "It keeps the decks as they were when you bookmarked it, so it opens instantly and offline, but it doesn’t update by itself. To see their newer decks, remove the bookmark, reload DeckShelf and open their collection again. You can keep 12 bookmarks; a 13th replaces the oldest. The menu also lists the last 8 shelves you viewed." },
+      { title: "Save to mine copies what’s on", text: "Adds the decks you have switched on to your own Library as a new source. From then on it is yours: refresh it there, and their later changes arrive like any other source." },
+      { title: "A share link names a source", text: <>Share in Library gives a link to one of your Archidekt accounts or folders. Whoever opens it sees the public decks on Archidekt, not your switches, hidden collections or Settings.</> },
+    ],
+    action: { label: "Open Library", target: "collection" },
+  },
   saving: {
     lead: <>There’s no account. Your shelf is saved in this browser, for this site address. Installing DeckShelf or using it offline does not make a backup or sync your choices.</>,
     Figure: SavingFigure,
@@ -120,6 +132,7 @@ const faq: { group: string; items: { q: string; a: ReactNode; see?: HelpSection 
   ] },
   { group: "Devices and more", items: [
     { q: "What if my collection cannot be saved or read?", a: "After a failed save, changes still work for this session: export them before closing, or retry saving when storage is available. Damaged or unreadable saved data is kept untouched until you confirm a valid restore. Download recovery data preserves the damaged file for manual repair; Export backup saves the current session instead.", see: "saving" },
+    { q: "My friend added a deck, but their bookmarked shelf doesn’t show it", a: "A bookmark is a saved copy from when you bookmarked it. Remove the bookmark, reload DeckShelf and open their collection again.", see: "friends" },
     { q: "Can I use it on my phone and my computer?", a: "Yes, but each keeps its own shelf. Export a backup on one and restore it on the other. Sync between devices isn’t planned for now.", see: "saving" },
     { q: "Does it work offline?", a: "Browsing and picking work once DeckShelf has loaded. Adding or refreshing decks needs a connection, and artwork may too unless your browser has cached it." },
     { q: "Can I add formats other than Commander?", a: "Yes. Public Archidekt decks in other formats work too, including Modern, Standard and Pauper. Switch the folder list’s format when adding them, then set Pick format for the game.", see: "adding" },
@@ -152,6 +165,7 @@ const tasks: { label: string; to: HelpSection }[] = [
   { label: "Add my Archidekt decks", to: "adding" },
   { label: "Show only my own decks", to: "showing" },
   { label: "Pick between a few decks", to: "picking" },
+  { label: "Open a friend’s collection", to: "friends" },
   { label: "Move my shelf to another device", to: "saving" },
 ];
 

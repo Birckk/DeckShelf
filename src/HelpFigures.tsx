@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ArrowDown, ArrowRight, Dices, EyeOff, FileJson, Folder, Link2, Lock, MoreHorizontal, Plus, RefreshCw } from "lucide-react";
+import { ArrowDown, ArrowRight, Bookmark, Dices, EyeOff, FileJson, Folder, Link2, Lock, MoreHorizontal, Plus, RefreshCw, Share2, Users } from "lucide-react";
 import { ManaSymbol } from "./components";
 import type { Color } from "./domain";
 import decks from "./data/decks.json";
@@ -53,6 +53,18 @@ export function UpdatesFigure() {
       {tile(17, "No longer listed · saved copy kept", null, 3)}
       {tile(18, "Saved snapshot · Oct 15", <span className="hf-badge"><RefreshCw size={12} /></span>, 4)}
     </div>
+  </figure>;
+}
+
+export function FriendsFigure() {
+  return <figure className="hf hf-friends" aria-label="A friend's shelf opens read-only by username; a bookmark is a saved copy; Save to mine copies the decks that are on; Share gives a link to an Archidekt source.">
+    <div className="hf-input"><Users size={15} /><span>friend-name</span><ArrowRight size={15} /><N n={1} /></div>
+    <div className="hf-tree">
+      <div className="hf-row"><Pill state="on" /><Folder size={14} /><span>Their Commander decks</span><small>18 decks</small></div>
+      <div className="hf-row"><Pill state="off" /><Folder size={14} /><span>Their old builds</span><small>off for you</small></div>
+      <div className="hf-row"><Bookmark size={14} /><span>Bookmarked · saved copy</span><small>offline</small><N n={2} /></div>
+    </div>
+    <div className="hf-bar"><span>Their Library</span><span className="hf-btn"><Plus size={13} />Save to mine</span><N n={3} /><span className="hf-btn"><Share2 size={13} />Share</span><N n={4} /></div>
   </figure>;
 }
 
