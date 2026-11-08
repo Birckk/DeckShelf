@@ -6,7 +6,7 @@ import { APP_URL, desktopResponse, isAppUrl, isExternalUrl } from './request.mjs
 import { migrateLegacyProfile, profilePaths } from './profile.mjs';
 
 app.setName('DeckShelf');
-if (process.platform === 'win32') app.setAppUserModelId('dk.bircck.deckshelf');
+if (process.platform === 'win32') app.setAppUserModelId('dk.birckk.deckshelf');
 // Keep this name and origin stable across versions and extraction directories.
 const testing = process.argv.includes('--smoke-test');
 if (testing && (!process.env.CA_TEST_PROFILE || !isAbsolute(process.env.CA_TEST_PROFILE))) {

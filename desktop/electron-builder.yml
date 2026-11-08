@@ -1,4 +1,4 @@
-appId: dk.bircck.deckshelf
+appId: dk.birckk.deckshelf
 productName: DeckShelf
 asar: true
 # Reuse the exact runtime installed by npm ci; avoid a second download/extraction.
