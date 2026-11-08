@@ -11,11 +11,11 @@ const source = { key: 'folder:42', kind: 'folder', value: '42', name: 'Followed 
   selectedIds: [decks[0].id], ownedIds: decks.slice(0, 2).map(d => d.id), folderPath: 'Home / Followed folder' };
 const { selectedIds: _selection, ownedIds: _ownership, ...listing } = source;
 const found = { ...listing, checkedAt: new Date().toISOString(), entries: decks.slice(1, 3).map(entry), knownIds: decks.slice(1, 3).map(d => d.id) };
-async function prepare(page: Page, options: { mode?: string; fail?: boolean; fresh?: boolean; prototype?: boolean; collection?: unknown } = {}) {
+async function prepare(page: Page, options: { mode?: string; fail?: boolean; fresh?: boolean; follow?: boolean; collection?: unknown } = {}) {
   const collection = options.collection ?? { version: 1, added: decks.slice(0, 2), hidden: [decks[1].id], excluded: [decks[0].id],
     disabledGroups: ['folder:42'], sources: [{ ...source, ...(options.mode === 'legacy' ? {} : { membership: options.mode || 'follow' }), ...(options.fresh ? { checkedAt: new Date().toISOString() } : {}) }] };
-  // prototype: false is the Settings switch turned off.
-  const enabled = options.prototype !== false;
+  // follow: false is the Settings switch turned off.
+  const enabled = options.follow !== false;
   await page.addInitScript(({ key, collection }) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(collection)); }, { key, collection: enabled ? collection : { ...(collection as object), followOff: true } });
   // Use the bundled versions of fixture artwork; visual QA never waits on a CDN.
   await page.route('https://card-images.archidekt.com/**', route => {
@@ -208,7 +208,7 @@ test('folders saved before Follow keep hand-picked choices fixed and follow when
 
 test('Settings switch: off means no checks and no folder status until it is turned on', async ({ page }) => {
   let requests = 0;
-  await prepare(page, { prototype: false });
+  await prepare(page, { follow: false });
   await page.route('**/api/sources?*', route => { requests++; return route.fulfill({ json: found }); });
   await openSource(page);
   await expect(page.locator('.source-refresh-status')).toHaveCount(0);

@@ -13,7 +13,7 @@ test('cached refresh partitions format scopes and keeps non-Commander entries li
   });
   async function request(formats) {
     const result = { status: 200 };
-    await handleApi({ url: `/api/sources?kind=folder&value=981000&prototype=1&formats=${formats}`, method: 'GET' }, {
+    await handleApi({ url: `/api/sources?kind=folder&value=981000&cached=1&formats=${formats}`, method: 'GET' }, {
       setHeader() {}, writeHead(status) { result.status = status; }, end(body) { result.body = JSON.parse(body); },
     });
     assert.equal(result.status, 200);

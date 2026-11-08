@@ -73,7 +73,7 @@ test('snapshot Retry-After cools down other snapshots, discovery and queued visi
   assert.equal((await request('/api/decks/987654310')).status, 424);
   assert.equal(upstreamCooldown.retryAt, now + 3600000);
   assert.equal((await request('/api/decks/987654311?refresh=1')).status, 424);
-  assert.equal((await request('/api/sources?kind=folder&value=987654310&prototype=1')).status, 424);
+  assert.equal((await request('/api/sources?kind=folder&value=987654310&cached=1')).status, 424);
   assert.equal((await request('/api/source-folders?kind=folder&value=987654310')).status, 424);
   assert.equal(calls, 1);
   now += 3599999;

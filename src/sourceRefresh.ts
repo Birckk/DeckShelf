@@ -19,7 +19,7 @@ export type RefresherOptions = {
 
 // One check at a time. `invalidate` drops whatever is in flight: restores, mode changes
 // and the hook's cleanup all use it, so a dropped check can never leave the queue busy.
-// `prototype=1` asks the server for its cached listing.
+// `cached=1` asks the server for its shared cached listing.
 export function sourceRefresher(options: RefresherOptions) {
   const { collection, update, checking, allowed, visible, read: request = read, pause = ms => new Promise(resolve => setTimeout(resolve, ms)) } = options;
   let generation = 0;
@@ -41,7 +41,7 @@ export function sourceRefresher(options: RefresherOptions) {
     abort = controller;
     const current = () => !controller.signal.aborted && epoch === generation;
     try {
-      const found: CollectionSource = await request(`/api/sources?${new URLSearchParams({ kind: source.kind, value: source.value, prototype: '1', ...(manual ? { refresh: '1' } : {}), formats: source.formatScope || 'commander' })}`, controller.signal);
+      const found: CollectionSource = await request(`/api/sources?${new URLSearchParams({ kind: source.kind, value: source.value, cached: '1', ...(manual ? { refresh: '1' } : {}), formats: source.formatScope || 'commander' })}`, controller.signal);
       if (!validateSource(found) || found.key !== key) throw new Error('Incomplete source listing. Saved decks are unchanged.');
       const loaded: Deck[] = [];
       const pending = source.pendingIds || [];

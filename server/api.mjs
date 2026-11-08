@@ -85,7 +85,7 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
   res.setHeader('X-Content-Type-Options','nosniff');
   if (['/api/sources', '/api/source-folders'].includes(url.pathname) && req.method === 'GET') {
     try {
-      const discover = url.pathname === '/api/source-folders' ? cachedFolders : url.searchParams.get('prototype') === '1' ? cachedSource : discoverSource;
+      const discover = url.pathname === '/api/source-folders' ? cachedFolders : url.searchParams.get('cached') === '1' ? cachedSource : discoverSource;
       const formatScope = url.searchParams.get('formats') || 'commander';
       const source = discover === cachedSource || discover === cachedFolders
         ? await discover(url.searchParams.get('kind'), url.searchParams.get('value') || '', url.searchParams.get('refresh') === '1', formatScope)

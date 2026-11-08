@@ -105,7 +105,7 @@ test('desktop snapshots and discovery share the same Retry-After cooldown', asyn
   const second = await desktopResponse(new Request('archive://app/api/decks/987654301'), '.');
   assert.equal(second.status, 424);
   assert.match((await second.json()).error, /rate limited/);
-  const source = await desktopResponse(new Request('archive://app/api/sources?kind=folder&value=987654302&prototype=1'), '.');
+  const source = await desktopResponse(new Request('archive://app/api/sources?kind=folder&value=987654302&cached=1'), '.');
   assert.equal(source.status, 424);
   assert.equal(calls, 1);
 });
