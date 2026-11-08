@@ -15,6 +15,8 @@ async function openSharedFolder(page: Page) {
   await page.route('**/api/decks/987001', route => route.fulfill({ json: deck }));
   await page.goto('/f/42');
   await expect(page.getByRole('button', { name: 'View Shared Commander', exact: true })).toBeVisible();
+  // A friend's shelf keeps Share on its Library page, not in the header.
+  await page.getByRole('button', { name: 'Public shelf library', exact: true }).click();
   return page.getByRole('button', { name: 'Share', exact: true });
 }
 
@@ -83,7 +85,7 @@ test('a clicked text field keeps its focus style', async ({ page }) => {
 
 test('a menu opened with the mouse does not light its first item until the keyboard is used', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.studio-header').getByRole('button', { name: /collection/i }).last().click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('button', { name: /^More actions for/ }).first().click();
   const items = page.getByRole('menuitem');
   await expect(items.first()).toBeFocused();
