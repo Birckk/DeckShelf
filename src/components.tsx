@@ -26,6 +26,7 @@ export function Mana({
   return (
     <span
       className={`mana-row ${size}`}
+      role="img"
       aria-label={
         colors.length
           ? colors.map((c) => COLORS.find((v) => v.id === c)?.name).join(", ")

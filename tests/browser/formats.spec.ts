@@ -66,6 +66,23 @@ test('Commander default, all-format browsing, featured cards, fallback and expli
   await expect(page.getByLabel('Pick format', { exact: true }).locator('option[value=all]')).toHaveCount(0);
 });
 
+for (const identity of [
+  { colors: ['W', 'U', 'B', 'R', 'G'], name: 'White, Blue, Black, Red, Green' },
+  { colors: [], name: 'Colorless' },
+]) {
+  test(`colour identity is one named image: ${identity.name}`, async ({ page }) => {
+    await init(page, { ...fixture, added: [{ ...commander, colors: identity.colors }] });
+    await page.getByRole('button', { name: 'View Commander partners', exact: true }).click();
+    const identityImage = page.getByRole('dialog').getByRole('img', { name: identity.name, exact: true });
+    await expect(identityImage).toHaveCount(1);
+    await expect(identityImage).toMatchAriaSnapshot(`- img "${identity.name}"`);
+    for (const symbol of await identityImage.locator('img').all()) {
+      await expect(symbol).toHaveAttribute('alt', '');
+      await expect(symbol).toHaveAttribute('aria-hidden', 'true');
+    }
+  });
+}
+
 test('folder selection filters actual formats, imports mixed decks and round trips backups', async ({ page }) => {
   await init(page, { ...fixture, added: [], manualIds: [] });
   const calls: string[] = [];
@@ -109,7 +126,7 @@ test('Compact uses featured artwork for decks without commanders on both collect
   await page.getByRole('button', { name: 'Compact', exact: true }).click();
   const modern = page.getByRole('button', { name: 'View Modern deck', exact: true });
   await expect(modern.locator('img')).toHaveAttribute('src', cardImage(decks[1].cover!.art));
-  await expect(page.getByRole('button', { name: 'View Unknown (99) deck', exact: true }).getByRole('img')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'View Unknown (99) deck', exact: true }).getByRole('img', { name: /No cover selected/ })).toBeVisible();
   await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('navigation', { name: 'Collection sources' }).getByRole('button', { name: /All saved decks/ }).click();
   await page.getByRole('button', { name: 'Compact', exact: true }).click();
