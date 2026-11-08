@@ -20,7 +20,7 @@ export default function ShareCollection({ sources, onClose }: { sources: Collect
       {options.length > 1 && <label>Account or folder<select value={key} onChange={event => { setKey(event.target.value); setStatus(''); }}>
         {options.map(item => <option key={item.key} value={item.key}>{item.kind === 'account' ? 'Account' : 'Folder'}: {item.name}</option>)}
       </select></label>}
-      {!options.length && <p>Add an Archidekt account or folder in My collection to share it.</p>}
+      {!options.length && <p>Add an Archidekt account or folder in Library to share it.</p>}
       {source && <>
         <p>Opens {source.kind === 'account' ? `${source.name}'s public decks` : `the public decks in ${source.name}`} on DeckShelf, read-only.</p>
         <div className="share-link-row">

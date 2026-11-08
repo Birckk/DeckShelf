@@ -1,4 +1,4 @@
-/* List layout (#91): one real table for Collection and My collection. */
+/* List layout (#91): one real table for Collection and Library. */
 .deck-table-wrap { --row-pad:9px; --name-size:15px; --thumb:40px; --thumb-w:var(--thumb); width:100%; min-width:0; }
 /* Settings › List: a wide crop of the commander art instead of the square thumbnail. */
 .deck-table-strip { --thumb-w:calc(var(--thumb) * 2.5); }
@@ -54,7 +54,7 @@ td.deck-table-release > span:first-child { display:block; overflow:hidden; text-
 .deck-table .shortlist-mark.deck-table-mark { position:static; flex-shrink:0; min-width:24px; height:22px; font-size:12px; box-shadow:none; }
 .deck-table tr.is-shortlisted td:first-child { box-shadow:inset 2px 0 #d3bd91; }
 
-/* My collection: hidden rows dim their artwork and text, never their controls. */
+/* Library: hidden rows dim their artwork and text, never their controls. */
 .deck-table tr.is-hidden :is(.deck-table-art img, .deck-table-art .art-fallback) { opacity:.4; }
 .deck-table tr.is-hidden :is(h4, .deck-table-sub, td:not(.deck-table-lead, .deck-table-trail, .deck-table-art, .deck-table-name)) { opacity:.55; }
 .deck-table .deck-table-lead input { width:17px; height:17px; margin:0; accent-color:#d8c08d; cursor:pointer; vertical-align:middle; }

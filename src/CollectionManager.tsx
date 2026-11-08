@@ -630,11 +630,11 @@ export default function CollectionManager({
     : deckRows.map(item => <CollectionDeckTile key={item.row.id} layout={layout} {...item} />);
   const backTarget = readOnly ? readOnly.name : "collection";
   return (
-    <main className={`collection-workspace ${readOnly ? "is-read-only" : ""}`} aria-label={readOnly ? `${readOnly.name} folders` : "My collection"}>
+    <main className={`collection-workspace ${readOnly ? "is-read-only" : ""}`} aria-label={readOnly ? `${readOnly.name} library` : "Library"}>
       {/* One heading for your collection and a friend's: title, then the way back and the actions as one group. */}
       <header className="workspace-heading">
         <div>
-          <h1 ref={heading} tabIndex={-1}>{readOnly ? readOnly.name : "My collection"}</h1>
+          <h1 ref={heading} tabIndex={-1}>{readOnly ? readOnly.name : "Library"}</h1>
           <p>{readOnly ? `${decks.length} public ${decks.length === 1 ? "deck" : "decks"} · Read-only` : `${onDisplay} on display`}</p>
         </div>
         <div className="workspace-actions">

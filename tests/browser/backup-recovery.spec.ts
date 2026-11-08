@@ -19,7 +19,7 @@ async function open(page: Page, raw = JSON.stringify(current), fault = '') {
   }, { key, raw, fault });
   await page.goto('/');
 }
-async function manager(page: Page) { await page.getByRole('button', { name: 'My collection', exact: true }).click(); }
+async function manager(page: Page) { await page.getByRole('button', { name: 'Library', exact: true }).click(); }
 async function upload(page: Page, value: unknown) { await page.locator('input[type=file]').setInputFiles(file(value)); }
 
 test('corrupt raw data survives interaction and downloads exactly; session export stays valid', async ({ page }) => {
@@ -60,7 +60,7 @@ test('failed writes preserve saved choices and allow an explicit retry', async (
   await page.getByRole('checkbox', { name: `Show ${current.added[0].name}`, exact: true }).uncheck();
   expect((await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key)).hidden).toEqual([]);
   const download = page.waitForEvent('download');
-  await page.getByRole('main', { name: 'My collection', exact: true }).getByRole('button', { name: 'Export backup', exact: true }).click();
+  await page.getByRole('main', { name: 'Library', exact: true }).getByRole('button', { name: 'Export backup', exact: true }).click();
   const exported = JSON.parse(await readFile((await (await download).path())!, 'utf8'));
   expect(exported.hidden).toContain(current.added[0].id);
   await page.evaluate(() => { (window as any).writeBlocked = false; });

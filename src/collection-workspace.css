@@ -261,7 +261,7 @@ body:has(.collection-workspace) { min-width:320px; }
 }
 .source-refresh-status span { overflow-wrap: anywhere; }
 
-/* My collection's actions travel as one group: a quiet way back, then Share and Add decks.
+/* Library's actions travel as one group: a quiet way back, then Share and Add decks.
    On phones the group takes its own slim row under the title instead of squeezing beside it. */
 .workspace-heading > .workspace-actions { flex:0 0 auto; display:flex; align-items:center; gap:8px; }
 .workspace-actions .button { min-height:36px; padding:0 13px; gap:7px; white-space:nowrap; }

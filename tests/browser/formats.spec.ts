@@ -23,7 +23,7 @@ async function mockDiscovery(page: Page, calls: string[] = []) {
   });
 }
 async function startFolderImport(page: Page) {
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('button', { name: 'Add decks', exact: true }).click();
   await page.getByLabel('Username, profile, folder or deck link').fill(source.url);
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
@@ -71,7 +71,7 @@ test('folder selection filters actual formats, imports mixed decks and round tri
   const calls: string[] = [];
   await mockDiscovery(page, calls);
   await page.route('**/api/decks/*', route => route.fulfill({ json: decks.find(d => route.request().url().endsWith(d.id)) }));
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('button', { name: 'Add decks', exact: true }).click();
   await expect(page.getByLabel('Import formats')).toHaveCount(0);
   await page.getByLabel('Username, profile, folder or deck link').fill('https://archidekt.com/folders/88');
@@ -110,7 +110,7 @@ test('Compact uses featured artwork for decks without commanders on both collect
   const modern = page.getByRole('button', { name: 'View Modern deck', exact: true });
   await expect(modern.locator('img')).toHaveAttribute('src', decks[1].cover!.art);
   await expect(page.getByRole('button', { name: 'View Unknown (99) deck', exact: true }).getByRole('img')).toBeVisible();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('navigation', { name: 'Collection sources' }).getByRole('button', { name: /All saved decks/ }).click();
   await page.getByRole('button', { name: 'Compact', exact: true }).click();
   const tile = page.locator('.workspace-tile').filter({ has: page.getByRole('checkbox', { name: 'Show Modern deck', exact: true }) });
@@ -138,7 +138,7 @@ for (const viewport of [{ width: 1920, height: 1080 }, { width: 1500, height: 90
     if (viewport.width < 550) await page.getByRole('button', { name: /^Picker options/ }).click();
     await page.getByLabel('Pick format', { exact: true }).selectOption('modern');
     await shot('picker-modern');
-    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
     if (viewport.width < 700) await page.getByRole('button', { name: 'Sources and folders' }).click();
     await page.getByRole('navigation', { name: 'Collection sources' }).getByRole('button', { name: 'Individual decks', exact: true }).click();
     await shot('collection-settings');
@@ -164,7 +164,7 @@ for (const viewport of [{ width: 1920, height: 1080 }, { width: 1500, height: 90
 test('an individual non-Commander link imports in its own format', async ({ page }) => {
   await init(page, { ...fixture, added: [], manualIds: [] });
   await page.route('**/api/decks/*', route => route.fulfill({ json: decks[1] }));
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('button', { name: 'Add decks', exact: true }).click();
   await page.getByLabel('Username, profile, folder or deck link').fill(`https://archidekt.com/decks/${decks[1].id}`);
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
@@ -200,7 +200,7 @@ test('default folder import keeps Commander-only discovery on refresh', async ({
   const calls: string[] = [];
   await mockDiscovery(page, calls);
   await page.route('**/api/decks/*', route => route.fulfill({ json: commander }));
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('button', { name: 'Add decks', exact: true }).click();
   await page.getByLabel('Username, profile, folder or deck link').fill('https://archidekt.com/folders/88');
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
@@ -332,7 +332,7 @@ test('a scope stays explicit and empty when its collection is switched off', asy
   await init(page);
   await browse(page, 'modern');
   await page.getByRole('group', { name: 'Collection view' }).getByRole('button', { name: 'Pick a deck', exact: true }).click();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('navigation', { name: 'Collection sources' }).getByRole('switch', { name: 'Enable Individual decks in sidebar', exact: true }).uncheck();
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
   await expect(page.getByLabel('Pick format', { exact: true })).toHaveValue('modern');

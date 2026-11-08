@@ -23,7 +23,7 @@ for (const [width, height] of sizes) test(`views line up with the header gutter 
   await expectGutter('.collection-grid');
   await view('Cards');
   await expectGutter('.studio-caption');
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await expectGutter('.workspace-heading');
   await page.goto('/help/adding');
   await expectGutter('.workspace-heading');

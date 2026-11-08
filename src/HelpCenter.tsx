@@ -50,7 +50,7 @@ export function helpSectionFromPath(path: string): HelpSection | null {
 type Topic = { lead: ReactNode; Figure: ComponentType; rules: { title: string; text: ReactNode }[]; action?: { label: string; target: FeatureTarget } };
 const topics: Partial<Record<HelpSection, Topic>> = {
   adding: {
-    lead: <>Paste an Archidekt link in <b>My collection → Add decks</b>. DeckShelf only reads it: no login, and nothing changes on Archidekt.</>,
+    lead: <>Paste an Archidekt link in <b>Library → Add decks</b>. DeckShelf only reads it: no login, and nothing changes on Archidekt.</>,
     Figure: AddingFigure,
     rules: [
       { title: "Paste any Archidekt link", text: "A username, profile, folder or single deck. You see the folders and decks before anything is added." },
@@ -58,7 +58,7 @@ const topics: Partial<Record<HelpSection, Topic>> = {
       { title: "Subfolders are separate", text: "Ticking a folder doesn’t include the folders inside it. Each has its own row; tick every one you want." },
       { title: "Show only these folders", text: "Switches your other collections off once every deck has loaded. They stay saved, and Enable all brings them back. A deck link you paste later goes into Individual decks, which is now off: press Turn on in the notice, or switch it on for good in Settings." },
     ],
-    action: { label: "Add decks in My collection", target: "collection" },
+    action: { label: "Add decks in Library", target: "collection" },
   },
   showing: {
     lead: <>Four ways to change what’s on the shelf, from a quick switch to removing a source. None of them touches Archidekt.</>,
@@ -96,10 +96,10 @@ const topics: Partial<Record<HelpSection, Topic>> = {
     Figure: SavingFigure,
     rules: [
       { title: "Each place keeps its own shelf", text: "Another browser, your phone, the Windows app and a local copy each start separately. On iPhone and iPad, the installed web app also keeps a separate shelf from Safari." },
-      { title: "What a backup keeps", text: <>Export and restore are at the bottom of My collection. The version-1 file holds saved deck snapshots, precons, sources and collection choices, including hidden collections and your Settings. Layout, card size and temporary shortlists stay out. Keep a copy outside browser storage before clearing site data or moving devices.</> },
+      { title: "What a backup keeps", text: <>Export and restore are at the bottom of Library. The version-1 file holds saved deck snapshots, precons, sources and collection choices, including hidden collections and your Settings. Layout, card size and temporary shortlists stay out. Keep a copy outside browser storage before clearing site data or moving devices.</> },
       { title: "Restore replaces, not merges", text: "A valid version-1 file is previewed before confirmation. It replaces your decks, sources and collection choices only after saving succeeds. A failed save keeps your current shelf and the preview for retry. Layout and card size stay as they are." },
     ],
-    action: { label: "Open My collection", target: "collection" },
+    action: { label: "Open Library", target: "collection" },
   },
 };
 
@@ -110,7 +110,7 @@ const faq: { group: string; items: { q: string; a: ReactNode; see?: HelpSection 
   ] },
   { group: "Decks and collections", items: [
     { q: "Why is one of my decks missing?", a: "Check the format filter: Commander is the default. Switch the folder list’s format when adding other decks. A Commander deck needs an assigned commander, or it’s removed again just after adding. A deck may also be private, in a subfolder you didn’t tick, in a collection that’s off or hidden, or outside your search and colors.", see: "adding" },
-    { q: "A deck shows an old version", a: "Open it and press Refresh snapshot, or refresh its source in My collection.", see: "updates" },
+    { q: "A deck shows an old version", a: "Open it and press Refresh snapshot, or refresh its source in Library.", see: "updates" },
     { q: "Where do tags come from, and why do some decks have none?", a: "Tags are the deck tags set on Archidekt. Copying a deck on Archidekt doesn’t copy its tags, and most official precons have none. Add tags to the deck on Archidekt, then refresh it here.", see: "updates" },
     { q: "I switched a collection off but its decks still show", a: "They’re also in another collection that’s on. A deck shows while any collection holding it is on." },
   ] },
@@ -140,8 +140,8 @@ const featureGroups: { label: string; items: Feature[] }[] = [
     { target: "shortlist", title: "Choose a few", caption: "Shortlist the decks you’re torn between, then pick from those.", action: "Choose a few", art: 4, Icon: ListChecks },
   ] },
   { label: "Your shelf", items: [
-    { target: "collection", title: "Your Archidekt decks", caption: "Paste a username, folder or deck link. Folders you add whole pick up new decks by themselves.", action: "Open My collection", art: 10, Icon: Link2 },
-    { target: "collection", title: "Share and keep shelves", caption: "Send a link to your shelf, or open a friend’s by username and bookmark it.", action: "Open My collection", art: 7, Icon: Share2 },
+    { target: "collection", title: "Your Archidekt decks", caption: "Paste a username, folder or deck link. Folders you add whole pick up new decks by themselves.", action: "Open Library", art: 10, Icon: Link2 },
+    { target: "collection", title: "Share and keep shelves", caption: "Send a link to your shelf, or open a friend’s by username and bookmark it.", action: "Open Library", art: 7, Icon: Share2 },
     { target: "precons", title: "Official precons", caption: "Commander precons to start with. Hide them any time.", action: "View precons", art: 11, Icon: Library },
     { target: "saving", title: "Saved in this browser", caption: "No account. Export a backup to move your shelf.", action: "Read Saving and devices", art: 6, Icon: HardDriveDownload },
     { target: "settings", title: "Settings", caption: "Card backs, artwork, List columns and how new decks arrive.", action: "Open Settings", art: 8, Icon: Settings },

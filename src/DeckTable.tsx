@@ -64,7 +64,7 @@ const ASCENDING = new Set(["name", "commander", "colors", "release-asc", "format
 
 export type DeckTableRow = {
   deck: TableDeck;
-  /** The page's own name control: a button on Collection, a heading on My collection. */
+  /** The page's own name control: a button on Collection, a heading on Library. */
   title: ReactNode;
   className?: string;
   /** Clicks on the row body; links, inputs and buttons handle their own. */
@@ -72,7 +72,7 @@ export type DeckTableRow = {
   mark?: number;
   note?: string;
   eager?: boolean;
-  /** My collection's Shown checkbox and Archidekt link. */
+  /** Library's Shown checkbox and Archidekt link. */
   lead?: ReactNode;
   trail?: ReactNode;
 };

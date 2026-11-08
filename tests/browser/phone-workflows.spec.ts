@@ -24,7 +24,7 @@ for (const width of [320, 390, 800, 1440]) {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.addInitScript(({ key, fixture }) => { localStorage.setItem(key, JSON.stringify(fixture)); }, { key, fixture });
     await page.goto('/');
-    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
     await page.getByRole('button', { name: 'Open Test account', exact: true }).click();
     const saved = await page.evaluate(key => localStorage.getItem(key), key);
     const actions = page.locator('.manager-toolbar button');
@@ -111,7 +111,7 @@ for (const width of [320, 390]) test('phone browsing controls form compact group
   // Font shaping can vary by a fraction of a pixel after the toolbar changes.
   for (const field of ['x', 'y', 'width', 'height'] as const) expect(afterCount[field]).toBeCloseTo(countBox[field], 0);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-  await page.getByRole('button',{name:'My collection',exact:true}).click();
+  await page.getByRole('button',{name:'Library',exact:true}).click();
   await page.getByRole('button',{name:'Open Test account',exact:true}).click();
   // Pill, Only this and the More menu share one row; the rarer actions wait in the menu.
   const more=page.getByRole('button',{name:'More actions for Test account',exact:true});
@@ -130,7 +130,7 @@ for (const width of [320, 1440]) test(`restore confirmation comes into view and 
   await page.setViewportSize({width,height:740});
   await page.addInitScript(({key,fixture})=>localStorage.setItem(key,JSON.stringify(fixture)),{key,fixture});
   await page.goto('/');
-  await page.getByRole('button',{name:'My collection',exact:true}).click();
+  await page.getByRole('button',{name:'Library',exact:true}).click();
   await page.locator('input[type=file]').setInputFiles({name:'backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});
   const region=page.getByRole('region',{name:'Restore collection backup'});
   await expect(region).toBeFocused();
@@ -223,7 +223,7 @@ for (const viewport of reviewSizes) test.describe(`owner phone pre-pass ${viewpo
     await page.route('**/api/source-folders?*', route => route.fulfill({ json: folderFixture }));
     await page.route('**/api/decks/*', route => route.fulfill({ json: deckFixture.find(d => d.id === new URL(route.request().url()).pathname.split('/').pop()) }));
     await page.goto('/');
-    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
     await page.getByRole('button', { name: 'Add decks', exact: true }).click();
     await page.locator('#collection-source-input').fill('Birckk');
     await shot(page, 'add-username');
@@ -380,7 +380,7 @@ for (const viewport of reviewSizes) test.describe(`owner phone pre-pass ${viewpo
 
   test('backup download bytes restore only after confirmation and cancel keeps saved choices', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
     const exportButton = page.getByRole('button', { name: 'Export backup', exact: true });
     const restoreButton = page.getByRole('button', { name: 'Restore backup', exact: true });
     await exportButton.scrollIntoViewIfNeeded();

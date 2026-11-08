@@ -54,7 +54,7 @@ test('Settings in Help supports keyboard selection, reload, history and v1 backu
   await expect(page.getByRole('button', { name: 'Help', exact: true })).toBeFocused();
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toHaveCount(0);
   await expect(page.locator('.collection-card [data-card-back="wedges"]').first()).toBeVisible();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export backup', exact: true }).click();
   const backup = await download;
@@ -90,7 +90,7 @@ for (const [width, height] of [[1920, 1080], [1500, 900], [390, 844]]) {
     await expect(page.locator('dialog [data-card-back="wedges"]').first()).toBeVisible();
     await page.screenshot({ path: `.codex-shots/details-${width}.png`, fullPage: true });
     await page.getByRole('button', { name: 'Close dialog' }).click();
-    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
     await expect(page.locator('.collection-box [data-card-back="wedges"]').first()).toBeVisible();
     await page.screenshot({ path: `.codex-shots/collections-${width}.png`, fullPage: true });
     await page.getByRole('button', { name: 'Open Individual decks', exact: true }).click();
@@ -135,7 +135,7 @@ for (const width of [1920, 390]) {
       localStorage.setItem(key, JSON.stringify(saved));
     }, key);
     await page.reload();
-    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
     await page.getByRole('button', { name: 'Open Empty artwork', exact: true }).click();
     const tile = page.locator('.workspace-tile').filter({ hasText: 'Unsaved deck' });
     await expect(tile.locator('[data-card-back="wedges"]')).toBeVisible();
@@ -144,7 +144,7 @@ for (const width of [1920, 390]) {
     await page.screenshot({ path: `.codex-shots/empty-art-${width}.png`, fullPage: true });
     await openSettings(page);
     await page.getByRole('radio', { name: 'Dragon nest Default' }).check();
-    await page.getByRole('button', { name: 'My collection', exact: true }).click();
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
     await expect(tile.locator('[data-card-back="nest"]')).toBeVisible();
   });
 }

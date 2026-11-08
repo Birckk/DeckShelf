@@ -1,4 +1,4 @@
-/* Kept and recently viewed shared shelves: the header switcher and My collection list. */
+/* Kept and recently viewed shared shelves: the header switcher and Library list. */
 /* Menus that drop from the header must paint over the page below it (the window bar stays on top at 30). */
 .studio-header { position:relative; z-index:25; }
 .brand-cell { display:flex; align-items:center; gap:12px; min-width:0; }
@@ -54,12 +54,10 @@
 .studio-header .shelf-menu-icon.is-visiting { color:#f2ddb0; }
 .studio-header .shelf-menu-icon.has-name { width:auto; gap:8px; padding:0 10px 0 7px; justify-content:flex-start; }
 .shelf-menu-name { max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#f3f1ec; font-size:14px; font-weight:400; }
-/* A long username never pushes the header around: both places it shows have a fixed cap. */
-.app-shell .studio-header .header-actions > .button > .header-shelf-name { display:inline-block; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom; }
-@media (max-width:1100px) {
-  .shelf-menu-name { max-width:120px; }
-  .app-shell .studio-header .header-actions > .button > .header-shelf-name { max-width:80px; }
-}
+/* A long username never pushes the header around. */
+@media (max-width:1100px) { .shelf-menu-name { max-width:120px; } }
+/* Room for three digits, so a 25-deck shelf and a 184-deck one keep the button's width. */
+.app-shell .studio-header .header-collection .count-badge { min-width:calc(3ch + 10px); font-variant-numeric:tabular-nums; }
 /* Recently viewed, under the overview's own collections. */
 .recent-shelves { margin-top:32px; }
 .recent-shelves .overview-intro { display:flex; justify-content:space-between; }

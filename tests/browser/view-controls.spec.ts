@@ -7,7 +7,7 @@ const managerKey = 'commander-archive.manager-display.v1';
 const decks = seed.slice(0, 12);
 const fixture = { version: 1, starter: false, added: decks, hidden: [], excluded: [], sources: [], manualIds: decks.map(d => d.id) };
 const openManager = async (page: Page, phone = false) => {
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   if (phone) await page.getByRole('button', { name: 'Sources and folders' }).click();
   await page.getByRole('navigation', { name: 'Collection sources' }).getByRole('button', { name: /All saved decks/ }).click();
 };
@@ -160,7 +160,7 @@ test('layout and size persist independently across visits and reloads without ch
   expect(saved[2].hidden).toEqual([]);
 });
 
-test('My collection reuses sorting without changing selection or source order', async ({ page }) => {
+test('Library reuses sorting without changing selection or source order', async ({ page }) => {
   await openManager(page);
   await page.getByRole('button', { name: 'Details', exact: true }).click();
   const names = page.locator('.workspace-tile h4');

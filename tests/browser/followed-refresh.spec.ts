@@ -35,7 +35,7 @@ async function screenshot(page: Page, path: string) {
   await page.screenshot({ path, fullPage: true });
 }
 async function openSource(page: Page) {
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   const nav = page.getByRole('navigation', { name: 'Collection sources' });
   const foldersButton = nav.getByRole('button', { name: 'Followed folder', exact: true }).last();
   if (!(await foldersButton.isVisible())) await page.getByRole('button', { name: 'Sources and folders' }).click();
@@ -106,7 +106,7 @@ test('whole folders follow when added; hand-picked folders stay fixed', async ({
   await prepare(page, { mode: 'selected', fresh: true });
   await page.route('**/api/source-folders?*', route => route.fulfill({ json: { name: 'Test collection', folders: folders.folders.slice(0, 2) } }));
   await page.route('**/api/decks/*', route => route.fulfill({ json: fixture.find(d => d.id === new URL(route.request().url()).pathname.split('/').pop()) }));
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('button', { name: 'Add decks', exact: true }).click();
   await page.locator('#collection-source-input').fill('https://archidekt.com/folders/1916319');
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
@@ -361,7 +361,7 @@ test('restored stale sources refresh on later visibility revisits while the old 
   }, decks[2].id);
   await page.goto('/');
   await expect.poll(() => requested).toBe(true);
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   async function restore() {
     await page.locator('input[type=file]').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
     await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();

@@ -47,7 +47,7 @@ player a different deck. Your system's reduced-motion setting is respected.
 
 ## Your collection
 
-**My collection** is where you choose what's on the shelf.
+**Library** is where you choose what's on the shelf.
 
 - **Add decks:** paste an Archidekt username, profile, folder or deck link. For
   an account or folder, choose the folders or individual decks you want, then
@@ -81,7 +81,7 @@ own picker scope. DeckShelf displays the source format; it does not check legali
 
 ## Sharing shelves
 
-**Share** in My collection gives a link to one of your Archidekt accounts or
+**Share** in Library gives a link to one of your Archidekt accounts or
 folders (`/u/<username>` or `/f/<folder id>`). You can also open someone's
 collection without a link: the people icon after the DeckShelf name opens the
 collections menu, where **Open a collection…** takes an Archidekt username or
@@ -90,7 +90,7 @@ switch their folders and decks on and off (remembered per friend on this device)
 **Bookmark** it so it stays in the menu and opens offline, or **Save to mine** to
 add the decks you have on to your collection. The menu's **Mine** row takes you
 back, and switching from the menu keeps the page you're on. Bookmarks and recently
-viewed shelves are also listed in My collection. Nothing about your own shelf is
+viewed shelves are also listed in Library. Nothing about your own shelf is
 changed or sent anywhere; the link only names the Archidekt source.
 
 ## Settings
@@ -109,7 +109,7 @@ collection switches it back on.
 Your collection is stored in this browser, for this site address. It is not
 shared between browsers or devices. The Windows app has its own separate profile.
 
-Use **Export backup** in My collection before you clear browser data, switch
+Use **Export backup** in Library before you clear browser data, switch
 browsers or move to another computer. **Restore backup** shows what the file
 contains and asks before it replaces the current collection.
 

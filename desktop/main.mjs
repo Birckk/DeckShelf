@@ -84,12 +84,12 @@ if (!app.requestSingleInstanceLock()) {
         { label: 'Pick a deck', accelerator: 'CmdOrCtrl+3', click: send('picker') },
         { type: 'separator' },
         { label: 'Search decks', accelerator: 'CmdOrCtrl+F', click: send('search') },
-        { label: 'My collection', accelerator: 'CmdOrCtrl+4', click: send('collection') },
+        { label: 'Library', accelerator: 'CmdOrCtrl+4', click: send('collection') },
       ] },
       { label: 'Help', submenu: [
         { label: 'DeckShelf Help', accelerator: 'F1', click: send('help') },
         { type: 'separator' },
-        { label: 'About DeckShelf', click: () => { void dialog.showMessageBox(window, { title: 'DeckShelf', message: `DeckShelf ${app.getVersion()}`, detail: 'A personal Commander collection viewer and picker.\n\nDeckShelf is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.\n\nYour collection is saved on this device. Use My collection to export a backup.' }); } },
+        { label: 'About DeckShelf', click: () => { void dialog.showMessageBox(window, { title: 'DeckShelf', message: `DeckShelf ${app.getVersion()}`, detail: 'A personal Commander collection viewer and picker.\n\nDeckShelf is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.\n\nYour collection is saved on this device. Use Library to export a backup.' }); } },
       ] },
     ]);
     // Hidden with the title bar, the menu still provides the keyboard shortcuts.

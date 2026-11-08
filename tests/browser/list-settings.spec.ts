@@ -48,7 +48,7 @@ test('Settings › List chooses the table columns, phone column and row artwork 
   for (const surface of ['shelf', 'manager']) {
     await page.goto('/');
     if (surface === 'manager') {
-      await page.getByRole('button', { name: 'My collection', exact: true }).click();
+      await page.getByRole('button', { name: 'Library', exact: true }).click();
       await page.getByRole('navigation', { name: 'Collection sources' }).getByRole('button', { name: /All saved decks/ }).click();
     }
     const table = page.getByRole('table');
