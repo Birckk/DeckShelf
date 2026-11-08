@@ -9,7 +9,7 @@ Archidekt API handlers in the main process. No HTTP server, free port or install
 Node runtime is needed. External HTTPS links open in the system browser. Other
 external protocols and renderer permission requests are denied.
 
-Keep `dk.bircck.deckshelf`, the `DeckShelf` profile directory, and `archive://app`
+Keep `dk.birckk.deckshelf` (named before the first DeckShelf release), the `DeckShelf` profile directory, and `archive://app`
 stable across releases. 1.0 renamed the app from Commander Archive
 (`dk.bircck.commanderarchive`): `desktop/installer.nsh` removes that installation,
 `desktop/profile.mjs` copies its profile on first start, and the unchanged origin
