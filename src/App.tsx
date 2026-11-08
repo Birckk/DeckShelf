@@ -75,12 +75,11 @@ import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshC
 import { DeckLoadError, fillDecks, loadFullDeck } from "./deckFill";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 import FirstVisitHint, { TourPopover } from "./FirstVisitHint";
-import { ENABLE_FIRST_VISIT_IN_PRODUCTION, isFreshProfile, markFirstVisit } from "./firstVisit";
+import { COLLECTION_KEY as STORAGE_KEY, ENABLE_FIRST_VISIT_IN_PRODUCTION, isFreshProfile, markFirstVisit } from "./firstVisit";
 
 const catalog = seed as Deck[];
 // Blocked storage throws on access; shelf lists then live in memory only.
 const shelfStorage = () => { try { return localStorage; } catch { return undefined; } };
-const STORAGE_KEY = "commander-archive.collection.v1";
 // More chips than this fold behind a "+N more" button.
 const CHIPS_FOLDED = 2;
 type View = "cards" | "grid" | "picker";
@@ -215,6 +214,7 @@ function App() {
   const collectionGeneration = useRef(0);
   const sourceRefresh = useSourceRefresh(collection, setCollection, storageLocked, followEnabled, catalog);
   const persistedCollection = useRef<Collection | null>(null);
+  const persistedRaw = useRef<string | null>(null);
   const wasShared = useRef(isShared);
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
   const [view, setView] = useState<View>(HOME_VIEW);
@@ -365,8 +365,10 @@ function App() {
     }
     if (storageLocked || collection === persistedCollection.current) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(collection));
+      const raw = JSON.stringify(collection);
+      localStorage.setItem(STORAGE_KEY, raw);
       persistedCollection.current = collection;
+      persistedRaw.current = raw;
       setStorageError("");
     } catch {
       setStorageError(
@@ -374,6 +376,28 @@ function App() {
       );
     }
   }, [collection, storageLocked, isShared]);
+  // Every change saves the whole collection, so a tab that kept its own copy would overwrite
+  // decks another tab added (#155). When another tab saves, take its collection over; this
+  // tab's next change then builds on it. Compare with what is stored now, not the event's
+  // value: if this tab has saved since, its copy is already the latest.
+  useEffect(() => {
+    if (isShared || storageLocked) return;
+    const adopt = (event: StorageEvent) => {
+      if (event.key !== STORAGE_KEY || event.storageArea !== localStorage) return;
+      let raw: string | null;
+      let next: Collection;
+      try {
+        raw = localStorage.getItem(STORAGE_KEY);
+        if (raw === null || raw === persistedRaw.current) return;
+        next = parseCollection(raw);
+      } catch { return; }
+      persistedRaw.current = raw;
+      persistedCollection.current = next;
+      setCollection(next);
+    };
+    window.addEventListener("storage", adopt);
+    return () => window.removeEventListener("storage", adopt);
+  }, [isShared, storageLocked]);
   const allDecks = useMemo(
     () => collectionDecks(collection, catalog),
     [collection],
