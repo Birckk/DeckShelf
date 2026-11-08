@@ -4,20 +4,22 @@ What is checked before a DeckShelf build is released, and what is not.
 
 ## Automated (CI)
 
-GitHub checks run manually for now (see [DEVELOPMENT.md](DEVELOPMENT.md#cicd)); run
-the Linux checks locally before merging. A default `ci.yml` run covers the first
-column, a full run adds the second, and `desktop.yml` tests the Windows package.
+Every change is checked locally before merging: unit tests, the production build and
+the browser suite in Chromium (see [DEVELOPMENT.md](DEVELOPMENT.md#cicd)). The slow
+checks run once per release, when a `vX.Y.Z` tag starts `release.yml`:
 
-| Check | Default run | Full run |
+| Check | Every change (local) | Every release (`release.yml`) |
 | --- | --- | --- |
-| Unit tests and production build | Ubuntu, Node 22 | Windows, macOS on Node 22; Ubuntu on Node 24 |
-| Browser regressions: dialogs, collection workspace, saved choices, backups, keyboard, reduced motion at 1440/390/320px | Chromium | Firefox, WebKit |
-| Production container: health and routing, desktop/phone smoke tests, guide, precon demo | Hardened Docker container (read-only, no capabilities, 256 MB) | |
-| Windows package: ZIP smoke test (startup, artwork, sandbox, API routing, backup restore/export, relaunch, offline reload) and installer upgrade from Commander Archive (collection kept), install/reinstall/uninstall | `desktop.yml` | Disposable Windows runner |
-| Production dependency audit | npm advisory database | |
+| Unit tests and production build | Yes | Windows, Node 22 |
+| Production dependency audit | | npm advisory database |
+| Browser regressions: dialogs, collection workspace, saved choices, backups, keyboard, reduced motion at 1440/390/320px | Chromium | Chromium, Firefox, WebKit on Linux |
+| Windows package: ZIP smoke test (startup, artwork, sandbox, API routing, backup restore/export, relaunch, offline reload) and install/reinstall/uninstall | | Disposable Windows runner |
 
-Release tags rerun the Windows checks, publish a versioned container image and
-create a **draft** GitHub release for review. Nothing is published automatically.
+Only after all of these pass does the release workflow publish a versioned container
+image and create a **draft** GitHub release for review. Nothing is published
+automatically. Run by hand when relevant: `desktop.yml` for the upgrade from
+Commander Archive (collection kept), and `ci.yml` for the hardened production
+container (read-only, no capabilities, 256 MB), macOS and Node 24.
 
 ## Per release (manual)
 

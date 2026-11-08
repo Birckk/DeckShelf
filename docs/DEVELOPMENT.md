@@ -143,8 +143,7 @@ With the dev server running, `npm run screenshots` regenerates
 
 ## CI/CD
 
-GitHub checks are manual for now to stay within the free Actions minutes. Before
-merging, run the checks locally:
+Changes are checked locally before merging:
 
 ```sh
 npm test
@@ -152,9 +151,14 @@ npm run build
 npx playwright test --browser=chromium
 ```
 
-Run `.github/workflows/ci.yml` from the Actions tab when a change needs more. By
-default it runs on Linux; tick **full** for the bracketed platforms (Windows runners
-bill 2x, macOS 10x):
+The slow checks run once per release: a `vX.Y.Z` tag runs `release.yml`, which
+tests the Windows app and the browser suite in Chromium, Firefox and WebKit before it
+builds anything (see [RELEASING.md](RELEASING.md)). Nothing else needs to run in
+between.
+
+`.github/workflows/ci.yml` stays available from the Actions tab for a one-off check.
+By default it runs on Linux; tick **full** for the bracketed platforms (Windows
+runners bill 2x, macOS 10x):
 
 - **unit**: tests and build on Ubuntu, Node 22 [plus Windows, macOS and Node 24].
 - **browsers**: Playwright regressions in Chromium [plus Firefox and WebKit].
@@ -163,13 +167,9 @@ bill 2x, macOS 10x):
   provenance and SBOM after a green `main` push. Dormant while push triggers are off.
 
 `desktop.yml` packages the Windows app, smoke-tests it and runs the installer
-lifecycle, including the upgrade from Commander Archive. Run it manually; its
-`windows-candidate` artifact (about 256 MB) is kept for 3 days.
-
-To check every change on GitHub again, restore the commented `push` and
-`pull_request` triggers in `ci.yml` (and `desktop.yml` for desktop packaging).
-
-`release.yml` handles `vX.Y.Z` tags (see [RELEASING.md](RELEASING.md)).
+lifecycle, including the upgrade from Commander Archive. Run it by hand after
+changing desktop packaging; its `windows-candidate` artifact (about 256 MB) is kept
+for 3 days.
 `codeql.yml` runs code scanning once the repository is public. Dependabot
 proposes monthly npm, Actions and Docker base-image updates.
 
