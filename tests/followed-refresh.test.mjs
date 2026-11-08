@@ -12,7 +12,7 @@ const source = { key: 'folder:42', kind: 'folder', value: '42', name: 'Direct de
   folderPath: 'Home / Nested', connectionKey: 'account:example', connectionName: 'Example' };
 const found = { ...source, checkedAt: '2026-10-16T12:00:00Z', name: 'Renamed folder', knownIds: decks.slice(1).map(d => d.id),
   entries: decks.slice(1).map(entry).map((e, i) => i === 0 ? { ...e, name: 'Renamed deck' } : e) };
-const base = { version: 1, starter: false, added: decks.slice(0, 2), hidden: [], excluded: [], sources: [source] };
+const base = { version: 1, added: decks.slice(0, 2), hidden: [], excluded: [], sources: [source] };
 
 test('refresh invariant: valid v1 snapshots and every existing choice survive all generated source modes and local states', () => {
   let cases = 0;
@@ -24,7 +24,7 @@ test('refresh invariant: valid v1 snapshots and every existing choice survive al
       hidden: flags & 1 ? [decks[0].id, decks[2].id] : [], excluded: flags & 2 ? [decks[1].id] : [],
       disabledGroups: flags & 4 ? [source.key] : [], archivedGroups: flags & 8 ? [source.key] : [],
       ...(flags & 16 ? {} : { manualIds: [decks[0].id] }), sources: [imported, { ...source, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43', selectedIds: [decks[0].id] }] }));
-    const independent = showcaseGroups(original, [], original.added).find(g => g.key === 'manual').ids;
+    const independent = showcaseGroups(original, original.added).find(g => g.key === 'manual').ids;
     const copy = structuredClone(original);
     const result = parseCollection(JSON.stringify(refreshSourceMembership(original, found, decks.slice(2))));
     assert.deepEqual(original, copy, 'pure merge');

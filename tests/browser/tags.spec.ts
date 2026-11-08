@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/tagged-decks';
 
 const key = 'commander-archive.collection.v1';
-const profile = { version: 1, starter: false, hidden: [], excluded: [], added: seed, manualIds: seed.map(d => d.id) };
+const profile = { version: 1, hidden: [], excluded: [], added: seed, manualIds: seed.map(d => d.id) };
 const tagged = (...tags: string[]) => seed.filter(d => tags.every(t => d.tags.includes(t))).length;
 
 async function init(page: Page) {

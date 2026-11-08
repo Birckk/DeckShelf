@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 for (const width of [320, 390]) for (const count of [2, 7, 184]) {
   test(`phone picker leaves room between cards with ${count} decks at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     if (count < 184) await page.addInitScript(decks => {
-      localStorage.setItem('commander-archive.collection.v1', JSON.stringify({ version: 1, starter: false, added: decks, manualIds: decks.map(d => d.id), hidden: [], excluded: [] }));
+      localStorage.setItem('commander-archive.collection.v1', JSON.stringify({ version: 1, added: decks, manualIds: decks.map(d => d.id), hidden: [], excluded: [] }));
     }, seed.slice(0, count).map((d, i) => ({ ...d, id: String(990001 + i) })));
     await page.goto('/');
     await page.getByRole('button', { name: 'Pick a deck', exact: true }).click();

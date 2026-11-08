@@ -38,7 +38,6 @@ import {
   X,
   Settings,
 } from "lucide-react";
-import seed from "./data/decks.json";
 import precons from "./data/precons.json";
 import {
   COLORS,
@@ -77,7 +76,6 @@ import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 import FirstVisitHint, { TourPopover } from "./FirstVisitHint";
 import { COLLECTION_KEY as STORAGE_KEY, ENABLE_FIRST_VISIT_IN_PRODUCTION, isFreshProfile, markFirstVisit } from "./firstVisit";
 
-const catalog = seed as Deck[];
 // Blocked storage throws on access; shelf lists then live in memory only.
 const shelfStorage = () => { try { return localStorage; } catch { return undefined; } };
 // More chips than this fold behind a "+N more" button.
@@ -212,7 +210,7 @@ function App() {
   // New decks from Archidekt folders are added automatically unless Settings turns it off.
   const followEnabled = !collection.followOff;
   const collectionGeneration = useRef(0);
-  const sourceRefresh = useSourceRefresh(collection, setCollection, storageLocked, followEnabled, catalog);
+  const sourceRefresh = useSourceRefresh(collection, setCollection, storageLocked, followEnabled);
   const persistedCollection = useRef<Collection | null>(null);
   const persistedRaw = useRef<string | null>(null);
   const wasShared = useRef(isShared);
@@ -399,7 +397,7 @@ function App() {
     return () => window.removeEventListener("storage", adopt);
   }, [isShared, storageLocked]);
   const allDecks = useMemo(
-    () => collectionDecks(collection, catalog),
+    () => collectionDecks(collection),
     [collection],
   );
   // A friend's shelf uses the Library screens. Its choices are never saved into yours.
@@ -419,12 +417,12 @@ function App() {
     });
   };
   const owned = useMemo(
-    () => isShared ? (sharedWorkspace ? showcaseDecks(sharedWorkspace, [], shared.decks) : shared.decks) : showcaseDecks(collection, catalog, allDecks),
+    () => isShared ? (sharedWorkspace ? showcaseDecks(sharedWorkspace, shared.decks) : shared.decks) : showcaseDecks(collection, allDecks),
     [allDecks, collection, isShared, shared.decks, sharedWorkspace],
   );
   const tableSettings = useMemo(() => listSettings(collection), [collection.list]);
   // The List table's Collection column and the Collection name sort use these.
-  const collectionNames = useMemo(() => deckCollections(showcaseGroups(collection, catalog, allDecks)), [allDecks, collection]);
+  const collectionNames = useMemo(() => deckCollections(showcaseGroups(collection, allDecks)), [allDecks, collection]);
   const visible = useMemo(
     () => sortCollectionDecks(sort, owned.filter((d) => matchesDeck(d, filters)), deck => ({ ...deck, collections: collectionNames.get(deck.id) })),
     [owned, filters, sort, collectionNames],
@@ -654,7 +652,7 @@ function App() {
     setSharedSaving(true);
     const identity = sharedIdentity;
     try {
-      const next = await saveSharedCollectionWithLock(localStorage, STORAGE_KEY, shared.source!, owned, catalog,
+      const next = await saveSharedCollectionWithLock(localStorage, STORAGE_KEY, shared.source!, owned,
         () => freshCollection(precons as { snapshotAt: string; decks: Deck[] }), undefined, shared.folders);
       // A queued Save may finish after the visitor has left this shelf.
       if (activeSharedIdentity.current !== identity) return;
@@ -684,7 +682,7 @@ function App() {
   const shelfMenu = <ShelfSwitcher
     current={isShared ? { id: sharedIdentity, name: shared.source?.name || sharedRoute.source?.value || "Shared" } : null}
     viewing={isShared && shared.source ? { source: shared.source, count: shared.decks.length } : null}
-    kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length} disabled={spinning}
+    kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, allDecks).length : owned.length} disabled={spinning}
     onPersonal={openPersonalShelf} onOpen={source => openSharedShelf(source, { stay: true })} onBookmark={bookmarkShelf} onUnbookmark={removeBookmark} />;
   const activeFilterChips = [
     view !== 'picker' && filters.format !== 'commander' && <button key="format" disabled={spinning} onClick={() => updateFilter('format', 'commander')}>{filters.format === 'all' ? 'All formats' : formatName(filters.format || 'commander')}<X size={12} /></button>,
@@ -793,7 +791,7 @@ function App() {
             <Library size={16} />
             {/* Library on every shelf; someone else's name shows once, by the people icon. */}
             <span>Library</span>
-            <span className="count-badge">{sharedShelf ? owned.length : isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length}</span>
+            <span className="count-badge">{sharedShelf ? owned.length : isShared ? showcaseDecks(collection, allDecks).length : owned.length}</span>
           </button>
         </div>
       </header>
@@ -1228,7 +1226,6 @@ function App() {
           // Someone else's shelf is never checked from here, and your choices stay on this device.
           sourceRefresh={sourceRefresh}
           followEnabled={false}
-          catalog={[]}
           decks={shared.decks}
           collection={sharedWorkspace}
           setCollection={setSharedWorkspace}
@@ -1251,7 +1248,6 @@ function App() {
           sourceRefresh={sourceRefresh}
           followEnabled={followEnabled}
           key={collectionVisit}
-          catalog={catalog}
           decks={allDecks}
           collection={collection}
           setCollection={setCollection}

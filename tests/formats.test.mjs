@@ -8,7 +8,7 @@ import { normalizeDeck } from '../server/api.mjs';
 import { discoverSource } from '../server/sources.mjs';
 import { importFolderSelection, showcaseDecks, rememberSource } from '../src/collection.ts';
 
-const deck = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)))[0];
+const deck = JSON.parse(readFileSync(new URL('./fixtures/collection-decks.json', import.meta.url)))[0];
 const modernRaw = JSON.parse(readFileSync(new URL('./fixtures/archidekt-modern.json', import.meta.url)));
 
 test('Archidekt format map retains identities, including unknown and Commander variants', () => {
@@ -83,14 +83,14 @@ test('mixed imports, filters, picker and v1 backups preserve format identity and
   const modern = normalizeDeck(modernRaw);
   const unknown = normalizeDeck({ ...modernRaw, id: 99, deckFormat: 99, featured: '' });
   const source = { key: 'folder:1', kind: 'folder', value: '1', name: 'Mixed', url: 'https://archidekt.com/folders/1', checkedAt: modern.fetchedAt, formatScope: 'all', entries: [deck, modern, unknown].map(d => ({ id: d.id, name: d.name, colors: d.colors, image: coverOf(d).art, format: formatOf(d) })), knownIds: [deck.id, modern.id, unknown.id] };
-  const base = { version: 1, starter: false, hidden: ['999'], excluded: [modern.id], added: [] };
+  const base = { version: 1, hidden: ['999'], excluded: [modern.id], added: [] };
   let c = importFolderSelection(base, [source], [deck, modern, unknown], []);
   c = importFolderSelection(c, [{ ...source, key: 'folder:2', value: '2', url: 'https://archidekt.com/folders/2' }], [modern], c.added);
   const restored = parseCollection(JSON.stringify(c));
   assert.deepEqual(restored, c);
   assert.deepEqual(restored.hidden, ['999']);
   assert.deepEqual(restored.excluded, [modern.id]);
-  const all = showcaseDecks(restored, [], restored.added);
+  const all = showcaseDecks(restored, restored.added);
   assert.equal(all.length, 3);
   assert.deepEqual(all.filter(d => matchesDeck(d, EMPTY_FILTERS)).map(d => d.id), [deck.id]);
   assert.equal(all.filter(d => matchesDeck(d, { ...EMPTY_FILTERS, format: 'all' })).length, 3);
@@ -122,13 +122,13 @@ test('widening a legacy source keeps unticked saved decks in paused Individual d
   const modern = normalizeDeck(modernRaw);
   const entry = d => ({ id: d.id, name: d.name, image: coverOf(d).art, colors: d.colors, format: formatOf(d) });
   const source = { key: 'folder:1', kind: 'folder', value: '1', name: 'Legacy', url: 'https://archidekt.com/folders/1', checkedAt: deck.fetchedAt, entries: [entry(deck)], knownIds: [deck.id] };
-  const base = { version: 1, starter: false, hidden: ['999'], excluded: [modern.id], added: [deck, modern], sources: [source], manualIds: [modern.id], disabledGroups: ['manual'] };
+  const base = { version: 1, hidden: ['999'], excluded: [modern.id], added: [deck, modern], sources: [source], manualIds: [modern.id], disabledGroups: ['manual'] };
   const widened = { ...source, formatScope: 'all', entries: [entry(deck), entry(modern)], knownIds: [deck.id, modern.id] };
   const result = importFolderSelection(base, [widened], [deck], base.added);
   assert.deepEqual(result.sources[0].knownIds, [deck.id, modern.id]);
   assert.deepEqual(result.sources[0].selectedIds, [deck.id]);
   assert.deepEqual(result.sources[0].ownedIds, [deck.id]);
-  assert.deepEqual(showcaseDecks(result, [], result.added).map(d => d.id), [deck.id]);
+  assert.deepEqual(showcaseDecks(result, result.added).map(d => d.id), [deck.id]);
   assert.deepEqual(result.hidden, base.hidden);
   assert.deepEqual(result.excluded, base.excluded);
   assert.deepEqual(result.manualIds, [modern.id]);
@@ -140,7 +140,7 @@ test('re-adding Commander decks preserves an all-format connection and its other
   const modern = normalizeDeck(modernRaw);
   const entry = d => ({ id: d.id, name: d.name, image: coverOf(d).art, colors: d.colors, format: formatOf(d) });
   const source = { key: 'folder:1', kind: 'folder', value: '1', name: 'Mixed', url: 'https://archidekt.com/folders/1', checkedAt: deck.fetchedAt, formatScope: 'all', entries: [entry(deck), entry(modern)], knownIds: [deck.id, modern.id], selectedIds: [deck.id, modern.id] };
-  const base = { version: 1, starter: false, hidden: [], excluded: [], added: [deck, modern], sources: [source] };
+  const base = { version: 1, hidden: [], excluded: [], added: [deck, modern], sources: [source] };
   const commanderOnly = { ...source, formatScope: 'commander', entries: [entry(deck)], knownIds: [deck.id] };
   const result = importFolderSelection(base, [commanderOnly], [deck], base.added);
   assert.equal(result.sources[0].formatScope, 'all');

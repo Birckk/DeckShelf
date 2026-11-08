@@ -117,7 +117,7 @@ export function shelfCollection({ source, decks, folders }: LoadedShelf): Collec
   const sources = parts.length
     ? parts.map(folder => ({ ...folder.source, folderPath: folder.path, connectionKey: source.key, connectionName: source.name }))
     : [source];
-  return { version: 1, starter: false, hidden: [], excluded: [], added: decks, manualIds: [],
+  return { version: 1, hidden: [], excluded: [], added: decks, manualIds: [],
     sources: sources.map(item => ({ ...item, selectedIds: item.knownIds, ownedIds: item.knownIds })) };
 }
 

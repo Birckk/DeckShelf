@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import precons from '../../src/data/precons.json' with { type: 'json' };
 import folderFixture from '../fixtures/collection-folders.json' with { type: 'json' };
 import deckFixture from '../fixtures/collection-decks.json' with { type: 'json' };
@@ -13,7 +13,7 @@ const sources = [0, 1].map(i => ({
   folderPath: 'Home / Test collection / ' + (i ? 'Multicolor' : 'Mono-color'),
   connectionKey: 'account:test', connectionName: 'Test account',
 }));
-const fixture = { version: 1, starter: false, added: decks, hidden: [], excluded: [], sources, manualIds: [] };
+const fixture = { version: 1, added: decks, hidden: [], excluded: [], sources, manualIds: [] };
 // Layout fixtures must never refresh real upstream folders on revisit.
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/sources?*', route => route.fulfill({ json: sources.find(s => s.value === new URL(route.request().url()).searchParams.get('value')) }));
@@ -332,7 +332,7 @@ for (const viewport of reviewSizes) test.describe(`owner phone pre-pass ${viewpo
   });
 
   test('large catalogue Cards, List and Details stay navigable', async ({ page, browserName }) => {
-    await page.addInitScript(({ key, catalogue }) => localStorage.setItem(key, JSON.stringify({ version: 1, starter: false, added: catalogue, manualIds: catalogue.map(d => d.id), hidden: [], excluded: [] })), { key, catalogue: precons.decks });
+    await page.addInitScript(({ key, catalogue }) => localStorage.setItem(key, JSON.stringify({ version: 1, added: catalogue, manualIds: catalogue.map(d => d.id), hidden: [], excluded: [] })), { key, catalogue: precons.decks });
     await page.goto('/');
     await expect(page.locator('.result-count')).toContainText('184 decks');
     for (const layout of ['List', 'Details']) {

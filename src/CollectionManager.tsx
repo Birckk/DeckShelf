@@ -59,7 +59,6 @@ import {
   archidektPage,
   sourceDeckIds,
   removeSources,
-  removeStarter,
   addDemo,
   updateDemo,
   importFolderSelection,
@@ -78,7 +77,6 @@ type Props = {
   sourceRefresh: { checking: string; refresh: (key: string, manual?: boolean) => Promise<void> };
   followEnabled: boolean;
   decks: Deck[];
-  catalog: Deck[];
   collection: Collection;
   setCollection: (update: Collection | ((c: Collection) => Collection)) => void;
   onClose: () => void;
@@ -149,7 +147,6 @@ export default function CollectionManager({
   sourceRefresh,
   followEnabled,
   decks,
-  catalog,
   collection,
   setCollection,
   onClose,
@@ -214,11 +211,11 @@ export default function CollectionManager({
   const scopedSources = scope ? sources.filter(s => scope.keys.includes(s.key)) : source ? [source] : [];
   const scopedKeys = scopedSources.map(s => s.key);
   const saved = useMemo(() => new Map(decks.map((d) => [d.id, d])), [decks]);
-  const groups = showcaseGroups(collection, catalog, decks);
+  const groups = showcaseGroups(collection, decks);
   const collectionNames = deckCollections(groups);
   const activeGroup = groups.find((g) => g.key === section);
   const onDisplayIds = new Set(
-    showcaseDecks(collection, catalog, decks).map((d) => d.id),
+    showcaseDecks(collection, decks).map((d) => d.id),
   );
   const onDisplay = onDisplayIds.size;
   const manual = decks.filter((d) =>
@@ -239,9 +236,7 @@ export default function CollectionManager({
           )
           .map(toEntry),
       ].map(row => [row.id, row])).values()]
-    : (section === "starter"
-        ? catalog.map((d) => saved.get(d.id) || d)
-        : section === "demo"
+    : (section === "demo"
           ? collection.demo?.decks || []
         : section === "manual"
           ? manual
@@ -427,8 +422,8 @@ export default function CollectionManager({
       const accepted = selected.flatMap(id => saved.get(id) || (listed.has(id) ? [listingDeck(listed.get(id)!)] : []));
       // Merge into the latest state: a background check may have saved since this render.
       const importedKeys = new Set(importedFolderKeys.current);
-      commitAsync(c => importFolderSelection(c, chosen, accepted, collectionDecks(c, catalog),
-        onlyFolders ? showcaseGroups(c, catalog, collectionDecks(c, catalog)).map(g => g.key).filter(key => !importedKeys.has(key)) : [], selected, catalog), signal);
+      commitAsync(c => importFolderSelection(c, chosen, accepted, collectionDecks(c),
+        onlyFolders ? showcaseGroups(c, collectionDecks(c)).map(g => g.key).filter(key => !importedKeys.has(key)) : [], selected), signal);
       chosen.filter(s => s.entries.some(e => accepted.some(d => d.id === e.id))).forEach(s => importedFolderKeys.current.add(s.key));
       finish(`${accepted.length} ${accepted.length === 1 ? 'deck' : 'decks'} added to your collection.`, []);
       navigate("overview");
@@ -493,7 +488,7 @@ export default function CollectionManager({
       const offGroup = accepted.length && activeGroup?.enabled === false ? activeGroup : undefined;
       commitAsync(c => {
         let next = saveSnapshots(c, accepted, true);
-        if (scopedSources.length) next = setSourceSelection(next, scopedKeys, accepted.map(d => d.id), true, collectionDecks(next, catalog));
+        if (scopedSources.length) next = setSourceSelection(next, scopedKeys, accepted.map(d => d.id), true, collectionDecks(next));
         return offGroup && turnsOn ? switchOn(next, offGroup.key) : next;
       }, signal);
       setSelected((ids) =>
@@ -567,7 +562,7 @@ export default function CollectionManager({
   }
   // Remove acts at once and offers Undo instead of asking first (#57).
   function remove(keys: string[], name: string, count: number) {
-    const after = keys.includes("starter") ? removeStarter(collection) : removeSources(collection, keys, catalog);
+    const after = removeSources(collection, keys);
     setCollection(after);
     navigate("overview");
     notify(`Removed ${name}${count ? ` and its ${count} saved ${count === 1 ? "deck" : "decks"}` : ""}.`, { action: { label: "Undo", run: undoTo(collection, after) } });
@@ -601,7 +596,6 @@ export default function CollectionManager({
     ] : []),
     ...(!headerHidden && headerKeys.length ? [{ label: section === "demo" ? "Hide precons" : "Hide", icon: <EyeOff size={14} />, run: () => hide(headerKeys) }] : []),
     ...(scopedSources.length && !readOnly ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(scopedKeys, headerName, sourceIds.size) }] : []),
-    ...(section === "starter" ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(["starter"], headerName, 0) }] : []),
   ];
   const deckRows = shown.map((row) => {
     const deck = saved.get(row.id);
@@ -729,9 +723,7 @@ export default function CollectionManager({
                   <div>
                     <h3>
                       {scope?.name || activeGroup?.name ||
-                        (section === "starter"
-                          ? "Included precons"
-                          : section === "manual"
+                        (section === "manual"
                             ? "Individual decks"
                             : readOnly ? "All decks" : "All saved decks")}
                     </h3>
@@ -765,8 +757,6 @@ export default function CollectionManager({
                     {section === "demo" && !headerHidden && <button className="text-button" disabled={!!busy} title="Check Archidekt for precons released since this snapshot" onClick={updatePrecons}><RefreshCw size={14} />Refresh</button>}
                     <CollectionMenu name={headerName} busy={!!busy} items={menuItems} />
                   </div>
-                  {section === "starter" && !collection.demo && <div className="manager-precon-link"><button className="text-button" disabled={!!busy} onClick={addPrecons}>
-                    <Plus size={14} />Add all Official Commander precons</button></div>}
                 </div>}
                 {followEnabled && source && <div className="source-refresh-status" aria-live="polite">
                   <span>Checked {new Date(source.checkedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>

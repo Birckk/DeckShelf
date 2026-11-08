@@ -11,7 +11,7 @@ async function read(path: string, signal: AbortSignal) {
 
 // Checks run only while the app is open; there is no background sync. Restores and mode
 // changes invalidate the whole queue. `prototype=1` asks the server for its cached listing.
-export function useSourceRefresh(collection: Collection, setCollection: (update: (c: Collection) => Collection) => void, locked: boolean, enabled: boolean, catalog: Deck[]) {
+export function useSourceRefresh(collection: Collection, setCollection: (update: (c: Collection) => Collection) => void, locked: boolean, enabled: boolean) {
   const latest = useRef(collection);
   latest.current = collection;
   const generation = useRef(0);
@@ -61,7 +61,7 @@ export function useSourceRefresh(collection: Collection, setCollection: (update:
       const completedAt = Date.now();
       setCollection(c => {
         if (!current()) return c;
-        try { return parseCollection(JSON.stringify(refreshSourceMembership(c, found, loaded, catalog))); }
+        try { return parseCollection(JSON.stringify(refreshSourceMembership(c, found, loaded))); }
         catch (error) { return sourceRefreshFailure(c, key, (error as Error).message, completedAt); }
       });
     } catch (error) {

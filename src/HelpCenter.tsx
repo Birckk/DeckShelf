@@ -7,7 +7,7 @@ import {
 import { CardFanIcon } from "./CardFanIcon";
 import CollectionGuide from "./CollectionGuide";
 import SettingsSection, { type Settings as SettingsValue } from "./SettingsSection";
-import decks from "./data/decks.json";
+import artwork from "./data/help-artwork.json";
 import { roadmap, roadmapStages } from "./data/roadmap";
 import { AboutPreview, AddingFigure, FeaturesPreview, FriendsFigure, PickingFigure, RoadmapPreview, SavingFigure, ShowingFigure, UpdatesFigure } from "./HelpFigures";
 
@@ -280,7 +280,7 @@ export default function HelpCenter({ section, onSection, onClose, onGo, precons,
             <h3 id={`features-${g.label}`}>{g.label}</h3>
             <ul>{g.items.map(({ target, title, caption, action, art, Icon }) => <li key={title}>
               <button className="feature-row" title={action} onClick={() => target === "saving" || target === "settings" ? onSection(target) : onGo(target)}>
-                <span className="feature-thumb"><img src={decks[art].commanders[0].art} alt="" /><span><Icon size={13} /></span></span>
+                <span className="feature-thumb"><img src={artwork[art].art} alt="" /><span><Icon size={13} /></span></span>
                 <span className="feature-text"><strong>{title}</strong><span>{caption}</span></span>
                 <ArrowRight size={15} aria-hidden="true" />
               </button>

@@ -18,7 +18,7 @@ const env = { ...process.env, PATH: join(process.env.SystemRoot, 'System32') };
 delete env.ELECTRON_RUN_AS_NODE;
 delete env.NODE_OPTIONS;
 const key = 'commander-archive.collection.v1';
-const seed = JSON.parse(await readFile(join(root, 'src/data/decks.json'), 'utf8'));
+const seed = JSON.parse(await readFile(join(root, 'tests/fixtures/collection-decks.json'), 'utf8'));
 const snapshot = seed[2];
 // The same shape smoke-desktop.mjs round-trips, with a fixed date so both runs agree.
 const fixture = {

@@ -1,11 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import precons from '../../src/data/precons.json' with { type: 'json' };
 
 const key = 'commander-archive.collection.v1';
 const decks = seed.slice(0, 2).map((deck, i) => ({ ...deck, id: String(990101 + i) }));
-const current = { version: 1, starter: false, added: decks, hidden: [], excluded: [] };
+const current = { version: 1, added: decks, hidden: [], excluded: [] };
 const replacement = { ...current, added: decks.slice(0, 1) };
 const file = (value: unknown) => ({ name: 'collection.json', mimeType: 'application/json', buffer: Buffer.from(typeof value === 'string' ? value : JSON.stringify(value)) });
 async function open(page: Page, raw = JSON.stringify(current), fault = '') {
@@ -170,8 +170,7 @@ test('export stays collection-only and cancelling or restoring preserves display
 });
 
 for (const [label, profile, count] of [
-  ['legacy starter', { version: 1, added: [], hidden: [seed[0].id], excluded: [seed[1].id] }, seed.length - 1],
-  ['older precon snapshot', { version: 1, starter: false, added: [], hidden: [], excluded: [], demo: { removed: false, snapshotAt: precons.snapshotAt, decks: precons.decks.slice(0, 2) } }, 2],
+  ['older precon snapshot', { version: 1, added: [], hidden: [], excluded: [], demo: { removed: false, snapshotAt: precons.snapshotAt, decks: precons.decks.slice(0, 2) } }, 2],
 ] as const) test(`${label} restores and reloads without silently expanding to the current catalog`, async ({ page }) => {
   await open(page); await manager(page); await upload(page, profile);
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();

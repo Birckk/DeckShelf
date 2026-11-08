@@ -4,20 +4,20 @@ import { readFileSync, existsSync } from 'node:fs';
 import { cardImage, descriptionParts, matchesDeck, randomIndex, drawDistinct, parseCollection, validateDeck, tagCounts, EMPTY_FILTERS, listSettings, DEFAULT_LIST } from '../src/domain.ts';
 import { normalizeDeck, descriptionText } from '../server/api.mjs';
 
-const decks = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)));
+const decks = JSON.parse(readFileSync(new URL('./fixtures/collection-decks.json', import.meta.url)));
 const deck = { ...decks[0], colors:['U','R'], name:'Example', theme:'Graveyard', description:'Draw cards', tags:['Spellslinger'], commanders:[{...decks[0].commanders[0], name:'Sample Commander'}] };
 const f = overrides => ({...EMPTY_FILTERS, ...overrides});
-test('the starter collection has all 29 unique decks, usable sources and real local images', () => {
-  assert.equal(decks.length,29);
-  assert.equal(new Set(decks.map(d => d.id)).size,29);
-  for(const d of decks) {
-    assert.ok(validateDeck(d),d.name);
-    assert.equal(d.cardCount,100,d.name);
-    assert.ok(d.sourceUrl.startsWith('https://archidekt.com/decks/'));
-    for(const c of d.commanders) for(const field of ['image','art']) {
-      assert.ok(existsSync(new URL('../public' + c[field],import.meta.url)), c[field]);
-    }
+test('Help artwork is bundled locally and credited', () => {
+  const artwork = JSON.parse(readFileSync(new URL('../src/data/help-artwork.json', import.meta.url)));
+  assert.equal(artwork.length, 21);
+  for (const card of artwork) {
+    assert.ok(card.name && card.artist && card.source.startsWith('https://archidekt.com/decks/'), card.name);
+    for (const field of ['image', 'art']) assert.ok(existsSync(new URL('../public' + card[field], import.meta.url)), card[field]);
   }
+});
+test('the test fixture decks are valid snapshots', () => {
+  assert.equal(new Set(decks.map(d => d.id)).size, decks.length);
+  for (const d of decks) assert.ok(validateDeck(d), d.name);
 });
 test('normal color filtering requires every selected color and permits extra colors', () => {
   assert.equal(matchesDeck(deck,f({colors:['U']})),true);

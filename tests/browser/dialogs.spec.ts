@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 
 const first = { ...seed[0], id: '987001', name: 'A deck with a long name for a narrow screen', tags: [], theme: '', description: '' };
 const second = { ...seed[1], id: '987002', name: 'Partner deck', commanders: [seed[0].commanders[0], seed[1].commanders[0]] };
@@ -7,7 +7,7 @@ const key = 'commander-archive.collection.v1';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(({ first, second, key }) => {
-    localStorage.setItem(key, JSON.stringify({ version: 1, starter: false, hidden: [], excluded: [second.id], added: [first, second], manualIds: [first.id, second.id] }));
+    localStorage.setItem(key, JSON.stringify({ version: 1, hidden: [], excluded: [second.id], added: [first, second], manualIds: [first.id, second.id] }));
   }, { first, second, key });
   await page.goto('/');
 });

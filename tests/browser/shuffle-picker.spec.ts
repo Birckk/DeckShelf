@@ -1,5 +1,5 @@
 ﻿import { test, expect, type Page } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 
 // Phones keep the picker's controls in its Options menu; wide screens show them in place.
 async function options(page: Page, run: () => Promise<unknown>) {
@@ -129,7 +129,7 @@ test('single shuffle result uses the accepted unlabelled reveal', async ({ page 
 for (const [width, height] of [[360, 740], [390, 844], [844, 390]]) {
   test(`phone shuffle fits ${width}x${height}`, async ({ page }) => {
     await page.setViewportSize({ width, height });
-    await page.addInitScript(decks => localStorage.setItem('commander-archive.collection.v1', JSON.stringify({ version: 1, starter: false, added: decks, manualIds: decks.map(d => d.id), hidden: [], excluded: [] })), seed);
+    await page.addInitScript(decks => localStorage.setItem('commander-archive.collection.v1', JSON.stringify({ version: 1, added: decks, manualIds: decks.map(d => d.id), hidden: [], excluded: [] })), seed);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await shuffle(page);
     const picker = page.getByRole('region', { name: 'Shuffle and deal picker' });

@@ -26,7 +26,7 @@ test('cached refresh partitions format scopes and keeps non-Commander entries li
   assert.equal(all.formatScope, 'all');
   assert.deepEqual(await request('all'), all);
   assert.equal(calls.length, 2);
-  const collection = { version: 1, starter: false, added: [], hidden: [], excluded: [], sources: [{ ...all, membership: 'selected' }] };
+  const collection = { version: 1, added: [], hidden: [], excluded: [], sources: [{ ...all, membership: 'selected' }] };
   const updated = parseCollection(JSON.stringify(refreshSourceMembership(collection, all, [])));
   assert.equal(updated.sources[0].formatScope, 'all');
   assert.deepEqual(updated.sources[0].lastChange.unlisted, []);

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import folderFixture from '../fixtures/collection-folders.json' with { type: 'json' };
 import deckFixture from '../fixtures/collection-decks.json' with { type: 'json' };
 
@@ -12,7 +12,7 @@ const makeSource = (id: string, name: string, ids: number[], path: string) => ({
   folderPath: path, connectionKey: 'account:birckk', connectionName: 'Birckk',
 });
 const sources = [makeSource('42', 'Mono-color', [0, 1, 2], 'Home / Test collection / Mono-color'), makeSource('43', 'Multicolor', [0, 3, 4], 'Home / Test collection / Multicolor')];
-const fixture = { version: 1, starter: false, added: decks.slice(0, 5), hidden: [], excluded: [decks[0].id], sources, manualIds: [] };
+const fixture = { version: 1, added: decks.slice(0, 5), hidden: [], excluded: [decks[0].id], sources, manualIds: [] };
 // Less common collection actions live in the More menu beside each collection.
 const menu = async (page: import('@playwright/test').Page, name: string, item: string) => {
   await page.getByRole('button', { name: `More actions for ${name}`, exact: true }).click();

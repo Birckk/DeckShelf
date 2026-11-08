@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import fs from 'node:fs';
 
 const key = 'commander-archive.collection.v1';
@@ -7,7 +7,7 @@ const first = {...seed[0], id:'987101', name:'First tab deck'};
 const second = {...seed[1], id:'987102', name:'Second tab deck'};
 const entries = [first, second].map(d => ({id:d.id,name:d.name,image:d.commanders[0].art,colors:d.colors}));
 const source = {key:'folder:42',kind:'folder',value:'42',name:'Personal shelf',url:'https://archidekt.com/folders/42',checkedAt:new Date().toISOString(),entries,knownIds:[first.id,second.id],selectedIds:[first.id,second.id],ownedIds:[first.id,second.id]};
-const saved = {version:1,starter:false,added:[first,second],hidden:[],excluded:[],sources:[source],manualIds:[]};
+const saved = {version:1,added:[first,second],hidden:[],excluded:[],sources:[source],manualIds:[]};
 
 async function open(page: Page) {
   await page.addInitScript(({key,saved})=>{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(saved));},{key,saved});

@@ -132,9 +132,9 @@ Claude Desktop: add this to `%APPDATA%\Claude\claude_desktop_config.json` and re
 
 - `src/data/precons.json`: the precon demo snapshot. Update with
   `npm run catalog:update`; see [PRECON_CATALOG.md](PRECON_CATALOG.md).
-- `src/data/decks.json` and `public/images/`: the original 29-deck starter list
-  with bundled artwork. `python scripts/seed.py path/to/Commander.xlsx` rebuilds it
-  from the reference workbook (optional; standard library only).
+- `src/data/help-artwork.json` and `public/images/`: the commander artwork Help's
+  pictures use, bundled so Help works offline. Each entry credits its artist.
+- `tests/fixtures/collection-decks.json`: the deck snapshots tests use.
 
 ## Screenshots
 

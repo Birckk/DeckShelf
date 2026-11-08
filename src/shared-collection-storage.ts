@@ -5,17 +5,17 @@ type CollectionStorage = { getItem(key: string): string | null; setItem(key: str
 
 // Shared tabs are read-only until Save. Re-read at the explicit write boundary;
 // another tab may have changed or removed the visitor's personal collection.
-export function saveSharedCollectionToStorage(storage: CollectionStorage, key: string, source: CollectionSource, decks: Deck[], catalog: Deck[], initial: () => Collection, folders?: SharedFolder[]): Collection {
+export function saveSharedCollectionToStorage(storage: CollectionStorage, key: string, source: CollectionSource, decks: Deck[], initial: () => Collection, folders?: SharedFolder[]): Collection {
   const raw = storage.getItem(key);
   const current = raw === null ? initial() : parseCollection(raw);
-  const next = saveSharedShelf(current, source, decks, folders, catalog);
+  const next = saveSharedShelf(current, source, decks, folders);
   storage.setItem(key, JSON.stringify(next));
   return next;
 }
 
 // Web Locks serialize shared Saves across tabs on this origin. Older browsers
 // without Web Locks retain the uncoordinated read/merge/write fallback.
-export async function saveSharedCollectionWithLock(storage: CollectionStorage, key: string, source: CollectionSource, decks: Deck[], catalog: Deck[], initial: () => Collection, locks: Pick<LockManager, 'request'> | undefined = globalThis.navigator?.locks, folders?: SharedFolder[]): Promise<Collection> {
-  const save = () => saveSharedCollectionToStorage(storage, key, source, decks, catalog, initial, folders);
+export async function saveSharedCollectionWithLock(storage: CollectionStorage, key: string, source: CollectionSource, decks: Deck[], initial: () => Collection, locks: Pick<LockManager, 'request'> | undefined = globalThis.navigator?.locks, folders?: SharedFolder[]): Promise<Collection> {
+  const save = () => saveSharedCollectionToStorage(storage, key, source, decks, initial, folders);
   return locks ? locks.request('deckshelf-collection', save) : save();
 }

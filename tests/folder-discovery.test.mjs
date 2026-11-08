@@ -73,9 +73,9 @@ test('discovery rejects wrong owners and bounds tree size', async t => {
   await assert.rejects(discoverFolders('folder','1'),/80 folders/);
 });
 test('import saves only accepted choices, deduplicates snapshots and preserves unrelated choices and backups', () => {
-  const deck = JSON.parse(readFileSync(new URL('../src/data/decks.json',import.meta.url)))[0];
+  const deck = JSON.parse(readFileSync(new URL('./fixtures/collection-decks.json',import.meta.url)))[0];
   const source = { key:'folder:1',kind:'folder',value:'1',name:'Folder',url:'https://archidekt.com/folders/1',checkedAt:new Date().toISOString(),entries:[{id:deck.id,name:deck.name,image:'',colors:[]}],knownIds:[deck.id],selectedIds:[deck.id] };
-  const before = { version:1, added:[deck], hidden:[deck.id,'999'],excluded:[deck.id],sources:[source],disabledGroups:['folder:1','demo'],starter:false };
+  const before = { version:1, added:[deck], hidden:[deck.id,'999'],excluded:[deck.id],sources:[source],disabledGroups:['folder:1','demo'] };
   const result = importFolderSelection(before,[source],[deck],[deck]);
   assert.equal(result.added.length,1);
   assert.deepEqual(result.hidden,['999']);

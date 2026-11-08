@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
 import { mkdirSync, readFileSync } from 'node:fs';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import { archidektFormat } from '../../shared/formats.mjs';
-import { parseCollection, type Deck } from '../../src/domain';
+import { cardImage, parseCollection, type Deck } from '../../src/domain';
 
 const key = 'commander-archive.collection.v1';
 const commander = { ...seed[0], id: '982001', name: 'Commander partners', commanders: [seed[0].commanders[0], seed[1].commanders[0]] };
@@ -12,7 +12,7 @@ const decks = [commander, ...[2, 1, 6, 99].map((id, index) => ({
   cover: id === 99 ? { kind: 'fallback', name: 'No cover selected', image: '', art: '', artist: '' }
     : { ...seed[index + 1].commanders[0], kind: 'featured' },
 }))] as Deck[];
-const fixture = { version: 1, starter: false, hidden: ['999'], excluded: [decks[1].id], added: decks, manualIds: decks.map(d => d.id) };
+const fixture = { version: 1, hidden: ['999'], excluded: [decks[1].id], added: decks, manualIds: decks.map(d => d.id) };
 const source = { key: 'folder:88', kind: 'folder', value: '88', name: 'Mixed formats', url: 'https://archidekt.com/folders/88', checkedAt: new Date().toISOString(), formatScope: 'all', entries: decks.map(d => ({ id: d.id, name: d.name, image: d.commanders[0]?.art || d.cover?.art || '', colors: d.colors, format: d.format ?? archidektFormat(3) })), knownIds: decks.map(d => d.id) };
 const commanderSource = { ...source, formatScope: 'commander', entries: source.entries.slice(0, 1), knownIds: [commander.id] };
 async function mockDiscovery(page: Page, calls: string[] = []) {
@@ -108,13 +108,13 @@ test('Compact uses featured artwork for decks without commanders on both collect
   await browse(page, 'all');
   await page.getByRole('button', { name: 'Compact', exact: true }).click();
   const modern = page.getByRole('button', { name: 'View Modern deck', exact: true });
-  await expect(modern.locator('img')).toHaveAttribute('src', decks[1].cover!.art);
+  await expect(modern.locator('img')).toHaveAttribute('src', cardImage(decks[1].cover!.art));
   await expect(page.getByRole('button', { name: 'View Unknown (99) deck', exact: true }).getByRole('img')).toBeVisible();
   await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('navigation', { name: 'Collection sources' }).getByRole('button', { name: /All saved decks/ }).click();
   await page.getByRole('button', { name: 'Compact', exact: true }).click();
   const tile = page.locator('.workspace-tile').filter({ has: page.getByRole('checkbox', { name: 'Show Modern deck', exact: true }) });
-  await expect(tile.locator('.workspace-tile-art > img')).toHaveAttribute('src', decks[1].cover!.art);
+  await expect(tile.locator('.workspace-tile-art > img')).toHaveAttribute('src', cardImage(decks[1].cover!.art));
 });
 
 for (const viewport of [{ width: 1920, height: 1080 }, { width: 1500, height: 900 }, { width: 390, height: 844 }]) {

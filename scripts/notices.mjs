@@ -21,6 +21,6 @@ for (const [path, entry] of Object.entries(lock.packages)) {
 const electron = JSON.parse(await readFile(join(root, 'node_modules/electron/package.json'), 'utf8'));
 inventory.push({ name: 'electron', version: electron.version, license: electron.license, texts: ['../../LICENSE.electron.txt', '../../LICENSES.chromium.html'] });
 await writeFile(join(destination, 'dependencies.json'), JSON.stringify(inventory, null, 2) + '\n');
-const decks = JSON.parse(await readFile(join(root, 'src/data/decks.json'), 'utf8'));
-await writeFile(join(destination, 'artwork.json'), JSON.stringify(decks.map(deck => ({ deck: deck.name, source: deck.sourceUrl, commanders: deck.commanders.map(card => ({ name: card.name, artist: card.artist, image: card.image, art: card.art })) })), null, 2) + '\n');
-console.log(`Collected notices for ${inventory.length} dependencies and ${decks.length} decks.`);
+const artwork = JSON.parse(await readFile(join(root, 'src/data/help-artwork.json'), 'utf8'));
+await writeFile(join(destination, 'artwork.json'), JSON.stringify(artwork.map(card => ({ deck: card.deck, source: card.source, name: card.name, artist: card.artist, image: card.image, art: card.art })), null, 2) + '\n');
+console.log(`Collected notices for ${inventory.length} dependencies and ${artwork.length} artworks.`);
