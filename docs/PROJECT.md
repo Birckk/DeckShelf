@@ -2,15 +2,15 @@
 
 [DeckShelf — Feature releases](https://github.com/users/Bircck/projects/4) is the
 release-planning overview. Its items are the real
-[GitHub issues](https://github.com/Bircck/DeckShelf/issues), not duplicate tasks.
-Use [First-use polish](https://github.com/Bircck/DeckShelf/milestone/1) for the next
+[GitHub issues](https://github.com/Birckk/DeckShelf/issues), not duplicate tasks.
+Use [First-use polish](https://github.com/Birckk/DeckShelf/milestone/1) for the next
 product iteration. Key decisions are summarised in [DECISIONS.md](DECISIONS.md).
 
 ## Project structure
 
-- Epics: [First-use polish](https://github.com/Bircck/DeckShelf/issues/10),
-  [Everyday collection use](https://github.com/Bircck/DeckShelf/issues/11), and
-  [Public-release readiness](https://github.com/Bircck/DeckShelf/issues/12).
+- Epics: [First-use polish](https://github.com/Birckk/DeckShelf/issues/10),
+  [Everyday collection use](https://github.com/Birckk/DeckShelf/issues/11), and
+  [Public-release readiness](https://github.com/Birckk/DeckShelf/issues/12).
 - Features/PBIs are child issues describing a useful outcome. Use these as one
   level; a separate PBI layer is unnecessary for this project's size.
 - Tasks are smaller sub-issues when a feature needs a breakdown. The precon demo
@@ -45,28 +45,28 @@ Add further levels only when work actually needs them. Small fixes need not have
 an artificial feature and task wrapper.
 
 Existing issues have been imported. GitHub's browser-only Auto-add workflow should
-target `Bircck/DeckShelf` with `is:issue,pr`; until enabled, explicitly add new items
+target `Birckk/DeckShelf` with `is:issue,pr`; until enabled, explicitly add new items
 to project 4. Do not store a personal Projects token in a repository workflow.
 
 ## First-use polish
 
-1. [Optional Commander precon demo](https://github.com/Bircck/DeckShelf/issues/1):
+1. [Optional Commander precon demo](https://github.com/Birckk/DeckShelf/issues/1):
    replace the arbitrary default 29 decks with a clearly labeled collection based
    on Archidekt's curated catalog. Easy to remove and restore; preserve existing
    users' saved collections. See [catalog and migration rules](PRECON_CATALOG.md).
-2. [Start a personal collection](https://github.com/Bircck/DeckShelf/issues/2):
+2. [Start a personal collection](https://github.com/Birckk/DeckShelf/issues/2):
    make adding your own public source and switching away from the demo obvious.
-3. [Phone usability pass](https://github.com/Bircck/DeckShelf/issues/3):
+3. [Phone usability pass](https://github.com/Birckk/DeckShelf/issues/3):
    inspect the actual workflows and fix concrete problems without a redesign.
 
 ## Follow-up work
 
-- [PWA installation and offline use](https://github.com/Bircck/DeckShelf/issues/4).
-- [Local saving and backup recovery](https://github.com/Bircck/DeckShelf/issues/5).
-- [Cross-device sync decision](https://github.com/Bircck/DeckShelf/issues/6).
-- [Desktop branding compatibility](https://github.com/Bircck/DeckShelf/issues/8).
-- [Licensing and public download decisions](https://github.com/Bircck/DeckShelf/issues/9).
-- [Public-release history, automation and artifact audit](https://github.com/Bircck/DeckShelf/issues/13).
+- [PWA installation and offline use](https://github.com/Birckk/DeckShelf/issues/4).
+- [Local saving and backup recovery](https://github.com/Birckk/DeckShelf/issues/5).
+- [Cross-device sync decision](https://github.com/Birckk/DeckShelf/issues/6).
+- [Desktop branding compatibility](https://github.com/Birckk/DeckShelf/issues/8).
+- [Licensing and public download decisions](https://github.com/Birckk/DeckShelf/issues/9).
+- [Public-release history, automation and artifact audit](https://github.com/Birckk/DeckShelf/issues/13).
 
 These record remaining work from the repository and product discussions. They
 are not a promise to implement every idea. CLI/MCP interfaces and additional

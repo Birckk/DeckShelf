@@ -64,9 +64,9 @@ jobs:
           provenance: true
           sbom: true
           tags: |
-            ghcr.io/bircck/deckshelf:${{ github.ref_name }}
-            ghcr.io/bircck/deckshelf:latest
-          labels: org.opencontainers.image.source=https://github.com/Bircck/DeckShelf
+            ghcr.io/birckk/deckshelf:${{ github.ref_name }}
+            ghcr.io/birckk/deckshelf:latest
+          labels: org.opencontainers.image.source=https://github.com/Birckk/DeckShelf
   draft:
     if: github.ref_type == 'tag'
     needs: [windows, image]

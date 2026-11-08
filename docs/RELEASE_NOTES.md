@@ -11,8 +11,8 @@ the first public release.
 - **Windows app:** run `DeckShelf-Setup-1.0.0-x64.exe` from this release. It
   installs for the current user without admin rights, with a Start menu entry and
   an uninstaller. A portable ZIP is attached too. See `DESKTOP.md`.
-- **Docker:** `ghcr.io/bircck/deckshelf:v1.0.0` (also `:latest`). Compose files and
-  setup are in [docs/HOSTING.md](https://github.com/Bircck/DeckShelf/blob/main/docs/HOSTING.md).
+- **Docker:** `ghcr.io/birckk/deckshelf:v1.0.0` (also `:latest`). Compose files and
+  setup are in [docs/HOSTING.md](https://github.com/Birckk/DeckShelf/blob/main/docs/HOSTING.md).
 - **From source:** Node.js 22.18+, `npm ci` and `npm run dev`.
 
 ## What's in 1.0

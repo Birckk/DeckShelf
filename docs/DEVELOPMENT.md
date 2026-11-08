@@ -159,7 +159,7 @@ bill 2x, macOS 10x):
 - **unit**: tests and build on Ubuntu, Node 22 [plus Windows, macOS and Node 24].
 - **browsers**: Playwright regressions in Chromium [plus Firefox and WebKit].
 - **container**: builds `deploy/Dockerfile`, runs it hardened and smoke-tests it.
-- **publish-image**: pushes `ghcr.io/bircck/deckshelf:sha-<commit>` and `:main` with
+- **publish-image**: pushes `ghcr.io/birckk/deckshelf:sha-<commit>` and `:main` with
   provenance and SBOM after a green `main` push. Dormant while push triggers are off.
 
 `desktop.yml` packages the Windows app, smoke-tests it and runs the installer
