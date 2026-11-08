@@ -9,6 +9,11 @@
   Filter them, then pick one at random when the table can't decide what to play.
 </p>
 
+<p align="center">
+  <a href="https://deckshelf.birckk.com"><strong>Open DeckShelf</strong></a> ·
+  <a href="https://github.com/Birckk/DeckShelf/releases/latest">Windows app</a>
+</p>
+
 ![The collection view with commander cards from the precon demo](docs/images/collection.jpg)
 
 <p>
@@ -37,6 +42,9 @@ format scope.
 
 ## Get started
 
+**In your browser:** open [deckshelf.birckk.com](https://deckshelf.birckk.com). Nothing
+to install; your collection stays in your browser.
+
 **Run from source** (Node.js 22.18+):
 
 ```sh
@@ -47,11 +55,12 @@ npm run dev
 Then open http://127.0.0.1:4317. On Windows you can double-click
 `scripts/start-windows.cmd` instead.
 
-**Windows app:** an optional installer is built from each release. See the
-[desktop guide](docs/DESKTOP.md).
+**Windows app:** download the installer from the
+[latest release](https://github.com/Birckk/DeckShelf/releases/latest). It's unsigned, so
+Windows SmartScreen warns before it runs. See the [desktop guide](docs/DESKTOP.md).
 
-**Host it yourself:** Docker image and Compose files are in `deploy/`. See
-[hosting](docs/HOSTING.md).
+**Host it yourself:** `docker pull ghcr.io/birckk/deckshelf:latest`, or use the
+Compose files in `deploy/`. See [hosting](docs/HOSTING.md).
 
 ## Documentation
 
