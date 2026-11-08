@@ -491,7 +491,7 @@ body {
 }
 .studio-hint {
   font-size: 11px;
-  color: #777780;
+  color: var(--muted);
 }
 .studio-hint > span {
   margin: 0 6px;

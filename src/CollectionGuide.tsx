@@ -39,7 +39,7 @@ export default function CollectionGuide({ present, onPrecons }: {
     <GuidePicture step={step} />
     <h3 ref={heading} tabIndex={-1}>{pages[step].title}</h3>
     <p>{pages[step].caption}</p>
-    <div className="guide-progress" aria-label={`Page ${step + 1} of 3`}>
+    <div className="guide-progress" role="img" aria-label={`Page ${step + 1} of 3`}>
       {pages.map((page, index) => <span key={page.title} className={index === step ? "active" : ""} />)}
     </div>
     <div className="guide-actions">
