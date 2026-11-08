@@ -460,6 +460,7 @@ export default function HelixPicker({
         }}
         onDragStart={(e) => e.preventDefault()}
       >
+        <div className="helix-scene">
         <div className="helix-atmosphere" />
         <div className="helix-axis" />
         <div className="helix-floor" />
@@ -499,6 +500,7 @@ export default function HelixPicker({
               <span className="helix-card-edge" />
             </button>
           ))}
+        </div>
         </div>
         {chain.length > 0 && (
           <ol className="chain-chips" aria-hidden="true">
