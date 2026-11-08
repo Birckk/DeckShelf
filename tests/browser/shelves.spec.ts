@@ -213,3 +213,20 @@ test('the people icon by the logo stays put and names someone else\'s shelf afte
   expect(await mine.locator('svg').evaluate(icon => Math.round(icon.getBoundingClientRect().left))).toBe(friendAt);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+
+// #129: Firefox painted the results toolbar (Choose a few) over the open menu.
+test('the collection menu paints above the results toolbar', async ({page}) => {
+  await page.setViewportSize({width:1280,height:800});
+  await setup(page);
+  await expect(page.getByRole('button',{name:'Choose a few'})).toBeVisible();
+  await page.getByRole('button',{name:/^Showing .*, read-only\. Switch collection$/}).click();
+  const covered = await page.getByRole('group',{name:'Collections'}).evaluate(menu => {
+    const box = menu.getBoundingClientRect(); const out: string[] = [];
+    for (let y = box.top + 4; y < box.bottom - 2; y += 8) for (let x = box.left + 4; x < box.right - 2; x += 16) {
+      const hit = document.elementFromPoint(x, y);
+      if (hit && !menu.contains(hit)) out.push(`${hit.tagName}.${hit.className}`);
+    }
+    return [...new Set(out)];
+  });
+  expect(covered).toEqual([]);
+});

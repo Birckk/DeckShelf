@@ -215,9 +215,10 @@ for (const viewport of reviewSizes) test.describe(`owner phone pre-pass ${viewpo
   }
   async function target(locator: import('@playwright/test').Locator) {
     if (touch) {
+      // Whole pixels: Firefox reports 43.99997 for a 44px control.
       const box = (await locator.boundingBox())!;
-      expect(box.height).toBeGreaterThanOrEqual(44);
-      expect(box.width).toBeGreaterThanOrEqual(40);
+      expect(Math.round(box.height)).toBeGreaterThanOrEqual(44);
+      expect(Math.round(box.width)).toBeGreaterThanOrEqual(40);
     }
   }
   async function shot(page: import('@playwright/test').Page, view: string) {

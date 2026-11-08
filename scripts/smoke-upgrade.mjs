@@ -35,7 +35,7 @@ async function open(profile) {
   const app = await electron.launch({ executablePath: executable, args: ['--smoke-test'], env: { ...env, CA_TEST_PROFILE: profile }, timeout: 45000 });
   const page = await app.firstWindow();
   if (process.env.GITHUB_ACTIONS === 'true') await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].show());
-  await expect(page.getByRole('button', { name: /^My collection/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Library', exact: true })).toBeVisible();
   expect(page.url()).toBe('archive://app/');
   return { app, page };
 }
@@ -45,7 +45,7 @@ if (mode === 'seed') {
   await writeFile(backup, JSON.stringify(fixture));
   const { app, page } = await open(location);
   try {
-    await page.getByRole('button', { name: /^My collection/ }).click();
+    await page.getByRole('button', { name: 'Library', exact: true }).click();
     await page.locator('input[type=file]').setInputFiles(backup);
     await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
     await expect.poll(() => stored(page)).toEqual(fixture);

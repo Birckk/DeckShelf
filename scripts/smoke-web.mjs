@@ -23,7 +23,7 @@ try {
     await page.goto(base);
     await expect(page).toHaveTitle('DeckShelf');
     await expect(page.getByRole('link', { name: 'DeckShelf home' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /^My collection/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Library', exact: true })).toBeVisible();
     // Only phones and tablets can install the site; desktop browsers don't offer it.
     await expect(page.locator('link[rel="manifest"]')).toHaveCount(phone ? 1 : 0);
     await page.goto(new URL('/help/about', base).href);
@@ -67,7 +67,7 @@ async function offlineSmoke(browser) {
   await context.setOffline(true);
   await page.reload();
   await expect(page).toHaveTitle('DeckShelf');
-  await expect(page.getByRole('button', { name: /^My collection/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Library', exact: true })).toBeVisible();
   await expect.poll(loadedArt).toBeGreaterThan(3);
   expect(await page.evaluate(async () => (await fetch('/brand-familiar.svg')).ok)).toBe(true);
   expect(await page.evaluate(() => fetch('/api/decks/1').then(() => 'served', () => 'network'))).toBe('network');
