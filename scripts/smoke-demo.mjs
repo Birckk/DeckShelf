@@ -50,7 +50,7 @@ try {
   await expect(page.locator('.helix-reveal')).toBeVisible();
   await expect.poll(() => page.locator('.helix-reveal img').evaluateAll(images => images.every(i => i.complete && i.naturalWidth > 0) && images.length > 0), { timeout: 20000 }).toBe(true);
   await page.screenshot({ path: `qa/demo/${viewport.width}-picker.png` });
-  await page.getByRole('button', { name: /^My collection/ }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   const preconSwitch = page.getByRole('switch', { name: 'Enable Official Commander precons in overview', exact: true });
   await expect(preconSwitch).toBeChecked();
   await page.screenshot({ path: `qa/demo/${viewport.width}-overview.png` });
@@ -63,7 +63,7 @@ try {
   await page.getByRole('button', { name: 'Enable all', exact: true }).click();
   await expect(page.locator('.workspace-heading')).toContainText('0 on display');
   await page.reload();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   // Phones keep the sidebar, and its Hidden list, behind Sources and folders.
   if (viewport.width < 751) await page.getByRole('button', { name: 'Sources and folders' }).click();
   const nav = page.getByRole('navigation', { name: 'Collection sources' });
@@ -77,7 +77,7 @@ try {
   expect(backup.demo.decks.length).toBe(snapshot.decks.length);
   expect(backup.excluded).toEqual([]); // Quick choice is temporary, never a saved exclusion.
   await page.getByRole('button', { name: 'Done', exact: true }).click();
-  await page.getByRole('button', { name: 'My collection', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('button', { name: 'Add decks', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Bring your decks', exact: true })).toBeVisible();
   await expect(page.locator('.workspace-heading')).toContainText(`${snapshot.decks.length} on display`);
@@ -91,7 +91,7 @@ try {
   expect(await page.evaluate(k => JSON.parse(localStorage.getItem(k)), key)).toEqual(old);
   await expect(page.locator('.count-badge')).toHaveText('28');
   // Reimport the fresh backup through the same UI and verify demo state survives.
-  await page.getByRole('button', { name: /^My collection/ }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.locator('input[type=file]').setInputFiles({ name: 'demo-backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
   await page.getByRole('button', { name: 'Done', exact: true }).click();
@@ -100,7 +100,7 @@ try {
   await page.evaluate(k => localStorage.setItem(k, '{broken'), key);
   await page.reload();
   await expect(page.getByRole('alert')).toContainText('has not been overwritten');
-  await page.getByRole('button', { name: /^My collection/ }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.getByRole('button', { name: 'Add Official Commander precons', exact: true }).click();
   expect(await page.evaluate(k => localStorage.getItem(k), key)).toBe('{broken');
   await page.locator('input[type=file]').setInputFiles({ name: 'recovery.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(old)) });

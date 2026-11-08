@@ -50,7 +50,7 @@ async function launch(directory) {
     await running.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].show());
   }
   page.on('pageerror', error => errors.push(error.message));
-  await expect(page.getByRole('button', { name: /^My collection/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Library', exact: true })).toBeVisible();
   expect(page.url()).toBe('archive://app/');
   expect(await page.evaluate(() => typeof window.require)).toBe('undefined');
   return page;
@@ -93,7 +93,7 @@ try {
     expect(deck.body.id).toBe('26549829');
     console.log(`Live read-only Archidekt check: ${deck.body.name}`);
   }
-  await page.getByRole('button', { name: /^My collection/ }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.locator('input[type=file]').setInputFiles(backup);
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
   await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)), key)).toEqual(fixture);
@@ -108,7 +108,7 @@ try {
   await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)), key)).toEqual(fixture);
   await page.context().setOffline(true);
   await page.reload();
-  await expect(page.getByRole('button', { name: /^My collection/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Library', exact: true })).toBeVisible();
   await expect.poll(() => page.locator('img').evaluateAll(images => images.filter(i => i.complete && i.naturalWidth > 0).length)).toBeGreaterThan(0);
   await page.screenshot({ path: join(qa, 'desktop-offline.png') });
   expect(errors).toEqual([]);
