@@ -56,6 +56,7 @@ import {
   enableGroup,
   enableGroups,
   onlyGroup,
+  archidektPage,
   sourceDeckIds,
   removeSources,
   removeStarter,
@@ -206,6 +207,7 @@ export default function CollectionManager({
   useEffect(() => () => controller.current?.abort(), []);
   const sources = collection.sources || [];
   const source = sources.find((s) => s.key === section);
+  const sourcePage = section === "demo" ? "https://archidekt.com/commander-precons" : archidektPage(section, sources);
   const newDeckCount = source ? sourceMembership(source) === 'selected'
     ? (source.pendingIds || []).filter(id => !(source.ownedIds || source.selectedIds || []).includes(id)).length
     : source.lastChange?.added.length || 0 : 0;
@@ -632,7 +634,7 @@ export default function CollectionManager({
     : deckRows.map(item => <CollectionDeckTile key={item.row.id} layout={layout} {...item} />);
   const backTarget = readOnly ? readOnly.name : "collection";
   return (
-    <main className={`collection-workspace ${readOnly ? "is-read-only" : ""}`} aria-label={readOnly ? `${readOnly.name} library` : "Library"}>
+    <main className={`collection-workspace ${readOnly ? "is-read-only" : ""} ${section !== "overview" ? "has-scope" : ""}`} aria-label={readOnly ? `${readOnly.name} library` : "Library"}>
       {/* One heading for your collection and a friend's: title, then the way back and the actions as one group. */}
       <header className="workspace-heading">
         <div>
@@ -723,7 +725,6 @@ export default function CollectionManager({
               )}
               {section === "overview" && overviewExtra}
               {section !== "overview" && <>
-                <div className="manager-scope-head">
                 <div className="manager-section-heading">
                   <div>
                     <h3>
@@ -739,17 +740,10 @@ export default function CollectionManager({
                         : scope ? 'Includes connected subfolders' : 'Curated by Archidekt'}
                     </p>}
                   </div>
-                  {(source || section === "demo") && (
-                    <a
-                      className="icon-button"
-                      href={source?.url || "https://archidekt.com/commander-precons"}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label="Open source on Archidekt"
-                    >
-                      <ExternalLink size={17} />
-                    </a>
-                  )}
+                  {sourcePage && <a className="icon-button scope-source-link" href={sourcePage} target="_blank" rel="noreferrer"
+                    aria-label="Open on Archidekt" title="Open on Archidekt"><ExternalLink size={17} /></a>}
+                  <button className="button button-outline scope-folders-toggle" aria-label={readOnly ? "Folders" : "Sources and folders"}
+                    title={readOnly ? "Folders" : "Sources and folders"} aria-expanded={mobileNav} onClick={() => setMobileNav(v => !v)}><FolderTree size={15} /></button>
                 </div>
                 {headerKeys.length > 0 && <div className="manager-toolbar">
                   {headerHidden
@@ -774,7 +768,6 @@ export default function CollectionManager({
                   {section === "starter" && !collection.demo && <div className="manager-precon-link"><button className="text-button" disabled={!!busy} onClick={addPrecons}>
                     <Plus size={14} />Add all Official Commander precons</button></div>}
                 </div>}
-                </div>
                 {followEnabled && source && <div className="source-refresh-status" aria-live="polite">
                   <span>Checked {new Date(source.checkedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
                   {sourceRefresh.checking === source.key ? <span>Checking…</span> : source.refresh?.error ? <span>Couldn’t check · {source.refresh.error} Trying again after {new Date(source.refresh.retryAt!).toLocaleTimeString([], { timeStyle: 'short' })}</span>

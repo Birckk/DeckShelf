@@ -189,6 +189,24 @@ export function sourceDeckIds(
     savedIds.has(id),
   );
 }
+/** The Archidekt page behind a Library heading, so every source and folder heading can link out.
+ * A folder opens itself; a parent folder with no saved decks of its own opens the closest folder or
+ * account above it. Sections that aren't Archidekt sources (Individual decks, All decks) have none. */
+export function archidektPage(section: string, sources: CollectionSource[]): string | undefined {
+  const own = sources.find(s => s.key === section);
+  if (own) return own.url;
+  if (!section.startsWith("scope:")) return undefined;
+  // Overview boxes open a connection as scope:connection:<key>; the folder tree uses scope:<key>.
+  for (let path = section.slice("scope:".length).replace(/^connection:/, ""); ; path = path.slice(0, path.lastIndexOf("/"))) {
+    // Tree keys join the connection and each folder name with "/" (see sourceTree in CollectionNavigator).
+    const folder = sources.find(s => s.key === path || s.connectionKey && [s.connectionKey, ...(s.folderPath?.split(" / ") || [])].join("/") === path);
+    if (folder) return folder.url;
+    const root = /^(account|folder):([^/]+)$/.exec(path);
+    if (root) return root[1] === "folder" ? `https://archidekt.com/folders/${root[2]}` : `https://archidekt.com/u/${encodeURIComponent(root[2])}`;
+    if (!path.includes("/")) return undefined;
+  }
+}
+
 export function showcaseGroups(
   collection: Collection,
   catalog: Deck[],
