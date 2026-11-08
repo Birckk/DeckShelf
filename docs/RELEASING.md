@@ -51,16 +51,17 @@ is not a USB-portable profile: data belongs to the Windows user, not the ZIP fol
 
 ## CI and release workflow
 
-`ci.yml` and `desktop.yml` run manually for now (see
-[DEVELOPMENT.md](DEVELOPMENT.md#cicd)). `desktop.yml` packages the app, tests the
-ZIP and runs the install/reinstall/uninstall lifecycle on a disposable Windows
-runner. The
-installer lifecycle script refuses to run locally or over an existing
-profile/installation.
+Day-to-day changes are checked locally (see [DEVELOPMENT.md](DEVELOPMENT.md#cicd)).
+The release workflow runs the slow checks once per release. `desktop.yml`, run by
+hand after desktop packaging changes, packages the app, tests the ZIP and runs the
+install/reinstall/uninstall lifecycle, including the Commander Archive upgrade, on a
+disposable Windows runner. The installer lifecycle script refuses to run locally or
+over an existing profile/installation.
 
 `release.yml` can be dispatched manually to produce reviewable artifacts without a
 release. A pushed `vX.Y.Z` tag must match `package.json` and the release-notes
-version. After the Windows checks pass it publishes `ghcr.io/birckk/deckshelf:vX.Y.Z`
+version. It packages and tests the Windows app and runs the browser suite in
+Chromium, Firefox and WebKit. Only when all of those pass does it publish `ghcr.io/birckk/deckshelf:vX.Y.Z`
 and `:latest`, then a separate job with contents-write permission creates a
 **draft** GitHub release. It never publishes the draft. No upload token is baked
 into the executable and electron-builder publishing is disabled.
@@ -69,8 +70,9 @@ For a release:
 
 1. Update the version in `package.json`/`package-lock.json` and add
    `docs/RELEASE_NOTES.md` notes.
-2. Merge to `main` after the local checks. Run `ci.yml` (full) and `desktop.yml`
-   (Commander Archive upgrade) manually on `main`, then tag `vX.Y.Z` and push the tag.
+2. Merge to `main` after the local checks, then tag `vX.Y.Z` and push the tag. If a
+   check fails, fix it on `main`, delete the tag and push it again; nothing was
+   published.
 3. Run the manual checks in [VALIDATION.md](VALIDATION.md) on the draft's artifacts
    and record them in the release issue.
 4. Publish the draft. Deploy the hosted site by pinning the release image digest.

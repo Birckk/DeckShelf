@@ -1,4 +1,7 @@
 name: Release candidate
+# The one place the slow checks run: every release tests the Windows app and all three
+# browser engines before an image or a draft release exists. Day-to-day changes are
+# checked locally (docs/DEVELOPMENT.md).
 on:
   workflow_dispatch:
   push:
@@ -23,6 +26,7 @@ jobs:
           if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") { throw 'Tag must match package.json version.' }
           if (-not (Select-String -Path docs/RELEASE_NOTES.md -SimpleMatch "DeckShelf $version" -Quiet)) { throw 'Update release notes for this version.' }
       - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm test
       - run: npm run package:windows
       - run: npm run test:desktop
@@ -40,9 +44,33 @@ jobs:
           if-no-files-found: error
           # The draft release keeps the files; this copy only needs to reach that job.
           retention-days: 7
+  # Firefox takes about 16 minutes and WebKit about 15 on a runner.
+  browsers:
+    name: browsers (${{ matrix.browser }})
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npx playwright test --browser=${{ matrix.browser }}
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-results-${{ matrix.browser }}
+          path: test-results/
+          retention-days: 7
   image:
     if: github.ref_type == 'tag'
-    needs: windows
+    needs: [windows, browsers]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -69,7 +97,7 @@ jobs:
           labels: org.opencontainers.image.source=https://github.com/Birckk/DeckShelf
   draft:
     if: github.ref_type == 'tag'
-    needs: [windows, image]
+    needs: [windows, browsers, image]
     runs-on: ubuntu-latest
     permissions:
       contents: write
