@@ -1046,7 +1046,6 @@ function App() {
                   })} />
               ) : (
                 <div
-                  key={visible.map((d) => d.id).join(",")}
                   className={`collection-grid collection-layout-${display.layout} collection-size-${display.size}`}
                   style={
                     {

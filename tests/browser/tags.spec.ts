@@ -39,8 +39,12 @@ test('a tag on a deck or in its details filters by that tag', async ({ page }) =
   await init(page);
   const deck = seed.find(d => d.tags.length > 0)!;
   const tile = page.locator('.collection-tile').filter({ hasText: deck.name });
-  await tile.locator('.deck-tags').getByRole('button', { name: deck.tags[0], exact: true }).click();
+  const tag = tile.locator('.deck-tags').getByRole('button', { name: deck.tags[0], exact: true });
+  await tag.focus();
+  await page.keyboard.press('Enter');
   await expect(count(page)).toHaveText(`${tagged(deck.tags[0])} of ${seed.length} decks`);
+  // The tile stays mounted through the filter change, so keyboard focus stays on the tag.
+  await expect(tag).toBeFocused();
 
   await tile.locator('.collection-deck-title').click();
   const details = page.getByRole('group', { name: 'Tags' });
