@@ -78,7 +78,7 @@ disk and the browser version's data remain until you remove them separately.
 
 ## Offline and troubleshooting
 
-The bundled starter decks, artwork, fonts, filters and picker work offline.
+The bundled precon demo, Help artwork, fonts, filters and picker work offline.
 Discovering or refreshing Archidekt sources requires internet access. Previously
 saved deck metadata remains available on upstream failure; imported artwork may
 depend on the cache. No account synchronization happens in the background.

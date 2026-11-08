@@ -7,10 +7,15 @@ npm ci
 npm run dev        # http://127.0.0.1:4317 with the Archidekt adapter
 npm test           # unit tests
 npm run check      # Oxlint with type-aware rules (Vite+)
-npm run test:dialogs   # Playwright browser regressions (starts its own server)
+npm run test:dialogs   # dialog and focus regressions (starts its own server)
 npm run build      # type-check and production build
 npm start          # serve dist/ with the production server
 ```
+
+`test:dialogs` runs `dialogs.spec.ts` and `focus-ring.spec.ts`, including dialog
+keyboard and focus behavior. Use `npx playwright test` for the full browser suite;
+CI runs that full suite for each selected browser. Set `BASE_URL` to test against
+a server you started yourself.
 
 On Windows, `scripts/start-windows.cmd` installs dependencies on first run,
 rebuilds and starts the production server.
@@ -132,9 +137,9 @@ Claude Desktop: add this to `%APPDATA%\Claude\claude_desktop_config.json` and re
 
 - `src/data/precons.json`: the precon demo snapshot. Update with
   `npm run catalog:update`; see [PRECON_CATALOG.md](PRECON_CATALOG.md).
-- `src/data/decks.json` and `public/images/`: the original 29-deck starter list
-  with bundled artwork. `python scripts/seed.py path/to/Commander.xlsx` rebuilds it
-  from the reference workbook (optional; standard library only).
+- `src/data/help-artwork.json` and `public/images/`: the commander artwork Help's
+  pictures use, bundled so Help works offline. Each entry credits its artist.
+- `tests/fixtures/collection-decks.json`: the deck snapshots tests use.
 
 ## Screenshots
 

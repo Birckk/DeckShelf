@@ -1,5 +1,5 @@
 import { fetchArchidekt, upstreamCooldown } from './archidekt.mjs';
-import { cachedSource, discoverSource, discoverFolders, featuredCardId, archidektImage } from './sources.mjs';
+import { cachedSource, cachedFolders, discoverSource, featuredCardId, archidektImage } from './sources.mjs';
 import { archidektFormat } from '../shared/formats.mjs';
 const cache = new Map();
 const pendingDecks = new Map();
@@ -46,9 +46,9 @@ export function normalizeDeck(data) {
   };
 }
 
-// Deck metadata is cached for an hour; callers with larger collections can pass their own bounded store.
+// Keep a full supported shelf (up to 1,000 decks) warm, with a bounded hour-long cache.
 // The web API passes the shared Archidekt cooldown as `request`; the MCP server keeps its own backoff.
-export async function fetchDeck(id, { refresh = false, store = cache, limit = 100, signal, request = fetch } = {}) {
+export async function fetchDeck(id, { refresh = false, store = cache, limit = 1000, signal, request = fetch } = {}) {
   signal?.throwIfAborted();
   if (!/^\d{1,12}$/.test(id)) throw new Error('Use a public Archidekt deck link or its numeric ID.');
   let cached = store.get(id);
@@ -85,10 +85,10 @@ export async function handleApi(req, res, next = () => { res.writeHead(404); res
   res.setHeader('X-Content-Type-Options','nosniff');
   if (['/api/sources', '/api/source-folders'].includes(url.pathname) && req.method === 'GET') {
     try {
-      const discover = url.pathname === '/api/source-folders' ? discoverFolders : url.searchParams.get('prototype') === '1' ? cachedSource : discoverSource;
+      const discover = url.pathname === '/api/source-folders' ? cachedFolders : url.searchParams.get('cached') === '1' ? cachedSource : discoverSource;
       const formatScope = url.searchParams.get('formats') || 'commander';
-      const source = discover === cachedSource
-        ? await cachedSource(url.searchParams.get('kind'), url.searchParams.get('value') || '', url.searchParams.get('refresh') === '1', formatScope)
+      const source = discover === cachedSource || discover === cachedFolders
+        ? await discover(url.searchParams.get('kind'), url.searchParams.get('value') || '', url.searchParams.get('refresh') === '1', formatScope)
         : await discover(url.searchParams.get('kind'), url.searchParams.get('value') || '', { formatScope, request:fetchArchidekt });
       res.end(JSON.stringify(source));
     } catch (error) {

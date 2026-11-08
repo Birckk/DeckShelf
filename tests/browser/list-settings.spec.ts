@@ -1,9 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/tagged-decks';
 
 const key = 'commander-archive.collection.v1';
 const decks = seed.slice(0, 6);
-const fixture = { version: 1, starter: false, added: decks, hidden: [], excluded: [], sources: [], manualIds: decks.map(d => d.id) };
+const fixture = { version: 1, added: decks, hidden: [], excluded: [], sources: [], manualIds: decks.map(d => d.id) };
 const saved = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k)!), key);
 // Visible column titles, leaving out the artwork, Shown and link columns that only have screen-reader names.
 const headers = (page: Page) => page.getByRole('table').locator('thead th:visible:not(:has(> .sr-only))').allInnerTexts();

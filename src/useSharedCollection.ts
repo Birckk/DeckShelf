@@ -4,6 +4,7 @@ import { parseSharePath, type SharedSource } from './share-links';
 import { cacheShelf, cachedShelf, shelfFromFolders, shelfId, type LoadedShelf } from './shelves';
 import { listingDeck, type SharedFolder } from './collection';
 import { DeckLoadError, fillDecks, loadFullDeck } from './deckFill';
+import { apiJson } from './api';
 
 export function readSharedLocation() {
   try { return { source: parseSharePath(location.pathname, location.search), error: '' }; }
@@ -18,11 +19,8 @@ type SharedResult = {
 
 // A shelf's public listing, with each deck as its listing name, art and colours.
 export async function fetchShelfListing(requested: SharedSource, signal: AbortSignal) {
-  const response = await fetch(`/api/source-folders?${new URLSearchParams({ ...requested, formats: 'all' })}`,
-    { signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]) });
-  // A proxy's or static host's own error page is not JSON and has no message for people.
-  const data = response.headers.get('content-type')?.includes('application/json') ? await response.json() : null;
-  if (!response.ok || !data) throw new Error(data?.error || 'This public collection is unavailable.');
+  const data = await apiJson(`/api/source-folders?${new URLSearchParams({ ...requested, formats: 'all' })}`,
+    { signal, fallback: 'This public collection is unavailable.' });
   return shelfFromFolders(requested, data);
 }
 

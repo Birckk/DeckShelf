@@ -11,6 +11,8 @@ import './recovery.css';
 import FormatSelect from './FormatSelect';
 import TagFilter from './TagFilter';
 import {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -38,8 +40,7 @@ import {
   X,
   Settings,
 } from "lucide-react";
-import seed from "./data/decks.json";
-import precons from "./data/precons.json";
+import { loadPrecons, loadedPrecons } from "./precons";
 import {
   COLORS,
   descriptionParts,
@@ -66,18 +67,20 @@ import Picker from "./HelixPicker";
 import ShufflePicker from "./ShufflePicker";
 import { savedPresentation, savePresentation, type Presentation } from "./PickerControls";
 import CardStudio from "./CardStudio";
-import HelpCenter, { helpSectionFromPath, type FeatureTarget, type HelpSection } from "./HelpCenter";
+import { helpSectionFromPath, type FeatureTarget, type HelpSection } from "./helpSections";
+// Help (with Settings) is a separate chunk; most visits never open it.
+const HelpCenter = lazy(() => import("./HelpCenter"));
 import { CardBackContext } from "./placeholders/CardBackArt";
 import CollectionManager from "./CollectionManager";
 import { useSourceRefresh } from './sourceRefresh';
 import { Notices, notify } from "./Notices";
-import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshCollection, addDemo, fillDeck, dropPartialDecks } from "./collection";
+import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshCollection, addDemo, fillDeck, dropPartialDecks, mergeSnapshot, saveSnapshots } from "./collection";
 import { DeckLoadError, fillDecks, loadFullDeck } from "./deckFill";
+import { apiJson } from "./api";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 import FirstVisitHint, { TourPopover } from "./FirstVisitHint";
 import { COLLECTION_KEY as STORAGE_KEY, ENABLE_FIRST_VISIT_IN_PRODUCTION, isFreshProfile, markFirstVisit } from "./firstVisit";
 
-const catalog = seed as Deck[];
 // Blocked storage throws on access; shelf lists then live in memory only.
 const shelfStorage = () => { try { return localStorage; } catch { return undefined; } };
 // More chips than this fold behind a "+N more" button.
@@ -89,7 +92,8 @@ function readSaved(): { collection: Collection; error: string; raw?: string | nu
   try {
     raw = localStorage.getItem(STORAGE_KEY);
     return {
-      collection: raw !== null ? parseCollection(raw) : freshCollection(precons as { snapshotAt: string; decks: Deck[] }),
+      // main.tsx loads the precons first whenever nothing is saved.
+      collection: raw !== null ? parseCollection(raw) : loadedPrecons() ? freshCollection(loadedPrecons()!) : { ...EMPTY_COLLECTION },
       error: "",
       fresh: isFreshProfile(localStorage),
     };
@@ -212,7 +216,7 @@ function App() {
   // New decks from Archidekt folders are added automatically unless Settings turns it off.
   const followEnabled = !collection.followOff;
   const collectionGeneration = useRef(0);
-  const sourceRefresh = useSourceRefresh(collection, setCollection, storageLocked, followEnabled, catalog);
+  const sourceRefresh = useSourceRefresh(collection, setCollection, storageLocked, followEnabled);
   const persistedCollection = useRef<Collection | null>(null);
   const persistedRaw = useRef<string | null>(null);
   const wasShared = useRef(isShared);
@@ -307,7 +311,9 @@ function App() {
   // filling in after the collection manager closes. A deck that cannot load for
   // good (private, gone, no commander) is dropped again, as it was never added
   // before; one that failed for now waits for the next start or reconnection.
-  // App lasts as long as the page, so filling is never cancelled.
+  // App lasts as long as the page, so filling is never cancelled. `started` holds
+  // only decks loading now or waiting for reconnection: a restored backup or the
+  // return from a shared shelf can bring back a partial deck that already loaded.
   const fill = useRef({ started: new Set<string>(), later: new Set<string>(), signal: new AbortController().signal });
   const [fillPass, setFillPass] = useState(0);
   useEffect(() => {
@@ -327,6 +333,7 @@ function App() {
     void fillDecks(ids, loadFullDeck, {
       signal: queue.signal,
       onDeck: deck => {
+        queue.started.delete(deck.id);
         setCollection(c => fillDeck(c, deck));
         setDetail(current => current?.id === deck.id && current.partial ? deck : current);
       },
@@ -338,6 +345,8 @@ function App() {
       },
     }).then(() => {
       if (!dropped.length) return;
+      // Forget them in the same update that drops them, so they are not retried.
+      dropped.forEach(id => queue.started.delete(id));
       setCollection(c => dropPartialDecks(c, dropped));
       setDetail(current => current && dropped.includes(current.id) ? null : current);
       notify(`${dropped.length === 1 ? "A deck" : `${dropped.length} decks`} could not be added. ${reasons.join(" ")}`, { tone: "problem" });
@@ -399,7 +408,7 @@ function App() {
     return () => window.removeEventListener("storage", adopt);
   }, [isShared, storageLocked]);
   const allDecks = useMemo(
-    () => collectionDecks(collection, catalog),
+    () => collectionDecks(collection),
     [collection],
   );
   // A friend's shelf uses the Library screens. Its choices are never saved into yours.
@@ -419,12 +428,12 @@ function App() {
     });
   };
   const owned = useMemo(
-    () => isShared ? (sharedWorkspace ? showcaseDecks(sharedWorkspace, [], shared.decks) : shared.decks) : showcaseDecks(collection, catalog, allDecks),
+    () => isShared ? (sharedWorkspace ? showcaseDecks(sharedWorkspace, shared.decks) : shared.decks) : showcaseDecks(collection, allDecks),
     [allDecks, collection, isShared, shared.decks, sharedWorkspace],
   );
   const tableSettings = useMemo(() => listSettings(collection), [collection.list]);
   // The List table's Collection column and the Collection name sort use these.
-  const collectionNames = useMemo(() => deckCollections(showcaseGroups(collection, catalog, allDecks)), [allDecks, collection]);
+  const collectionNames = useMemo(() => deckCollections(showcaseGroups(collection, allDecks)), [allDecks, collection]);
   const visible = useMemo(
     () => sortCollectionDecks(sort, owned.filter((d) => matchesDeck(d, filters)), deck => ({ ...deck, collections: collectionNames.get(deck.id) })),
     [owned, filters, sort, collectionNames],
@@ -480,9 +489,10 @@ function App() {
   function toggleTag(tag: string) {
     changeFilters(f => ({ ...f, tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag] }));
   }
-  function openPrecons() {
+  async function openPrecons() {
+    const snapshot = await loadPrecons();
     if (isShared) leaveShared();
-    setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
+    setCollection(c => c.demo && !c.demo.removed ? c : addDemo(c, snapshot));
     setHelp(null);
     setPersonalStart(false);
     setCollectionSection("demo");
@@ -528,24 +538,12 @@ function App() {
     setRefreshing(true);
     setRefreshError(null);
     try {
-      const response = await fetch(`/api/decks/${deck.id}?refresh=1`, {
-        signal: AbortSignal.timeout(25000),
-      });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Could not refresh this deck.");
+      const data = await apiJson(`/api/decks/${deck.id}?refresh=1`, { timeout: 25000, fallback: "Could not refresh this deck." });
       if (!validateDeck(data) || data.id !== deck.id)
         throw new Error("The source returned incomplete deck information.");
-      const updated = {
-        ...data,
-        theme: deck.theme || data.theme,
-        originalUrl: deck.originalUrl,
-      };
+      const updated = mergeSnapshot(deck, data);
       if (epoch !== collectionGeneration.current) return;
-      setCollection((c) => epoch !== collectionGeneration.current ? c : ({
-        ...c,
-        added: [...c.added.filter((d) => d.id !== deck.id), updated],
-      }));
+      setCollection((c) => epoch !== collectionGeneration.current ? c : saveSnapshots(c, [data]));
       setDetail((current) => (current?.id === deck.id ? updated : current));
       notify(`${updated.name} refreshed from Archidekt.`);
     } catch (error) {
@@ -654,8 +652,9 @@ function App() {
     setSharedSaving(true);
     const identity = sharedIdentity;
     try {
-      const next = await saveSharedCollectionWithLock(localStorage, STORAGE_KEY, shared.source!, owned, catalog,
-        () => freshCollection(precons as { snapshotAt: string; decks: Deck[] }), undefined, shared.folders);
+      const snapshot = await loadPrecons();
+      const next = await saveSharedCollectionWithLock(localStorage, STORAGE_KEY, shared.source!, owned,
+        () => freshCollection(snapshot), undefined, shared.folders);
       // A queued Save may finish after the visitor has left this shelf.
       if (activeSharedIdentity.current !== identity) return;
       persistedCollection.current = next;
@@ -684,7 +683,7 @@ function App() {
   const shelfMenu = <ShelfSwitcher
     current={isShared ? { id: sharedIdentity, name: shared.source?.name || sharedRoute.source?.value || "Shared" } : null}
     viewing={isShared && shared.source ? { source: shared.source, count: shared.decks.length } : null}
-    kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length} disabled={spinning}
+    kept={kept} recent={recent} personalCount={isShared ? showcaseDecks(collection, allDecks).length : owned.length} disabled={spinning}
     onPersonal={openPersonalShelf} onOpen={source => openSharedShelf(source, { stay: true })} onBookmark={bookmarkShelf} onUnbookmark={removeBookmark} />;
   const activeFilterChips = [
     view !== 'picker' && filters.format !== 'commander' && <button key="format" disabled={spinning} onClick={() => updateFilter('format', 'commander')}>{filters.format === 'all' ? 'All formats' : formatName(filters.format || 'commander')}<X size={12} /></button>,
@@ -755,7 +754,7 @@ function App() {
           />}
           {tourOpen && <TourPopover
             present={!!collection.demo && !collection.demo.removed}
-            onPrecons={() => { setTourOpen(false); openPrecons(); }}
+            onPrecons={() => { setTourOpen(false); void openPrecons(); }}
             onClose={closeTour}
           />}
           <span className="header-icons">
@@ -793,7 +792,7 @@ function App() {
             <Library size={16} />
             {/* Library on every shelf; someone else's name shows once, by the people icon. */}
             <span>Library</span>
-            <span className="count-badge">{sharedShelf ? owned.length : isShared ? showcaseDecks(collection, catalog, allDecks).length : owned.length}</span>
+            <span className="count-badge">{sharedShelf ? owned.length : isShared ? showcaseDecks(collection, allDecks).length : owned.length}</span>
           </button>
         </div>
       </header>
@@ -1047,7 +1046,6 @@ function App() {
                   })} />
               ) : (
                 <div
-                  key={visible.map((d) => d.id).join(",")}
                   className={`collection-grid collection-layout-${display.layout} collection-size-${display.size}`}
                   style={
                     {
@@ -1102,7 +1100,7 @@ function App() {
       </div>
       }
       <Notices />
-      {help && !showCollection && <HelpCenter
+      {help && !showCollection && <Suspense fallback={null}><HelpCenter
         section={help}
         onSection={setHelp}
         onClose={() => { setHelp(null); requestAnimationFrame(() => (helpOpener.current === "settings" ? settingsTrigger : helpTrigger).current?.focus()); }}
@@ -1120,7 +1118,7 @@ function App() {
             });
           },
         }}
-      />}
+      /></Suspense>}
       {detail && (
         <Modal
           title="Deck details"
@@ -1228,7 +1226,6 @@ function App() {
           // Someone else's shelf is never checked from here, and your choices stay on this device.
           sourceRefresh={sourceRefresh}
           followEnabled={false}
-          catalog={[]}
           decks={shared.decks}
           collection={sharedWorkspace}
           setCollection={setSharedWorkspace}
@@ -1251,7 +1248,6 @@ function App() {
           sourceRefresh={sourceRefresh}
           followEnabled={followEnabled}
           key={collectionVisit}
-          catalog={catalog}
           decks={allDecks}
           collection={collection}
           setCollection={setCollection}

@@ -92,7 +92,7 @@ test('restoring a backup during the first visit ends the invitation', async ({ p
   await page.goto('/');
   await expect(pill(page)).toBeVisible();
   await page.getByRole('button', { name: 'Library', exact: true }).click();
-  const backup = { version: 1, starter: false, added: [], hidden: [], excluded: [] };
+  const backup = { version: 1, added: [], hidden: [], excluded: [] };
   await page.locator('input[type=file]').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
   await page.getByRole('button', { name: 'Back to collection', exact: true }).click();
@@ -105,6 +105,8 @@ for (const width of [1920, 1500, 390, 320]) test(`New? sits in the header row an
   await page.setViewportSize({ width, height: width < 500 ? 740 : 1080 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
+  // A new shelf renders once the precon snapshot has loaded.
+  await expect(page.locator('.studio-header .brand')).toBeVisible();
   // Everything in the header row sits side by side: logo, offer, Help, Library.
   const row = await page.evaluate(() => {
     const range = document.createRange();
@@ -143,7 +145,7 @@ for (const profile of ['saved', 'restored', 'seen', 'corrupt', 'blocked-read', '
   test(`${profile} profile fails closed on every load`, async ({ page }) => {
     await page.addInitScript(({ profile, key, seen }) => {
       if (profile === 'seen') localStorage.setItem(seen, '1');
-      if (profile === 'saved' || profile === 'restored') localStorage.setItem(key, JSON.stringify({ version: 1, starter: false, added: [], hidden: [], excluded: [] }));
+      if (profile === 'saved' || profile === 'restored') localStorage.setItem(key, JSON.stringify({ version: 1, added: [], hidden: [], excluded: [] }));
       if (profile === 'corrupt') localStorage.setItem(key, 'unreadable');
       if (profile.startsWith('blocked')) Object.defineProperty(Storage.prototype, profile === 'blocked-read' ? 'getItem' : 'setItem', { value() { throw Error('Storage blocked'); } });
     }, { profile, key, seen });

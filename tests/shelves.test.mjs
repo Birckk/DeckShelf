@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import seed from '../src/data/decks.json' with { type: 'json' };
+import seed from './fixtures/collection-decks.json' with { type: 'json' };
 import { addRecent, applyShelfView, keepShelf, putShelfView, readShelfViews, shelfCollection, shelfFromFolders, readKept, readRecent, shelfId, shelfRef, shelfViewOf, writeKept, writeRecent, writeShelfViews, KEPT_KEY, RECENT_KEY, RECENT_LIMIT, VIEWS_KEY, VIEWS_LIMIT } from '../src/shelves.ts';
 import { enableGroups, setShown, setSourceSelection, showcaseDecks } from '../src/collection.ts';
 
@@ -83,12 +83,12 @@ const friendShelf = () => {
 test('a friend\'s shelf starts with everything on and keeps your choices as a small record', () => {
   const shelf = friendShelf();
   const base = shelfCollection(shelf);
-  assert.equal(showcaseDecks(base, [], shelf.decks).length, 3);
+  assert.equal(showcaseDecks(base, shelf.decks).length, 3);
   assert.deepEqual(shelfViewOf(base), {});
   const off = enableGroups(base, ['folder:2'], false);
-  assert.deepEqual(showcaseDecks(off, [], shelf.decks).map(d => d.id), shelf.decks.slice(0, 2).map(d => d.id));
+  assert.deepEqual(showcaseDecks(off, shelf.decks).map(d => d.id), shelf.decks.slice(0, 2).map(d => d.id));
   const again = applyShelfView(base, shelfViewOf(off));
-  assert.deepEqual(showcaseDecks(again, [], shelf.decks).map(d => d.id), shelf.decks.slice(0, 2).map(d => d.id));
+  assert.deepEqual(showcaseDecks(again, shelf.decks).map(d => d.id), shelf.decks.slice(0, 2).map(d => d.id));
 });
 
 test('single decks switched off stay off, while decks the friend adds later arrive on', () => {
@@ -98,13 +98,13 @@ test('single decks switched off stay off, while decks the friend adds later arri
   const off = setSourceSelection(base, ['folder:1'], [first.id], false, shelf.decks);
   const view = shelfViewOf(off);
   assert.deepEqual(view.off, { 'folder:1': [first.id] });
-  assert.ok(!showcaseDecks(applyShelfView(base, view), [], shelf.decks).some(d => d.id === first.id));
+  assert.ok(!showcaseDecks(applyShelfView(base, view), shelf.decks).some(d => d.id === first.id));
   const hidden = shelfViewOf(setShown(base, [second.id], false));
-  assert.ok(!showcaseDecks(applyShelfView(base, hidden), [], shelf.decks).some(d => d.id === second.id));
+  assert.ok(!showcaseDecks(applyShelfView(base, hidden), shelf.decks).some(d => d.id === second.id));
   // The friend's folder gains a deck: it isn't named in `off`, so it shows.
   const extra = { ...seed[5], id: '555001' };
   const grown = { ...shelf, decks: [...shelf.decks, extra], folders: shelf.folders.map((f, i) => i ? f : { ...f, source: { ...f.source, knownIds: [...f.source.knownIds, extra.id], entries: [...f.source.entries, { id: extra.id, name: extra.name }] } }) };
-  assert.ok(showcaseDecks(applyShelfView(shelfCollection(grown), view), [], grown.decks).some(d => d.id === extra.id));
+  assert.ok(showcaseDecks(applyShelfView(shelfCollection(grown), view), grown.decks).some(d => d.id === extra.id));
 });
 
 test('per-friend choices save apart, drop bad data and stop growing', () => {

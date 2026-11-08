@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 
 const first = { ...seed[0], id: '987001', name: 'A deck with a long name for a narrow screen', tags: [], theme: '', description: '' };
 const second = { ...seed[1], id: '987002', name: 'Partner deck', commanders: [seed[0].commanders[0], seed[1].commanders[0]] };
@@ -7,7 +7,7 @@ const key = 'commander-archive.collection.v1';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(({ first, second, key }) => {
-    localStorage.setItem(key, JSON.stringify({ version: 1, starter: false, hidden: [], excluded: [second.id], added: [first, second], manualIds: [first.id, second.id] }));
+    localStorage.setItem(key, JSON.stringify({ version: 1, hidden: [], excluded: [second.id], added: [first, second], manualIds: [first.id, second.id] }));
   }, { first, second, key });
   await page.goto('/');
 });
@@ -118,6 +118,17 @@ test('late refresh failure stays with its deck and preserves saved choices', asy
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
   expect(saved.excluded).toEqual([second.id]);
   expect(saved.added).toEqual([first, second]);
+});
+
+test('a refreshed deck keeps its place and its saved theme', async ({ page }) => {
+  const fresh = { ...first, name: 'Renamed on Archidekt', theme: 'Upstream theme' };
+  await page.route(`**/api/decks/${first.id}?refresh=1`, route => route.fulfill({ json: fresh }));
+  await page.addInitScript(({ key, first, second }) => localStorage.setItem(key, JSON.stringify({ version: 1, hidden: [], excluded: [], added: [{ ...first, theme: 'Mine' }, second], manualIds: [first.id, second.id] })), { key, first, second });
+  await page.reload();
+  await page.getByRole('button', { name: `View ${first.name}`, exact: true }).click();
+  await page.getByRole('button', { name: 'Refresh snapshot' }).click();
+  await expect.poll(async () => (await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key)).added.map((d: { name: string; theme: string }) => `${d.name}/${d.theme}`))
+    .toEqual([`${fresh.name}/Mine`, `${second.name}/${second.theme}`]);
 });
 
 test('a refresh notice shows above the open deck details dialog', async ({ page }) => {

@@ -1,12 +1,12 @@
 ﻿import { test, expect } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 
 const modern = seed.slice(1, 3).map((deck, i) => ({ ...deck, id: String(983002 + i), name: `Modern ${i + 1}`, format: { id: 'modern', name: 'Modern', sourceId: 2 }, commanders: [], cover: { ...deck.commanders[0], kind: 'featured' } }));
 const fallback = { ...seed[3], id: '983004', name: 'Unknown cover', format: { id: 'unknown-99', name: 'Unknown (99)', sourceId: 99 }, commanders: [], cover: { kind: 'fallback', name: 'No cover selected', image: '', art: '', artist: '' } };
 const decks = [seed[0], ...modern, fallback];
 
 test('shuffle preserves format scope, featured/fallback covers and Settings card backs', async ({ page }) => {
-  await page.addInitScript(decks => localStorage.setItem('commander-archive.collection.v1', JSON.stringify({ version: 1, starter: false, hidden: [], excluded: [], added: decks, manualIds: decks.map(d => d.id) })), decks);
+  await page.addInitScript(decks => localStorage.setItem('commander-archive.collection.v1', JSON.stringify({ version: 1, hidden: [], excluded: [], added: decks, manualIds: decks.map(d => d.id) })), decks);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/help/settings');
   // Settings sections fold; open the two this test changes.

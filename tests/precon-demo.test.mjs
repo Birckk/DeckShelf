@@ -8,10 +8,9 @@ import { buildCatalog, updateCatalog } from '../scripts/precon-catalog.mjs';
 import { discoverSource } from '../server/sources.mjs';
 import { parseCollection, validateDeck } from '../src/domain.ts';
 import { freshCollection, addDemo, removeDemo, collectionDecks, showcaseDecks, showcaseGroups, enableGroup, onlyGroup, saveSnapshots, selectSourceDecks, removeSources, hideGroups, hiddenEntries, updateDemo } from '../src/collection.ts';
-const legacy = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)));
 const snapshot = JSON.parse(readFileSync(new URL('../src/data/precons.json', import.meta.url)));
 const deck = snapshot.decks[0];
-const visible = c => showcaseDecks(c, legacy, collectionDecks(c, legacy));
+const visible = c => showcaseDecks(c, collectionDecks(c));
 const ids = decks => decks.map(d => d.id).sort();
 const old = { version: 1, hidden: [], excluded: [], added: [] };
 const source = { key: 'folder:42', kind: 'folder', value: '42', name: 'Personal', url: 'https://archidekt.com/folders/42', checkedAt: snapshot.snapshotAt, entries: [{ id: deck.id, name: deck.name, image: deck.commanders[0].art, colors: deck.colors }], knownIds: [deck.id], selectedIds: [deck.id] };
@@ -40,19 +39,19 @@ test('fresh profiles show just the full demo; removing and restoring round trips
   assert.deepEqual(visible(enableGroup(chosen, 'demo', false)), []);
   assert.deepEqual(ids(visible(enableGroup(chosen, 'demo', true))), ids(visible(chosen)));
 });
-test('legacy starter-only and personalized v1 backups never expand automatically', () => {
-  for (const profile of [old, { ...old, hidden: [legacy[0].id], excluded: [legacy[1].id] }, { ...old, added: [deck], manualIds: [deck.id], sources: [source], disabledGroups: ['starter', source.key] }]) {
+test('v1 backups without precons never gain them automatically', () => {
+  for (const profile of [old, { ...old, hidden: ['111'], excluded: ['222'] }, { ...old, added: [deck], manualIds: [deck.id], sources: [source], disabledGroups: [source.key] }]) {
     const restored = parseCollection(JSON.stringify(profile));
     assert.deepEqual(restored, profile);
     assert.deepEqual(ids(visible(restored)), ids(visible(profile)));
     assert.equal(restored.demo, undefined);
   }
-  assert.equal(visible(parseCollection(JSON.stringify(old))).length, 29);
+  assert.equal(visible(parseCollection(JSON.stringify(old))).length, 0);
 });
 test('personal source and manual overlaps survive demo removal, backup and source removal', () => {
   const fresh = freshCollection(snapshot);
   let c = { ...saveSnapshots(fresh, [deck]), sources: [source] };
-  c = selectSourceDecks(c, source.key, [deck.id], collectionDecks(c, legacy));
+  c = selectSourceDecks(c, source.key, [deck.id], collectionDecks(c));
   assert.deepEqual(ids(visible(removeDemo(c))), [deck.id]);
   const paused = enableGroup(removeDemo(c), source.key, false);
   assert.deepEqual(visible(paused), []);
@@ -65,15 +64,15 @@ test('personal source and manual overlaps survive demo removal, backup and sourc
   // Hiding precons is the v1 removed flag, listed under Hidden and shown again with its choices.
   const hidden = hideGroups(c, ['demo'], true);
   assert.equal(hidden.demo.removed, true);
-  assert.deepEqual(hiddenEntries(hidden, showcaseGroups(hidden, legacy, collectionDecks(hidden, legacy))).map(e => e.key), ['demo']);
+  assert.deepEqual(hiddenEntries(hidden, showcaseGroups(hidden, collectionDecks(hidden))).map(e => e.key), ['demo']);
   assert.equal(hideGroups(hidden, ['demo'], false).demo.removed, false);
-  const only = onlyGroup(c, source.key, showcaseGroups(c, legacy, collectionDecks(c, legacy)));
+  const only = onlyGroup(c, source.key, showcaseGroups(c, collectionDecks(c)));
   assert.deepEqual(ids(visible(only)), [deck.id]);
   // Refreshing a demo card is metadata, not a personal import.
   assert.deepEqual(visible(removeDemo(saveSnapshots(fresh, [deck]))), []);
 });
-test('explicit demo opt-in preserves paused legacy groups and all profile choices', () => {
-  const c = { ...old, hidden: [deck.id], excluded: [legacy[0].id], disabledGroups: ['starter'], sources: [source] };
+test('explicit demo opt-in preserves paused groups and all profile choices', () => {
+  const c = { ...old, hidden: [deck.id], excluded: ['111'], disabledGroups: ['manual'], sources: [source] };
   const next = addDemo(c, snapshot);
   assert.deepEqual(next.hidden, c.hidden);
   assert.deepEqual(next.excluded, c.excluded);

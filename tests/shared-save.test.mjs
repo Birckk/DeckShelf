@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { collectionDecks, saveSharedCollection, saveSharedShelf, showcaseGroups, showcaseDecks, removeSources, rememberSource } from '../src/collection.ts';
 import { parseCollection, validateSource } from '../src/domain.ts';
 
-const seed = JSON.parse(readFileSync(new URL('../src/data/decks.json', import.meta.url)));
+const seed = JSON.parse(readFileSync(new URL('./fixtures/collection-decks.json', import.meta.url)));
 const deck = { ...seed[0], id: '987001' };
 const fresh = { ...seed[1], id: '987002' };
 const source = {
@@ -15,16 +15,16 @@ const source = {
   knownIds: [deck.id, fresh.id],
 };
 function save(collection, shared = source) {
-  return saveSharedCollection(collection, shared, [ { ...deck, name: 'Changed upstream' }, fresh ], collectionDecks(collection, []));
+  return saveSharedCollection(collection, shared, [ { ...deck, name: 'Changed upstream' }, fresh ], collectionDecks(collection));
 }
-const base = () => ({ version: 1, starter: false, added: [deck], hidden: [], excluded: [], sources: [], disabledGroups: [], archivedGroups: [] });
+const base = () => ({ version: 1, added: [deck], hidden: [], excluded: [], sources: [], disabledGroups: [], archivedGroups: [] });
 
 test('shared Save never claims a legacy individual deck or replaces its snapshot', () => {
   const original = base(); // v1 collections can omit manualIds.
   const saved = save(original);
   assert.equal(saved.added[0], deck);
   assert.deepEqual(saved.manualIds, [deck.id]);
-  assert.deepEqual(showcaseGroups(saved, [], collectionDecks(saved, [])).find(g => g.key === 'manual').ids, [deck.id]);
+  assert.deepEqual(showcaseGroups(saved, collectionDecks(saved)).find(g => g.key === 'manual').ids, [deck.id]);
   assert.deepEqual(saved.sources[0].ownedIds, [fresh.id]);
   assert.deepEqual(saved.sources[0].selectedIds, [fresh.id]);
   assert.ok(validateSource(saved.sources[0]));
@@ -55,7 +55,7 @@ for (const selectedIds of [[], [deck.id], undefined]) test(`shared Save preserve
   assert.deepEqual(saved.sources[0].ownedIds, [deck.id, fresh.id]);
   assert.equal(saved.sources[0].entries[0], priorSource.entries[0]);
   assert.equal(saved.added[0], deck);
-  const overlapping = saveSharedCollection(original, source, [deck], collectionDecks(original, []));
+  const overlapping = saveSharedCollection(original, source, [deck], collectionDecks(original));
   const expected = { ...original, sources: [{ ...priorSource, ownedIds: priorSource.knownIds }, original.sources[1]],
     ...(selectedIds?.length === 0 ? { manualIds: [deck.id] } : {}) };
   assert.deepEqual(overlapping, expected);
@@ -77,7 +77,7 @@ test('new connection cannot claim a deselected deck already belonging to another
 
 test('shared Save connects an entirely overlapping source without taking existing membership', () => {
   const original = base();
-  const saved = saveSharedCollection(original, source, [deck], collectionDecks(original, []));
+  const saved = saveSharedCollection(original, source, [deck], collectionDecks(original));
   assert.deepEqual(saved.sources[0].knownIds, []);
   assert.deepEqual(saved.sources[0].selectedIds, []);
   assert.deepEqual(saved.sources[0].ownedIds, []);
@@ -109,7 +109,7 @@ test('a later listing refresh and source removal cannot take a legacy individual
   const refreshed = rememberSource(saved, source);
   const restored = removeSources(refreshed, [source.key]);
   assert.deepEqual(restored, { ...original, manualIds: [deck.id] });
-  assert.deepEqual(showcaseGroups(restored, [], collectionDecks(restored, [])), showcaseGroups(original, [], collectionDecks(original, [])));
+  assert.deepEqual(showcaseGroups(restored, collectionDecks(restored)), showcaseGroups(original, collectionDecks(original)));
 });
 
 const emptyConnection = { ...source, entries: [], knownIds: [], selectedIds: [], ownedIds: [] };
@@ -119,10 +119,9 @@ const bundledSource = { ...overlappingSource, entries: [{ ...source.entries[0], 
 const otherTabDeck = { ...fresh, id: '987003' };
 const invariantFixtures = [
   { name: 'latest storage replaces a shared tab stale snapshot', collection: { ...base(), added: [deck, otherTabDeck], hidden: [deck.id], manualIds: [deck.id, otherTabDeck.id] }, shared: source, decks: [deck, fresh], stale: base() },
-  { name: 'deselected bundled snapshot must stay invisible', collection: { ...base(), added: [seed[0]], sources: [{ ...bundledSource, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43', selectedIds: [] }] }, shared: bundledSource, decks: [seed[0]] },
+  { name: 'deselected saved snapshot must stay invisible', collection: { ...base(), added: [seed[0]], sources: [{ ...bundledSource, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43', selectedIds: [] }] }, shared: bundledSource, decks: [seed[0]] },
   { name: 'retained deselected listing keeps a hidden choice without a snapshot', collection: { ...base(), added: [], hidden: [deck.id], sources: [{ ...overlappingSource, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43', selectedIds: [] }] } },
-  { name: 'unassigned bundled snapshot is not claimed by a shared listing', collection: { ...base(), added: [seed[0]] }, shared: bundledSource, decks: [seed[0]] },
-  { name: 'legacy deselected bundled snapshot with starter off', collection: { ...base(), added: [seed[0]], hidden: [seed[0].id], sources: [{ ...bundledSource, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43', selectedIds: [] }] }, catalog: seed, shared: bundledSource, decks: [seed[0]] },
+  { name: 'unassigned saved snapshot is not claimed by a shared listing', collection: { ...base(), added: [seed[0]] }, shared: bundledSource, decks: [seed[0]] },
   { name: 'legacy Individual deck and new connection', collection: base() },
   { name: 'legacy overlap alongside a new shared deck', collection: base(), shared: source, decks: [deck, fresh] },
   { name: 'paused Individual decks with hidden overlap', collection: { ...base(), hidden: [deck.id], disabledGroups: ['manual'] } },
@@ -130,7 +129,6 @@ const invariantFixtures = [
   { name: 'existing connection without new decks', collection: { ...base(), sources: [emptyConnection], disabledGroups: [source.key] } },
   { name: 'hidden Official precon', collection: { ...base(), added: [], hidden: [deck.id], excluded: [deck.id], demo: { snapshotAt: source.checkedAt, decks: [deck], removed: false } } },
   { name: 'hidden Official precon collection', collection: { ...base(), added: [], hidden: [deck.id], demo: { snapshotAt: source.checkedAt, decks: [deck], removed: true }, disabledGroups: ['demo'] } },
-  { name: 'hidden legacy Included precon', collection: { ...base(), added: [], starter: true, hidden: [seed[0].id], disabledGroups: ['starter'] }, shared: bundledSource, decks: [seed[0]] },
   { name: 'membership limit including existing Individual deck', collection: { ...base(), manualIds: [deck.id, ...retainedIds.slice(1)] } },
   { name: 'membership overflow on new connection', collection: { ...base(), manualIds: retainedIds }, fails: true },
   { name: 'membership overflow on existing connection', collection: { ...base(), manualIds: retainedIds, sources: [emptyConnection] }, fails: true },
@@ -139,15 +137,15 @@ const invariantFixtures = [
 // Removing S intentionally disconnects S even if it already existed. Compare all
 // retained groups and choices, and compare inferred versus explicit membership by
 // its meaning rather than the presence of a legacy manualIds field.
-function retainedState(collection, catalog = seed) {
+function retainedState(collection) {
   return {
     added: collection.added,
-    decks: collectionDecks(collection, catalog),
+    decks: collectionDecks(collection),
     demo: collection.demo,
     hidden: collection.hidden,
     excluded: collection.excluded,
-    visible: showcaseDecks(collection, catalog, collectionDecks(collection, catalog)).map(deck => deck.id).sort(),
-    groups: showcaseGroups(collection, catalog, collectionDecks(collection, catalog))
+    visible: showcaseDecks(collection, collectionDecks(collection)).map(deck => deck.id).sort(),
+    groups: showcaseGroups(collection, collectionDecks(collection))
       .filter(group => group.key !== source.key).map(({ key, ids, enabled }) => ({ key, ids, enabled })),
     sources: (collection.sources || []).filter(item => item.key !== source.key),
     disabledGroups: (collection.disabledGroups || []).filter(key => key !== source.key),
@@ -159,23 +157,22 @@ for (const fixture of invariantFixtures) test(`save/refresh/remove invariant: ${
   const original = fixture.collection;
   const before = JSON.stringify(original);
   assert.doesNotThrow(() => parseCollection(before), 'the starting v1 fixture must be valid');
-  const catalog = seed; // The real gallery catalog, including when starter is false.
   const shared = fixture.shared || overlappingSource;
   const storage = { raw: before, writes: 0,
     getItem() { return this.raw; },
     setItem(_key, raw) { this.raw = raw; this.writes++; },
   };
   const runSave = () => fixture.stale
-    ? saveSharedCollectionToStorage(storage, 'collection', shared, fixture.decks || [deck], catalog, () => fixture.stale)
-    : saveSharedCollection(original, shared, fixture.decks || [deck], collectionDecks(original, catalog), catalog);
+    ? saveSharedCollectionToStorage(storage, 'collection', shared, fixture.decks || [deck], () => fixture.stale)
+    : saveSharedCollection(original, shared, fixture.decks || [deck], collectionDecks(original));
   if (fixture.fails) {
     assert.throws(runSave, /saved collection limits/);
   } else {
     const saved = runSave();
     assert.doesNotThrow(() => parseCollection(JSON.stringify(saved)));
-    const existingIds = new Set(collectionDecks(original, catalog).map(deck => deck.id));
-    const visibleBefore = showcaseDecks(original, catalog, collectionDecks(original, catalog)).map(deck => deck.id).sort();
-    assert.deepEqual(showcaseDecks(saved, catalog, collectionDecks(saved, catalog)).filter(deck => existingIds.has(deck.id)).map(deck => deck.id).sort(), visibleBefore, 'Save cannot activate or hide existing decks');
+    const existingIds = new Set(collectionDecks(original).map(deck => deck.id));
+    const visibleBefore = showcaseDecks(original, collectionDecks(original)).map(deck => deck.id).sort();
+    assert.deepEqual(showcaseDecks(saved, collectionDecks(saved)).filter(deck => existingIds.has(deck.id)).map(deck => deck.id).sort(), visibleBefore, 'Save cannot activate or hide existing decks');
     assert.deepEqual(saved.hidden, original.hidden);
     assert.deepEqual(saved.disabledGroups, original.disabledGroups);
     assert.deepEqual(saved.archivedGroups, original.archivedGroups);
@@ -187,9 +184,9 @@ for (const fixture of invariantFixtures) test(`save/refresh/remove invariant: ${
     if (original.manualIds) assert.deepEqual(saved.manualIds.slice(0, original.manualIds.length), original.manualIds);
     const refreshed = rememberSource(saved, shared);
     assert.doesNotThrow(() => parseCollection(JSON.stringify(refreshed)));
-    const removed = removeSources(refreshed, [source.key], catalog);
+    const removed = removeSources(refreshed, [source.key]);
     assert.doesNotThrow(() => parseCollection(JSON.stringify(removed)));
-    assert.deepEqual(retainedState(removed, catalog), retainedState(original, catalog));
+    assert.deepEqual(retainedState(removed), retainedState(original));
   }
   if (fixture.stale) {
     assert.equal(storage.writes, 1);
@@ -202,7 +199,7 @@ for (const fixture of invariantFixtures) test(`save/refresh/remove invariant: ${
 test('storage reconciliation refuses invalid or over-limit latest data without writing', () => {
   for (const raw of ['unreadable', JSON.stringify({ ...base(), manualIds: retainedIds })]) {
     const storage = { getItem: () => raw, setItem: () => assert.fail('failed Save must never write') };
-    assert.throws(() => saveSharedCollectionToStorage(storage, 'collection', source, [deck, fresh], [], base));
+    assert.throws(() => saveSharedCollectionToStorage(storage, 'collection', source, [deck, fresh], base));
     assert.equal(storage.getItem(), raw);
   }
 });
@@ -212,22 +209,22 @@ test('removal retains snapshots and hidden choices referenced by a deselected li
   const retained = { ...overlappingSource, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43', selectedIds: [] };
   const original = { ...base(), hidden: [deck.id], sources: [owned, retained] };
   assert.doesNotThrow(() => parseCollection(JSON.stringify(original)));
-  const removed = removeSources(original, [source.key], seed);
+  const removed = removeSources(original, [source.key]);
   assert.deepEqual(removed.added, original.added);
   assert.deepEqual(removed.hidden, original.hidden);
   assert.deepEqual(removed.sources, [retained]);
-  assert.deepEqual(showcaseDecks(removed, seed, collectionDecks(removed, seed)), []);
+  assert.deepEqual(showcaseDecks(removed, collectionDecks(removed)), []);
   assert.doesNotThrow(() => parseCollection(JSON.stringify(removed)));
 });
 
 test('extending a paused legacy source preserves its effective ownership on removal', () => {
   const legacy = { ...overlappingSource, selectedIds: [deck.id] };
   const original = { ...base(), sources: [legacy], disabledGroups: [legacy.key] };
-  const saved = saveSharedCollection(original, source, [deck, fresh], collectionDecks(original, seed), seed);
+  const saved = saveSharedCollection(original, source, [deck, fresh], collectionDecks(original));
   assert.deepEqual(saved.sources[0].ownedIds, [deck.id, fresh.id]);
-  assert.deepEqual(showcaseDecks(saved, seed, collectionDecks(saved, seed)), []);
-  const removed = removeSources(rememberSource(saved, source), [source.key], seed);
-  const baseline = removeSources(original, [source.key], seed);
+  assert.deepEqual(showcaseDecks(saved, collectionDecks(saved)), []);
+  const removed = removeSources(rememberSource(saved, source), [source.key]);
+  const baseline = removeSources(original, [source.key]);
   assert.deepEqual(retainedState(removed), retainedState(baseline));
   assert.deepEqual(removed.added, []);
 });
@@ -253,10 +250,9 @@ function randomSource(value, candidates) {
 for (let index = 0; index < 72; index++) {
   const sources = ['43', '44', ...(index % 2 === 0 ? ['42'] : [])].map(value => randomSource(value, pool));
   const original = { version: 1, added: choose(pool), hidden: choose(pool.map(deck => deck.id)), excluded: choose(pool.map(deck => deck.id)), sources,
-    ...(random() < 0.85 ? { starter: random() < 0.25 } : {}),
     ...(random() < 0.5 ? { manualIds: choose(pool.map(deck => deck.id)) } : {}),
     ...(random() < 0.5 ? { demo: { snapshotAt: source.checkedAt, decks: [pool[0]], removed: random() < 0.5 } } : {}) };
-  const groups = ['starter', 'manual', 'demo', ...sources.map(source => source.key)];
+  const groups = ['manual', 'demo', ...sources.map(source => source.key)];
   original.disabledGroups = choose(groups);
   original.archivedGroups = choose(groups);
   if (random() < 0.5) original.pausedGroups = [{ keys: sources.map(source => source.key), enabled: choose(sources.map(source => source.key)) }];
@@ -265,13 +261,13 @@ for (let index = 0; index < 72; index++) {
   test(`seeded save/refresh/remove invariant seed=${propertySeed.toString(16)} case=${index}`, () => {
     const before = JSON.stringify(original);
     assert.doesNotThrow(() => parseCollection(before), `generated v1 fixture must be valid: ${before}`);
-    const existingIds = new Set(collectionDecks(original, seed).map(deck => deck.id));
-    const saved = saveSharedCollection(original, shared, sharedRows, collectionDecks(original, seed), seed);
+    const existingIds = new Set(collectionDecks(original).map(deck => deck.id));
+    const saved = saveSharedCollection(original, shared, sharedRows, collectionDecks(original));
     assert.doesNotThrow(() => parseCollection(JSON.stringify(saved)));
-    const oldVisible = collection => showcaseDecks(collection, seed, collectionDecks(collection, seed)).filter(deck => existingIds.has(deck.id)).map(deck => deck.id).sort();
+    const oldVisible = collection => showcaseDecks(collection, collectionDecks(collection)).filter(deck => existingIds.has(deck.id)).map(deck => deck.id).sort();
     assert.deepEqual(oldVisible(saved), oldVisible(original), 'Save preserves the visible set of existing decks');
-    const beforeGroups = showcaseGroups(original, seed, collectionDecks(original, seed));
-    const savedGroups = showcaseGroups(saved, seed, collectionDecks(saved, seed));
+    const beforeGroups = showcaseGroups(original, collectionDecks(original));
+    const savedGroups = showcaseGroups(saved, collectionDecks(saved));
     for (const group of beforeGroups) {
       const after = savedGroups.find(item => item.key === group.key);
       assert.deepEqual(after.ids.filter(id => existingIds.has(id)), group.ids, 'Save preserves effective membership even for hidden or paused groups');
@@ -291,10 +287,10 @@ for (let index = 0; index < 72; index++) {
       assert.deepEqual((next.ownedIds ?? next.knownIds).filter(id => originalIds.has(id)), prior.ownedIds ?? prior.knownIds);
     }
     const refreshed = rememberSource(saved, shared);
-    const removed = removeSources(refreshed, [shared.key], seed);
+    const removed = removeSources(refreshed, [shared.key]);
     // Existing sources are intentionally removed. Their baseline is removal
     // before Save, rather than retaining the removed connection's own decks.
-    const baseline = original.sources.some(source => source.key === shared.key) ? removeSources(original, [shared.key], seed) : original;
+    const baseline = original.sources.some(source => source.key === shared.key) ? removeSources(original, [shared.key]) : original;
     assert.doesNotThrow(() => parseCollection(JSON.stringify(removed)));
     assert.deepEqual(retainedState(removed), retainedState(baseline), `fixture=${before}`);
     assert.equal(JSON.stringify(original), before, 'no input mutation');
@@ -320,12 +316,12 @@ test('shared Saves serialize a reentrant read/merge/write across tabs', async ()
     getItem() {
       const snapshot = raw;
       // The other tab attempts Save after this tab reads, before it writes.
-      if (++reads === 1) second = saveSharedCollectionWithLock(storage, 'collection', secondSource, [fresh], seed, initial, locks);
+      if (++reads === 1) second = saveSharedCollectionWithLock(storage, 'collection', secondSource, [fresh], initial, locks);
       return snapshot;
     },
     setItem(_key, value) { raw = value; },
   };
-  await saveSharedCollectionWithLock(storage, 'collection', source, [deck], seed, initial, locks);
+  await saveSharedCollectionWithLock(storage, 'collection', source, [deck], initial, locks);
   await second;
   const saved = parseCollection(raw);
   assert.deepEqual(saved.added.map(d => d.id), [deck.id, fresh.id]);
@@ -336,7 +332,7 @@ test('shared Saves serialize a reentrant read/merge/write across tabs', async ()
 test('shared Save keeps the storage transaction fallback when Web Locks are unavailable', async () => {
   let raw = null;
   const storage = { getItem: () => raw, setItem: (_key, value) => { raw = value; } };
-  const saved = await saveSharedCollectionWithLock(storage, 'collection', source, [fresh], seed, base, null);
+  const saved = await saveSharedCollectionWithLock(storage, 'collection', source, [fresh], base, null);
   assert.deepEqual(parseCollection(raw), saved);
   assert.deepEqual(saved.added.map(d => d.id), [deck.id, fresh.id]);
 });
@@ -357,7 +353,7 @@ const folders = [
 
 test('shared Save stores a folder tree under its account, skipping folders with nothing new', () => {
   const original = { ...base(), hidden: [deck.id], manualIds: [deck.id] };
-  const saved = saveSharedShelf(original, account, [deck, fresh, third], folders, seed);
+  const saved = saveSharedShelf(original, account, [deck, fresh, third], folders);
   assert.deepEqual(saved.sources.map(s => [s.key, s.folderPath, s.connectionKey, s.connectionName]), [['folder:3', 'Home / New', 'account:birckk', 'Birckk']]);
   assert.deepEqual(saved.sources[0].ownedIds, [fresh.id, third.id]);
   assert.deepEqual(saved.hidden, [deck.id]);
@@ -365,15 +361,15 @@ test('shared Save stores a folder tree under its account, skipping folders with 
   assert.equal(saved.added[0], deck);
   parseCollection(JSON.stringify(saved));
   // Removing the saved connection brings back exactly the original decks.
-  const removed = removeSources(saved, saved.sources.map(s => s.key), seed);
-  assert.deepEqual(collectionDecks(removed, seed).map(d => d.id), collectionDecks(original, seed).map(d => d.id));
+  const removed = removeSources(saved, saved.sources.map(s => s.key));
+  assert.deepEqual(collectionDecks(removed).map(d => d.id), collectionDecks(original).map(d => d.id));
 });
 
 test('shared Save widens a Commander-only folder that gains other formats without dropping decks', () => {
   const modern = { ...fresh, format: { id: 'modern', name: 'Modern', sourceId: 2 }, commanders: [], cover: { ...fresh.commanders[0], kind: 'featured' } };
   const owned = { ...folderSource(3, 'New', [third]), formatScope: undefined, selectedIds: [third.id], ownedIds: [third.id] };
   const original = { ...base(), added: [deck, third], sources: [owned] };
-  const saved = saveSharedShelf(original, account, [modern, third], [{ source: folderSource(3, 'New', [modern, third]), path: 'Home / New', root: false }], seed);
+  const saved = saveSharedShelf(original, account, [modern, third], [{ source: folderSource(3, 'New', [modern, third]), path: 'Home / New', root: false }]);
   assert.equal(saved.sources[0].formatScope, 'all');
   assert.deepEqual(saved.sources[0].selectedIds, [third.id, modern.id]);
   assert.deepEqual(saved.added.map(d => d.id), [deck.id, third.id, modern.id]);

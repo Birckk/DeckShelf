@@ -1,7 +1,6 @@
 import { chromium, expect } from '@playwright/test';
 import { readFile, mkdir } from 'node:fs/promises';
 const snapshot = JSON.parse(await readFile(new URL('../src/data/precons.json', import.meta.url)));
-const legacy = JSON.parse(await readFile(new URL('../src/data/decks.json', import.meta.url)));
 const base = process.env.BASE_URL || 'http://127.0.0.1:4331';
 const key = 'commander-archive.collection.v1';
 const browser = await chromium.launch();
@@ -83,13 +82,13 @@ try {
   await expect(page.locator('.workspace-heading')).toContainText(`${snapshot.decks.length} on display`);
   await page.screenshot({ path: `qa/demo/${viewport.width}-personal.png` });
   expect(apiCalls).toEqual([]);
-  const old = { version: 1, hidden: [legacy[0].id], excluded: [legacy[1].id], added: [], disabledGroups: [] };
+  const old = { version: 1, hidden: ['111'], excluded: ['222'], added: [], disabledGroups: [] };
   await page.locator('input[type=file]').setInputFiles({ name: 'old-backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(old)) });
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
   await page.getByRole('button', { name: 'Done', exact: true }).click();
   await page.reload();
   expect(await page.evaluate(k => JSON.parse(localStorage.getItem(k)), key)).toEqual(old);
-  await expect(page.locator('.count-badge')).toHaveText('28');
+  await expect(page.locator('.count-badge')).toHaveText('0');
   // Reimport the fresh backup through the same UI and verify demo state survives.
   await page.getByRole('button', { name: 'Library', exact: true }).click();
   await page.locator('input[type=file]').setInputFiles({ name: 'demo-backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });

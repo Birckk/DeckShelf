@@ -28,12 +28,12 @@ The UI shows the saved snapshot date, and warns when it is over 30 days old.
 
 ## Local profile rules
 
-The collection storage key and version-1 backup envelope are retained. Optional
-`starter` and `demo` fields distinguish new profiles from legacy profiles:
+The collection storage key and version-1 backup envelope are retained. The optional
+`demo` field holds the precon demo:
 
-- No saved profile: `starter: false`, full demo enabled. No upstream deck API calls.
-- Existing v1 profile or old backup without those fields: original 29-deck baseline,
-  with all selections, exclusions, sources and switches preserved. No automatic expansion.
+- No saved profile: full demo enabled. No upstream deck API calls.
+- A profile or backup without `demo` keeps its selections, exclusions, sources and
+  switches. No automatic expansion.
 - Demo membership is a pinned snapshot saved with the profile and backup. A future
   shipped catalog never adds decks silently to an existing profile. Restore demo restores
   that profile's snapshot and choices; new opt-ins use the shipped snapshot.

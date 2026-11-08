@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import fs from 'node:fs';
 const key = 'commander-archive.collection.v1';
 const deck = {...seed[0], id:'987001', name:'Shared Commander'};
@@ -35,7 +35,7 @@ test('fresh shared visitor has no precons, persists only on explicit save, and c
   await expect(page.getByRole('main',{name:'Library'})).toBeVisible();
 });
 test('existing saved collection survives browsing, back and forward and upstream failure', async ({page}) => {
-  const saved = JSON.stringify({version:1,starter:false,hidden:[],excluded:[],added:[seed[1]],manualIds:[seed[1].id]});
+  const saved = JSON.stringify({version:1,hidden:[],excluded:[],added:[seed[1]],manualIds:[seed[1].id]});
   await page.addInitScript(({key,saved})=>{if(!localStorage.getItem(key))localStorage.setItem(key,saved);},{key,saved});
   await mock(page);
   await page.goto('/f/42');
@@ -151,7 +151,7 @@ test('a shared shelf opens from its folder listing while deck details load behin
   await expect(page.getByRole('button',{name:'Save to my library',exact:true})).toBeEnabled();
 });
 test("explicit save adds a source while preserving a visitor's personal deck and choices", async ({page}) => {
-  const saved = {version:1,starter:false,hidden:[seed[1].id],excluded:[seed[1].id],added:[seed[1]],manualIds:[seed[1].id]};
+  const saved = {version:1,hidden:[seed[1].id],excluded:[seed[1].id],added:[seed[1]],manualIds:[seed[1].id]};
   await page.addInitScript(({key,saved})=>localStorage.setItem(key,JSON.stringify(saved)),{key,saved});
   await mock(page);
   await page.goto('/f/42');
@@ -180,7 +180,7 @@ test('clipboard denial on phone offers a selectable manual link without changing
 });
 
 test('personal Select -> Help -> Collection preserves filters and shortlist', async ({page}) => {
-  const saved = {version:1,starter:false,added:[deck,seed[1]],hidden:[],excluded:[],manualIds:[deck.id,seed[1].id]};
+  const saved = {version:1,added:[deck,seed[1]],hidden:[],excluded:[],manualIds:[deck.id,seed[1].id]};
   await page.addInitScript(({key,saved})=>localStorage.setItem(key,JSON.stringify(saved)),{key,saved});
   await page.goto('/');
   await page.getByRole('textbox',{name:'Search decks',exact:true}).fill('Shared');
@@ -206,7 +206,7 @@ for (const [width,height] of [[1920,1080],[1500,900],[390,844]]) test(`multi-fol
   await page.emulateMedia({reducedMotion:'reduce'});
   const second = {...seed[1],id:'987002'};
   const secondSource = {...source,key:'folder:43',value:'43',name:'Another folder',url:'https://archidekt.com/folders/43',entries:[{id:second.id,name:second.name,image:second.commanders[0].art,colors:second.colors}],knownIds:[second.id]};
-  await page.addInitScript(key=>localStorage.setItem(key,JSON.stringify({version:1,starter:false,added:[],hidden:[],excluded:[]})),key);
+  await page.addInitScript(key=>localStorage.setItem(key,JSON.stringify({version:1,added:[],hidden:[],excluded:[]})),key);
   await page.route('**/api/source-folders?*', route => route.fulfill({json:{name:'Birckk',folders:[{source,path:'Home',root:true},{source:secondSource,path:'Home / Another folder',root:false}]}}));
   await page.route('**/api/decks/*', route => route.fulfill({json:route.request().url().endsWith('/987001')?deck:second}));
   await page.goto('/');
@@ -234,7 +234,7 @@ for (const [width,height] of [[1920,1080],[1500,900],[390,844]]) test(`multi-fol
 async function sharedTabWithNewerStorage(page: import('@playwright/test').Page, context: import('@playwright/test').BrowserContext) {
   const personal = {...seed[1],id:'987004',name:'Personal A'};
   const newer = {...seed[2],id:'987005',name:'Personal B'};
-  const initial = {version:1,starter:false,added:[personal],hidden:[],excluded:[],manualIds:[personal.id]};
+  const initial = {version:1,added:[personal],hidden:[],excluded:[],manualIds:[personal.id]};
   await page.addInitScript(({key,initial})=>{
     if (localStorage.getItem(key) === null) localStorage.setItem(key,JSON.stringify(initial));
     const writes:string[]=[];
@@ -299,7 +299,7 @@ test('shared Save merges newer data from another tab and returning preserves sub
 
 for (const failure of [false, true]) test(`Choose decks leaves an ${failure ? 'unavailable' : 'empty'} shared view and persists personal edits`, async ({page}) => {
   const personalSource = {...source,key:'folder:43',value:'43',name:'Personal shelf',url:'https://archidekt.com/folders/43',selectedIds:[deck.id],ownedIds:[deck.id]};
-  const initial = {version:1,starter:false,added:[deck],hidden:[],excluded:[],sources:[personalSource],manualIds:[]};
+  const initial = {version:1,added:[deck],hidden:[],excluded:[],sources:[personalSource],manualIds:[]};
   await page.addInitScript(({key,initial})=>{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(initial));},{key,initial});
   await page.route('**/api/source-folders?*', route => failure
     ? route.fulfill({status:404,json:{error:'This source is unavailable or private.'}})
@@ -320,7 +320,7 @@ for (const failure of [false, true]) test(`Choose decks leaves an ${failure ? 'u
 });
 
 test('two shared tabs queue Saves behind the same Web Lock and keep both sources', async ({page,context}) => {
-  await page.addInitScript(key=>{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({version:1,starter:false,added:[],hidden:[],excluded:[]}));},key);
+  await page.addInitScript(key=>{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({version:1,added:[],hidden:[],excluded:[]}));},key);
   await mock(page);
   await page.goto('/f/42');
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toBeVisible();
@@ -356,7 +356,7 @@ test('two shared tabs queue Saves behind the same Web Lock and keep both sources
 test('shared Save preserves an existing all-format source and Settings preferences', async ({page}) => {
   const modern = {...seed[1],id:'987009',name:'Personal Modern deck',format:{id:'modern',name:'Modern',sourceId:2},commanders:[],cover:{...seed[1].commanders[0],kind:'featured'}};
   const personalSource = {...source,formatScope:'all',entries:[{id:modern.id,name:modern.name,image:modern.cover.art,colors:modern.colors,format:modern.format}],knownIds:[modern.id],selectedIds:[modern.id],ownedIds:[modern.id]};
-  const saved = {version:1,starter:false,added:[modern],hidden:[],excluded:[],sources:[personalSource],manualIds:[],cardBack:'wedges',hideArtwork:true};
+  const saved = {version:1,added:[modern],hidden:[],excluded:[],sources:[personalSource],manualIds:[],cardBack:'wedges',hideArtwork:true};
   await page.addInitScript(({key,saved})=>{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(saved));},{key,saved});
   await page.route('**/api/source-folders?*',route=>{
     expect(new URL(route.request().url()).searchParams.get('formats')).toBe('all');

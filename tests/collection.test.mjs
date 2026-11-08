@@ -23,7 +23,7 @@ import {
 import { discoverSource } from "../server/sources.mjs";
 
 const deck = JSON.parse(
-  readFileSync(new URL("../src/data/decks.json", import.meta.url)),
+  readFileSync(new URL("./fixtures/collection-decks.json", import.meta.url)),
 )[0];
 const collection = {
   version: 1,
@@ -77,20 +77,16 @@ test("source links detect their kind, normalize duplicates and reject unrelated 
 
 test("collection switches keep selections and picker exclusions and apply to every view pool", () => {
   const c = { ...collection, hidden: [], sources: [source] };
-  const paused = enableGroup(
-    enableGroup(c, "starter", false),
-    source.key,
-    false,
-  );
-  assert.deepEqual(showcaseDecks(paused, [deck], [deck]), []);
+  const paused = enableGroup(c, source.key, false);
+  assert.deepEqual(showcaseDecks(paused, [deck]), []);
   assert.deepEqual(paused.hidden, c.hidden);
   assert.deepEqual(paused.excluded, c.excluded);
   assert.deepEqual(
-    showcaseDecks(enableGroup(paused, source.key, true), [deck], [deck]),
+    showcaseDecks(enableGroup(paused, source.key, true), [deck]),
     [deck],
   );
   assert.deepEqual(
-    showcaseDecks({ ...paused, disabledGroups: [] }, [deck], [deck]),
+    showcaseDecks({ ...paused, disabledGroups: [] }, [deck]),
     [deck],
   );
 });
@@ -112,13 +108,13 @@ test("overlapping collections form a unique union and Only this uses one group",
   };
   const all = [deck, personal];
   assert.deepEqual(
-    showcaseDecks(enableGroup(c, source.key, false), [deck], all),
+    showcaseDecks(enableGroup(c, source.key, false), all),
     all,
   );
-  const only = onlyGroup(c, source.key, showcaseGroups(c, [deck], all));
-  assert.deepEqual(showcaseDecks(only, [deck], all), [deck]);
+  const only = onlyGroup(c, source.key, showcaseGroups(c, all));
+  assert.deepEqual(showcaseDecks(only, all), [deck]);
   assert.deepEqual(
-    showcaseDecks({ ...only, hidden: [deck.id] }, [deck], all),
+    showcaseDecks({ ...only, hidden: [deck.id] }, all),
     [],
   );
 });
@@ -127,31 +123,31 @@ test("opening the precon catalog does not implicitly select existing bundled pre
     ...collection,
     hidden: [],
     sources: [{ ...source, selectedIds: [] }],
-    disabledGroups: ["starter"],
+    disabledGroups: ["manual"],
   };
-  assert.deepEqual(showcaseDecks(c, [deck], [deck]), []);
+  assert.deepEqual(showcaseDecks(c, [deck]), []);
   const chosen = selectSourceDecks(c, source.key, [deck.id], [deck]);
-  assert.deepEqual(showcaseDecks(chosen, [deck], [deck]), [deck]);
+  assert.deepEqual(showcaseDecks(chosen, [deck]), [deck]);
   const refreshed = rememberSource(chosen, {
     ...source,
     entries: [entry, { ...entry, id: "999" }],
     knownIds: [deck.id, "999"],
   });
   assert.deepEqual(refreshed.sources[0].selectedIds, [deck.id]);
-  assert.deepEqual(refreshed.disabledGroups, ["starter"]);
+  assert.deepEqual(refreshed.disabledGroups, ["manual"]);
   assert.deepEqual(parseCollection(JSON.stringify(refreshed)), refreshed);
 });
-test("individual links can include a deck also present in a disabled source or included group", () => {
+test("individual links can include a deck also present in a disabled source", () => {
   const c = {
     ...collection,
     hidden: [],
     sources: [source],
     manualIds: [deck.id],
-    disabledGroups: ["starter", source.key],
+    disabledGroups: [source.key],
   };
-  assert.deepEqual(showcaseDecks(c, [deck], [deck]), [deck]);
+  assert.deepEqual(showcaseDecks(c, [deck]), [deck]);
   assert.deepEqual(
-    showcaseDecks(enableGroup(c, "manual", false), [deck], [deck]),
+    showcaseDecks(enableGroup(c, "manual", false), [deck]),
     [],
   );
   assert.deepEqual(parseCollection(JSON.stringify(c)), c);
@@ -179,7 +175,7 @@ test("removing a source removes its own decks", () => {
   assert.deepEqual(next.hidden, []);
   assert.deepEqual(next.excluded, ["777"], "legacy exclusions are left alone");
   assert.deepEqual(next.disabledGroups, []);
-  assert.deepEqual(showcaseGroups(next, [], []).find((g) => g.key === "manual").ids, []);
+  assert.deepEqual(showcaseGroups(next, []).find((g) => g.key === "manual").ids, []);
   assert.doesNotThrow(() => parseCollection(JSON.stringify(next)));
 });
 test("removing a source keeps decks that another source or Individual decks still has", () => {
@@ -194,14 +190,14 @@ test("removing a source keeps decks that another source or Individual decks stil
   assert.deepEqual(both.added.map((d) => d.id), [deck.id]);
 });
 test("hiding moves a collection out of view and Show switches it back on", () => {
-  const c = { version: 1, starter: false, hidden: [], excluded: [], added: [deck], sources: [{ ...source, selectedIds: [deck.id] }], disabledGroups: [source.key] };
+  const c = { version: 1, hidden: [], excluded: [], added: [deck], sources: [{ ...source, selectedIds: [deck.id] }], disabledGroups: [source.key] };
   const hidden = hideGroups(c, [source.key, "manual"], true);
-  assert.deepEqual(showcaseDecks(hidden, [], [deck]), []);
-  assert.deepEqual(hiddenEntries(hidden, showcaseGroups(hidden, [], [deck])).map((e) => e.key), [source.key, "manual"]);
+  assert.deepEqual(showcaseDecks(hidden, [deck]), []);
+  assert.deepEqual(hiddenEntries(hidden, showcaseGroups(hidden, [deck])).map((e) => e.key), [source.key, "manual"]);
   assert.deepEqual(parseCollection(JSON.stringify(hidden)), hidden);
   const shown = hideGroups(hidden, [source.key], false);
-  assert.equal(showcaseGroups(shown, [], [deck]).find((g) => g.key === source.key).enabled, true);
-  assert.equal(showcaseDecks(shown, [], [deck]).length, 1);
+  assert.equal(showcaseGroups(shown, [deck]).find((g) => g.key === source.key).enabled, true);
+  assert.equal(showcaseDecks(shown, [deck]).length, 1);
 });
 test("legacy source selections survive refresh and invalid group settings are rejected", () => {
   const c = rememberSource(rememberSource(collection, source), source);
@@ -365,7 +361,7 @@ test("bulk selection handles saved and new decks while preserving choices outsid
   const original = {
     ...collection,
     hidden: [deck.id, "outside"],
-    disabledGroups: ["starter"],
+    disabledGroups: ["manual"],
   };
   const rows = [
     { id: deck.id, saved: true },
@@ -399,22 +395,22 @@ test("bulk selection handles saved and new decks while preserving choices outsid
 test('persistent disabling survives bulk enabling, backup, overlaps and disconnection', async () => {
   const { archiveGroups, enableGroups } = await import('../src/collection.ts');
   const second = { ...source, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43' };
-  const base = { version: 1, starter: false, hidden: [], excluded: [], added: [deck], sources: [source, second] };
+  const base = { version: 1, hidden: [], excluded: [], added: [deck], sources: [source, second] };
   let next = archiveGroups(base, [source.key], true);
-  assert.equal(showcaseGroups(next, [], [deck]).find(g => g.key === source.key).enabled, false);
-  assert.equal(showcaseDecks(next, [], [deck]).length, 1, 'another enabled source still contributes its overlapping deck');
+  assert.equal(showcaseGroups(next, [deck]).find(g => g.key === source.key).enabled, false);
+  assert.equal(showcaseDecks(next, [deck]).length, 1, 'another enabled source still contributes its overlapping deck');
   next = archiveGroups(next, [second.key], true);
   next = enableGroups(next, [source.key, second.key], true, true);
-  assert.equal(showcaseDecks(next, [], [deck]).length, 0);
+  assert.equal(showcaseDecks(next, [deck]).length, 0);
   next = parseCollection(JSON.stringify(next));
   assert.deepEqual(next.archivedGroups, [source.key, second.key]);
   next = archiveGroups(next, [source.key], false);
-  assert.equal(showcaseDecks(next, [], [deck]).length, 1);
+  assert.equal(showcaseDecks(next, [deck]).length, 1);
   const migrated = parseCollection(JSON.stringify({ ...next, disabledDecks: [deck.id] }));
   assert.deepEqual(migrated.hidden, [deck.id]);
   assert.equal('disabledDecks' in migrated, false);
-  assert.equal(showcaseDecks(migrated, [], [deck]).length, 0);
-  assert.equal(showcaseDecks(setShown(migrated, [deck.id], true), [], [deck]).length, 1);
+  assert.equal(showcaseDecks(migrated, [deck]).length, 0);
+  assert.equal(showcaseDecks(setShown(migrated, [deck.id], true), [deck]).length, 1);
   const detached = removeSources(next, [second.key]);
   assert.doesNotThrow(() => parseCollection(JSON.stringify(detached)));
   assert.ok(!detached.archivedGroups.includes(second.key));
@@ -436,26 +432,14 @@ test("deckCollections names every enabled collection a deck is shown from, in or
 
 test("switchOn turns an off or hidden collection back on, and the setting survives a backup (#94)", () => {
   const off = enableGroup(collection, "manual", false);
-  assert.equal(showcaseGroups(off, [], [deck]).find(g => g.key === "manual").enabled, false);
-  assert.equal(showcaseGroups(switchOn(off, "manual"), [], [deck]).find(g => g.key === "manual").enabled, true);
+  assert.equal(showcaseGroups(off, [deck]).find(g => g.key === "manual").enabled, false);
+  assert.equal(showcaseGroups(switchOn(off, "manual"), [deck]).find(g => g.key === "manual").enabled, true);
   const hidden = hideGroups(collection, ["manual"], true);
   const shown = switchOn(hidden, "manual");
   assert.deepEqual(shown.archivedGroups, []);
-  assert.equal(showcaseGroups(shown, [], [deck]).find(g => g.key === "manual").enabled, true);
+  assert.equal(showcaseGroups(shown, [deck]).find(g => g.key === "manual").enabled, true);
   assert.equal(parseCollection(JSON.stringify({ ...collection, addTurnsOn: true })).addTurnsOn, true);
   assert.equal("addTurnsOn" in parseCollection(JSON.stringify({ ...collection, addTurnsOn: "yes" })), false);
-});
-
-test("removing the old included precons switches the set off for good", async () => {
-  const { removeStarter, collectionDecks, hideGroups } = await import("../src/collection.ts");
-  const catalog = [{ id: "legacy-1", name: "Old test deck" }];
-  const before = hideGroups({ version: 1, hidden: [], excluded: [], added: [], disabledGroups: ["starter"] }, ["starter"], true);
-  const after = removeStarter(before);
-  assert.equal(after.starter, false);
-  assert.deepEqual(after.disabledGroups, []);
-  assert.deepEqual(after.archivedGroups, []);
-  assert.deepEqual(collectionDecks(after, catalog), []);
-  assert.equal(showcaseGroups(after, catalog, []).some(g => g.key === "starter"), false);
 });
 
 test("every Archidekt heading links to its folder, or the closest folder or account above it", () => {
@@ -470,4 +454,33 @@ test("every Archidekt heading links to its folder, or the closest folder or acco
   assert.equal(archidektPage("scope:folder:9", []), "https://archidekt.com/folders/9");
   assert.equal(archidektPage("manual", sources), undefined);
   assert.equal(archidektPage("all", sources), undefined);
+});
+
+
+test("source validation preserves membership rules at collection limits", () => {
+  const ids = Array.from({ length: 2000 }, (_, i) => String(i + 1));
+  const large = {
+    ...source,
+    knownIds: ids,
+    entries: ids.slice(0, 1000).map(id => ({ ...entry, id })),
+    selectedIds: ids,
+    ownedIds: ids,
+    pendingIds: ids,
+    excludedIds: ids,
+  };
+  assert.equal(validateSource(large), true);
+  // History and selection arrays may repeat IDs; listing entries must stay unique.
+  assert.equal(validateSource({ ...large, knownIds: [...ids.slice(1), ids[1]], entries: [], selectedIds: [], ownedIds: [], pendingIds: [], excludedIds: [] }), true);
+  for (const field of ["selectedIds", "ownedIds", "pendingIds", "excludedIds"]) {
+    assert.equal(validateSource({ ...large, [field]: [ids[0], ids[0]] }), true);
+    for (const invalid of [["999999"], [1], null, "1", [...ids, ids[0]]]) {
+      assert.equal(validateSource({ ...large, [field]: invalid }), false, field);
+    }
+  }
+  for (const knownIds of [undefined, null, "1", [1], ["bad"], [...ids, ids[0]]]) {
+    assert.equal(validateSource({ ...large, knownIds }), false);
+  }
+  assert.equal(validateSource({ ...large, entries: [large.entries[0], large.entries[0]] }), false);
+  assert.equal(validateSource({ ...large, entries: [{ ...entry, id: "999999" }] }), false);
+  assert.equal(validateSource({ ...source, knownIds: [], entries: [] }), true);
 });

@@ -117,9 +117,6 @@
   align-items: center;
   min-height: 30px;
 }
-.manager-precon-link {
-  flex-basis: 100%;
-}
 @media (max-width: 700px) {
   .overview-group {
     padding: 14px;

@@ -1,11 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/tagged-decks';
 
 const collectionKey = 'commander-archive.collection.v1';
 const shelfKey = 'commander-archive.display.v1';
 const managerKey = 'commander-archive.manager-display.v1';
 const decks = seed.slice(0, 12);
-const fixture = { version: 1, starter: false, added: decks, hidden: [], excluded: [], sources: [], manualIds: decks.map(d => d.id) };
+const fixture = { version: 1, added: decks, hidden: [], excluded: [], sources: [], manualIds: decks.map(d => d.id) };
 const openManager = async (page: Page, phone = false) => {
   await page.getByRole('button', { name: 'Library', exact: true }).click();
   if (phone) await page.getByRole('button', { name: 'Sources and folders' }).click();

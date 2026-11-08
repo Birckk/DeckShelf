@@ -1,3 +1,4 @@
+import { ApiError, apiJson } from "./api.ts";
 import { validateDeck, type Deck } from "./domain.ts";
 
 // Decks added from a folder listing load their full details in the background.
@@ -14,15 +15,12 @@ export class DeckLoadError extends Error {
 }
 
 export async function loadFullDeck(id: string, signal: AbortSignal, request: typeof fetch = fetch): Promise<Deck> {
-  let response: Response;
+  let data;
   try {
-    response = await request(`/api/decks/${id}`, { signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]) });
+    data = await apiJson(`/api/decks/${id}`, { signal, request, fallback: "Could not load this deck." });
   } catch (error) {
-    if (signal.aborted) throw error;
-    throw new DeckLoadError("Could not reach Archidekt.", true);
+    throw error instanceof ApiError ? new DeckLoadError(error.message, error.retry) : error;
   }
-  const data = response.headers.get("content-type")?.includes("application/json") ? await response.json() : null;
-  if (!response.ok || !data) throw new DeckLoadError(data?.error || "Could not load this deck.", data?.retry !== false);
   if (!validateDeck(data) || data.id !== id) throw new DeckLoadError("The source returned incomplete deck information.", false);
   return data;
 }

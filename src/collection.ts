@@ -67,8 +67,8 @@ export function rememberSource(
   };
 }
 
-export function importFolderSelection(collection: Collection, sources: CollectionSource[], accepted: Deck[], existing: Deck[], pauseGroups: string[] = [], requestedIds: string[] = accepted.map(deck => deck.id), catalog: Deck[] = []): Collection {
-  let next = saveSnapshots(materializeIndependentDecks(collection, catalog), accepted, true);
+export function importFolderSelection(collection: Collection, sources: CollectionSource[], accepted: Deck[], existing: Deck[], pauseGroups: string[] = [], requestedIds: string[] = accepted.map(deck => deck.id)): Collection {
+  let next = saveSnapshots(materializeIndependentDecks(collection), accepted, true);
   const acceptedIds = new Set(accepted.map(deck => deck.id));
   for (const source of sources) {
     const ids = source.entries.map(entry => entry.id).filter(id => acceptedIds.has(id));
@@ -107,11 +107,11 @@ export function importFolderSelection(collection: Collection, sources: Collectio
 
 // Shared Save adds only new decks. Existing snapshots and source/individual membership
 // stay intact, so removing this connection cannot remove a visitor's earlier decks.
-export function saveSharedCollection(collection: Collection, source: CollectionSource, decks: Deck[], existing: Deck[], catalog: Deck[] = []): Collection {
+export function saveSharedCollection(collection: Collection, source: CollectionSource, decks: Deck[], existing: Deck[]): Collection {
   const previous = collection.sources?.find(item => item.key === source.key);
   // Make inferred Individual decks explicit before a later source refresh can list
   // them. This preserves membership rather than assigning those decks to the source.
-  const individualIds = showcaseGroups(collection, catalog, existing).find(group => group.key === 'manual')!.ids;
+  const individualIds = showcaseGroups(collection, existing).find(group => group.key === 'manual')!.ids;
   const preserved = individualIds.some(id => !collection.manualIds?.includes(id))
     ? { ...collection, manualIds: [...new Set([...(collection.manualIds || []), ...individualIds])] }
     : collection;
@@ -156,15 +156,15 @@ export type SharedFolder = { source: CollectionSource; path: string; root: boole
 // A shared account or folder tree saves like Add decks: one source per folder, grouped under
 // the account so Library shows the tree. Each folder goes through the same add-only
 // Save as a single source; folders with nothing new are skipped, as Add decks skips them.
-export function saveSharedShelf(collection: Collection, source: CollectionSource, decks: Deck[], folders: SharedFolder[] | undefined, catalog: Deck[] = []): Collection {
-  if (!folders?.length) return saveSharedCollection(collection, source, decks, collectionDecks(collection, catalog), catalog);
+export function saveSharedShelf(collection: Collection, source: CollectionSource, decks: Deck[], folders: SharedFolder[] | undefined): Collection {
+  if (!folders?.length) return saveSharedCollection(collection, source, decks, collectionDecks(collection));
   let next = collection;
   for (const folder of folders) {
     const listed = new Set(folder.source.entries.map(entry => entry.id));
     const folderDecks = decks.filter(deck => listed.has(deck.id));
     if (!folderDecks.length) continue;
     const tagged = { ...folder.source, folderPath: folder.path, connectionKey: source.key, connectionName: source.name };
-    const after = saveSharedCollection(next, tagged, folderDecks, collectionDecks(next, catalog), catalog);
+    const after = saveSharedCollection(next, tagged, folderDecks, collectionDecks(next));
     const isNew = !next.sources?.some(item => item.key === tagged.key);
     if (isNew && !after.sources?.find(item => item.key === tagged.key)?.entries.length) continue;
     next = after;
@@ -175,7 +175,7 @@ export function saveSharedShelf(collection: Collection, source: CollectionSource
 export type ShowcaseGroup = {
   key: string;
   name: string;
-  kind: "included" | "demo" | "manual" | "account" | "folder";
+  kind: "demo" | "manual" | "account" | "folder";
   ids: string[];
   available: number;
   enabled: boolean;
@@ -209,10 +209,8 @@ export function archidektPage(section: string, sources: CollectionSource[]): str
 
 export function showcaseGroups(
   collection: Collection,
-  catalog: Deck[],
   decks: Deck[],
 ): ShowcaseGroup[] {
-  const seedIds = new Set(catalog.map((d) => d.id));
   const sourceGroups = (collection.sources || []).map((s) => ({
     key: s.key,
     name:
@@ -229,17 +227,10 @@ export function showcaseGroups(
     .filter(
       (d) =>
         collection.manualIds?.includes(d.id) ||
-        (!seedIds.has(d.id) && !demoIds.has(d.id) && !linked.has(d.id)),
+        (!demoIds.has(d.id) && !linked.has(d.id)),
     )
     .map((d) => d.id);
   return [
-    ...(collection.starter !== false ? [{
-      key: "starter",
-      name: "Included precons",
-      kind: "included" as const,
-      ids: [...seedIds],
-      available: catalog.length,
-    }] : []),
     ...(collection.demo && !collection.demo.removed ? [{
       key: "demo", name: "Official Commander precons", kind: "demo" as const,
       ids: collection.demo.decks.map(d => d.id), available: collection.demo.decks.length,
@@ -259,11 +250,10 @@ export function showcaseGroups(
 }
 export function showcaseDecks(
   collection: Collection,
-  catalog: Deck[],
   decks: Deck[],
 ): Deck[] {
   const ids = new Set(
-    showcaseGroups(collection, catalog, decks)
+    showcaseGroups(collection, decks)
       .filter((g) => g.enabled)
       .flatMap((g) => g.ids),
   );
@@ -400,12 +390,12 @@ function effectiveSourceOwnership(source: CollectionSource): string[] {
 // another source listing or Individual decks, even when they are deselected.
 // An explicit ownership list limits deletion: discovering an ID during refresh
 // does not grant that source ownership of its saved snapshot or hidden choice.
-export function removeSources(collection: Collection, keys: string[], catalog: Deck[] = []): Collection {
+export function removeSources(collection: Collection, keys: string[]): Collection {
   const sources = collection.sources || [];
   const gone = sources.filter(s => keys.includes(s.key));
   const kept = sources.filter(s => !keys.includes(s.key));
-  const individualIds = showcaseGroups(collection, catalog, collectionDecks(collection, catalog)).find(group => group.key === 'manual')!.ids;
-  const stillUsed = new Set([...individualIds, ...(collection.starter !== false ? catalog : []).map(deck => deck.id), ...(collection.demo?.decks || []).map(deck => deck.id), ...(collection.manualIds || []), ...kept.flatMap(s => [...s.knownIds, ...(s.ownedIds || [])])]);
+  const individualIds = showcaseGroups(collection, collectionDecks(collection)).find(group => group.key === 'manual')!.ids;
+  const stillUsed = new Set([...individualIds, ...(collection.demo?.decks || []).map(deck => deck.id), ...(collection.manualIds || []), ...kept.flatMap(s => [...s.knownIds, ...(s.ownedIds || [])])]);
   const ids = new Set(gone.flatMap(effectiveSourceOwnership).filter(id => !stillUsed.has(id)));
   const touches = (p: { keys: string[] }) => p.keys.some(key => keys.includes(key));
   return {
@@ -419,9 +409,8 @@ export function removeSources(collection: Collection, keys: string[], catalog: D
   };
 }
 
-export function collectionDecks(collection: Collection, legacy: Deck[]): Deck[] {
+export function collectionDecks(collection: Collection): Deck[] {
   return [...new Map([
-    ...(collection.starter !== false ? legacy : []),
     ...(collection.demo && !collection.demo.removed ? collection.demo.decks : []),
     ...collection.added,
   ].map(d => [d.id, d])).values()];
@@ -447,23 +436,12 @@ export function updateDemo(collection: Collection, found: Deck[], checkedAt: str
   };
 }
 
-// The bundled test set from before the precons catalog. Old profiles still have it on;
-// removing it only switches it off, since its decks were never saved snapshots.
-export function removeStarter(collection: Collection): Collection {
-  return {
-    ...collection,
-    starter: false,
-    disabledGroups: (collection.disabledGroups || []).filter(k => k !== "starter"),
-    archivedGroups: (collection.archivedGroups || []).filter(k => k !== "starter"),
-  };
-}
-
 export function removeDemo(collection: Collection): Collection {
   return collection.demo ? { ...collection, demo: { ...collection.demo, removed: true } } : collection;
 }
 
 export function freshCollection(snapshot: { snapshotAt: string; decks: Deck[] }): Collection {
-  return addDemo({ version: 1, hidden: [], excluded: [], added: [], starter: false }, snapshot);
+  return addDemo({ version: 1, hidden: [], excluded: [], added: [] }, snapshot);
 }
 
 // A refresh only replaces metadata. Local visibility and picker choices survive.
@@ -504,6 +482,14 @@ export function dropPartialDecks(collection: Collection, ids: string[]): Collect
   return drop.size ? { ...collection, added: collection.added.filter((d) => !drop.has(d.id)) } : collection;
 }
 
+/** A fresh snapshot keeps the theme and original link the saved copy already had. */
+export function mergeSnapshot(saved: Deck | undefined, fresh: Deck): Deck {
+  return {
+    ...fresh,
+    theme: saved?.theme || fresh.theme,
+    ...(saved?.originalUrl ? { originalUrl: saved.originalUrl } : {}),
+  };
+}
 export function saveSnapshots(
   collection: Collection,
   decks: Deck[],
@@ -511,15 +497,8 @@ export function saveSnapshots(
 ): Collection {
   const ids = new Set(decks.map((d) => d.id));
   const previous = new Map(collection.added.map((d) => [d.id, d]));
-  for (const d of decks) {
-    previous.set(d.id, {
-      ...d,
-      theme: previous.get(d.id)?.theme || d.theme,
-      ...(previous.get(d.id)?.originalUrl
-        ? { originalUrl: previous.get(d.id)!.originalUrl }
-        : {}),
-    });
-  }
+  // A Map keeps the first insertion's position, so a refreshed deck keeps its place.
+  for (const d of decks) previous.set(d.id, mergeSnapshot(previous.get(d.id), d));
   const added = [...previous.values()];
   if (added.length > 1000)
     throw new Error("A local collection can hold up to 1,000 imported decks.");
@@ -610,8 +589,8 @@ export function sourceMembership(source: CollectionSource): "follow" | "selected
   return source.knownIds.every(id => picked.includes(id)) ? 'follow' : 'selected';
 }
 // Save inferred Individual membership before new source ownership can mask it.
-function materializeIndependentDecks(collection: Collection, catalog: Deck[] = []): Collection {
-  const ids = showcaseGroups(collection, catalog, collectionDecks(collection, catalog)).find(group => group.key === 'manual')!.ids;
+function materializeIndependentDecks(collection: Collection): Collection {
+  const ids = showcaseGroups(collection, collectionDecks(collection)).find(group => group.key === 'manual')!.ids;
   const manualIds = [...new Set([...(collection.manualIds || []), ...ids])];
   return ids.every(id => collection.manualIds?.includes(id)) ? collection : { ...collection, manualIds };
 }
@@ -627,10 +606,10 @@ export function sourceRefreshFailure(collection: Collection, key: string, error:
   }) };
 }
 // Apply only complete discovery. Existing snapshots and local choices survive.
-export function refreshSourceMembership(collection: Collection, found: CollectionSource, loaded: Deck[], catalog: Deck[] = []): Collection {
+export function refreshSourceMembership(collection: Collection, found: CollectionSource, loaded: Deck[]): Collection {
   const previous = collection.sources?.find(source => source.key === found.key);
   if (!previous) return collection;
-  collection = materializeIndependentDecks(collection, catalog);
+  collection = materializeIndependentDecks(collection);
   const membership = sourceMembership(previous);
   const fresh = found.entries.filter(entry => !previous.knownIds.includes(entry.id));
   const available = new Set([...collection.added, ...loaded].map(deck => deck.id));

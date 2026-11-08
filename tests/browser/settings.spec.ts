@@ -1,10 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import { mkdir } from 'node:fs/promises';
 
 const key = 'commander-archive.collection.v1';
 const decks = seed.slice(0, 7);
-const profile = { version: 1, starter: false, hidden: [], excluded: [], added: decks, manualIds: decks.map(d => d.id) };
+const profile = { version: 1, hidden: [], excluded: [], added: decks, manualIds: decks.map(d => d.id) };
 
 // Settings folds its groups into rows; open the ones a test uses. Open rows are remembered across visits.
 const unfoldSettings = async (page: Page) => {
@@ -106,9 +106,9 @@ for (const width of [1920, 390]) {
       const search = page.getByRole('textbox', { name: 'Search decks', exact: true });
       await expect(search).toBeVisible();
       await expect(page.getByRole('button', { name: 'Filters', exact: true })).toBeVisible();
-      await search.pressSequentially('Giada');
+      await search.pressSequentially('Ghalta');
       await expect(page).toHaveURL(/\/$/);
-      await expect(search).toHaveValue('Giada');
+      await expect(search).toHaveValue('Ghalta');
       await expect(search).toBeFocused();
       await expect(page.locator('.collection-card')).toHaveCount(1);
       await page.goto(path);

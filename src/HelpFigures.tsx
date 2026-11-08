@@ -2,12 +2,12 @@ import type { ReactNode } from "react";
 import { ArrowDown, ArrowRight, Bookmark, Dices, EyeOff, FileJson, Folder, Link2, Lock, MoreHorizontal, Plus, RefreshCw, Share2, Users } from "lucide-react";
 import { ManaSymbol } from "./components";
 import type { Color } from "./domain";
-import decks from "./data/decks.json";
+import artwork from "./data/help-artwork.json";
 
 // Explanatory figures for Help topics, built from bundled artwork and simplified app controls.
 // Numbered callouts match the numbered rules beside each figure.
-const grid = (i: number) => decks[i].commanders[0].image;
-const art = (i: number) => decks[i].commanders[0].art;
+const grid = (i: number) => artwork[i].image;
+const art = (i: number) => artwork[i].art;
 const N = ({ n }: { n: number }) => <span className="hf-n" aria-hidden="true">{n}</span>;
 const Pill = ({ state }: { state: "on" | "off" | "some" }) => <span className={`hf-pill hf-pill-${state}`} aria-hidden="true"><span /></span>;
 const Mana = ({ colors }: { colors: Color[] }) => <span className="hf-mana">{colors.map(c => <ManaSymbol key={c} color={c} />)}</span>;

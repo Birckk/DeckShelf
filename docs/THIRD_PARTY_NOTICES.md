@@ -11,10 +11,10 @@ to their respective owners, including Wizards of the Coast and the credited arti
 
 ## Artwork, symbols and data
 
-- The 29 starter decks use metadata from the supplied reference workbook and
-  [Archidekt's precon catalog](https://archidekt.com/commander-precons). Commander
-  images were downloaded from Archidekt. Artist attribution is retained in the
-  deck viewer and in `resources/notices/artwork.json` in the desktop package.
+- The precon demo uses metadata from
+  [Archidekt's precon catalog](https://archidekt.com/commander-precons). The commander
+  artwork in Help's pictures was downloaded from Archidekt. Artist attribution is in
+  `src/data/help-artwork.json` and `resources/notices/artwork.json` in the desktop package.
 - Mana SVGs came from [Scryfall's symbology API](https://scryfall.com/docs/api/card-symbols).
   Availability through an API is not a transfer of copyright.
 - Added accounts, folders and decks are read-only public Archidekt sources.

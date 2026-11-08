@@ -48,7 +48,6 @@ import {
   setPendingSourceSelection,
   showcaseGroups,
   deckCollections,
-  showcaseDecks,
   hideGroups,
   isHidden,
   switchOn,
@@ -57,15 +56,13 @@ import {
   enableGroups,
   onlyGroup,
   archidektPage,
-  sourceDeckIds,
   removeSources,
-  removeStarter,
   addDemo,
   updateDemo,
   importFolderSelection,
   listingDeck,
 } from "./collection";
-import precons from "./data/precons.json";
+import { loadPrecons } from "./precons";
 import CollectionNavigator from "./CollectionNavigator";
 import CollectionViewControls, { collectionPhoneColumns, collectionTileSize, sortCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
 import "./collection-workspace.css";
@@ -73,12 +70,12 @@ import CollectionOverview from "./CollectionOverview";
 import SourceSetup, { type FolderDiscovery } from "./SourceSetup";
 import FormatSelect from './FormatSelect';
 import "./collection.css";
+import { apiJson, UNREACHABLE } from "./api";
 
 type Props = {
   sourceRefresh: { checking: string; refresh: (key: string, manual?: boolean) => Promise<void> };
   followEnabled: boolean;
   decks: Deck[];
-  catalog: Deck[];
   collection: Collection;
   setCollection: (update: Collection | ((c: Collection) => Collection)) => void;
   onClose: () => void;
@@ -99,16 +96,7 @@ type Props = {
 async function jsonRequest(path: string, signal: AbortSignal) {
   if (!navigator.onLine)
     throw new Error("You're offline. Connect to the internet to read Archidekt.");
-  const response = await fetch(path, {
-    signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]),
-  });
-  if (!response.headers.get("content-type")?.includes("application/json"))
-    throw new Error(
-      "Connecting sources needs the local app server. Start the app with npm start or npm run dev.",
-    );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Could not read the source.");
-  return data;
+  return apiJson(path, { signal, fallback: "Could not read the source." });
 }
 async function loadSource(
   kind: string,
@@ -149,7 +137,6 @@ export default function CollectionManager({
   sourceRefresh,
   followEnabled,
   decks,
-  catalog,
   collection,
   setCollection,
   onClose,
@@ -205,66 +192,84 @@ export default function CollectionManager({
   const controller = useRef<AbortController | null>(null);
   const importedFolderKeys = useRef(new Set<string>());
   useEffect(() => () => controller.current?.abort(), []);
-  const sources = collection.sources || [];
+  const sources = useMemo(() => collection.sources || [], [collection.sources]);
   const source = sources.find((s) => s.key === section);
   const sourcePage = section === "demo" ? "https://archidekt.com/commander-precons" : archidektPage(section, sources);
-  const newDeckCount = source ? sourceMembership(source) === 'selected'
-    ? (source.pendingIds || []).filter(id => !(source.ownedIds || source.selectedIds || []).includes(id)).length
-    : source.lastChange?.added.length || 0 : 0;
-  const scopedSources = scope ? sources.filter(s => scope.keys.includes(s.key)) : source ? [source] : [];
-  const scopedKeys = scopedSources.map(s => s.key);
+  const newDeckCount = useMemo(() => {
+    if (!source) return 0;
+    if (sourceMembership(source) !== 'selected') return source.lastChange?.added.length || 0;
+    const owned = new Set(source.ownedIds || source.selectedIds || []);
+    return (source.pendingIds || []).filter(id => !owned.has(id)).length;
+  }, [source]);
+  const scopedSources = useMemo(() => {
+    if (!scope) return source ? [source] : [];
+    const keys = new Set(scope.keys);
+    return sources.filter(s => keys.has(s.key));
+  }, [scope, source, sources]);
+  const scopedKeys = useMemo(() => scopedSources.map(s => s.key), [scopedSources]);
   const saved = useMemo(() => new Map(decks.map((d) => [d.id, d])), [decks]);
-  const groups = showcaseGroups(collection, catalog, decks);
-  const collectionNames = deckCollections(groups);
-  const activeGroup = groups.find((g) => g.key === section);
-  const onDisplayIds = new Set(
-    showcaseDecks(collection, catalog, decks).map((d) => d.id),
-  );
+  const groups = useMemo(() => showcaseGroups(collection, decks), [collection, decks]);
+  const groupsByKey = useMemo(() => new Map(groups.map(g => [g.key, g])), [groups]);
+  const collectionNames = useMemo(() => deckCollections(groups), [groups]);
+  const activeGroup = groupsByKey.get(section);
+  const hiddenIds = useMemo(() => new Set(collection.hidden), [collection.hidden]);
+  const selectedIds = useMemo(() => new Set(selected), [selected]);
+  const onDisplayIds = useMemo(() => {
+    const enabledIds = new Set(groups.filter(g => g.enabled).flatMap(g => g.ids));
+    return new Set(decks.filter(d => enabledIds.has(d.id) && !hiddenIds.has(d.id)).map(d => d.id));
+  }, [groups, decks, hiddenIds]);
   const onDisplay = onDisplayIds.size;
-  const manual = decks.filter((d) =>
-    groups.find((g) => g.key === "manual")!.ids.includes(d.id),
-  );
-  const enabledScopeIds = new Set(scopedSources.filter(s => groupActive(collection, s.key)).flatMap(s => sourceDeckIds(s, decks)));
+  // Index source membership once; each row otherwise scans every source's listing.
+  const { knownIds, listedRows, sourceIds, enabledScopeIds } = useMemo(() => {
+    const knownIds = new Set<string>();
+    const listedRows = new Map<string, SourceEntry>();
+    const sourceIds = new Set<string>();
+    const enabledScopeIds = new Set<string>();
+    for (const s of scopedSources) {
+      for (const id of s.knownIds) knownIds.add(id);
+      for (const entry of s.entries) listedRows.set(entry.id, entry);
+      const group = groupsByKey.get(s.key)!;
+      for (const id of group.ids) {
+        sourceIds.add(id);
+        if (group.enabled) enabledScopeIds.add(id);
+      }
+    }
+    return { knownIds, listedRows, sourceIds, enabledScopeIds };
+  }, [scopedSources, groupsByKey]);
   const displayedHere = (id: string) => onDisplayIds.has(id) && (scopedSources.length ? enabledScopeIds.has(id) : !activeGroup || activeGroup.enabled);
-  const sourceIds = new Set(scopedSources.flatMap(s => sourceDeckIds(s, decks)));
-  const isSavedHere = (id: string) =>
-    saved.has(id) && (!scopedSources.length || scopedSources.some(s => s.knownIds.includes(id)));
-  const rows: SourceEntry[] = scopedSources.length
-    ? [...new Map([
-        ...scopedSources.flatMap(s => s.entries),
-        ...decks
-          .filter(
-            (d) =>
-              scopedSources.some(s => s.knownIds.includes(d.id)) && !scopedSources.some(s => s.entries.some((e) => e.id === d.id)),
-          )
-          .map(toEntry),
-      ].map(row => [row.id, row])).values()]
-    : (section === "starter"
-        ? catalog.map((d) => saved.get(d.id) || d)
-        : section === "demo"
-          ? collection.demo?.decks || []
-        : section === "manual"
-          ? manual
-          : decks
-      ).map(toEntry);
-  const shown = sortCollectionDecks(sort, rows.filter((row) => {
-    const deck = saved.get(row.id);
-    const text = [row.name, ...(deck?.commanders.map((c) => c.name) || [])]
-      .join(" ")
-      .toLowerCase();
-    const display = isSavedHere(row.id) && (!scopedSources.length || sourceIds.has(row.id)) && displayedHere(row.id);
-  return (
-      text.includes(search.toLowerCase()) &&
-      (browseFormat === 'all' || formatOf(deck || row).id === browseFormat) &&
-      (status === "all" ||
-        (status === "shown" && display) ||
-        (status === "hidden" && isSavedHere(row.id) && !display) ||
-        (status === "new" && !isSavedHere(row.id)))
-    );
-  }), row => ({ ...(saved.get(row.id) || row), collections: collectionNames.get(row.id) }));
+  const isSavedHere = (id: string) => saved.has(id) && (!scopedSources.length || knownIds.has(id));
+  const rows = useMemo(() => {
+    if (scopedSources.length) return [
+      ...listedRows.values(),
+      ...decks.filter(d => knownIds.has(d.id) && !listedRows.has(d.id)).map(toEntry),
+    ];
+    const manualIds = new Set(groupsByKey.get("manual")!.ids);
+    return (section === "demo" ? collection.demo?.decks || []
+      : section === "manual" ? decks.filter(d => manualIds.has(d.id)) : decks).map(toEntry);
+  }, [scopedSources, listedRows, decks, knownIds, groupsByKey, section, collection.demo]);
+  const shown = useMemo(() => {
+    const query = search.toLowerCase();
+    return sortCollectionDecks(sort, rows.filter((row) => {
+      const deck = saved.get(row.id);
+      const text = [row.name, ...(deck?.commanders.map((c) => c.name) || [])]
+        .join(" ")
+        .toLowerCase();
+      const member = saved.has(row.id) && (!scopedSources.length || knownIds.has(row.id));
+      const display = member && (!scopedSources.length || sourceIds.has(row.id)) && onDisplayIds.has(row.id) &&
+        (scopedSources.length ? enabledScopeIds.has(row.id) : !activeGroup || activeGroup.enabled);
+      return (
+        text.includes(query) &&
+        (browseFormat === 'all' || formatOf(deck || row).id === browseFormat) &&
+        (status === "all" ||
+          (status === "shown" && display) ||
+          (status === "hidden" && member && !display) ||
+          (status === "new" && !member))
+      );
+    }), row => ({ ...(saved.get(row.id) || row), collections: collectionNames.get(row.id) }));
+  }, [sort, rows, saved, scopedSources, knownIds, sourceIds, onDisplayIds, enabledScopeIds, activeGroup, search, browseFormat, status, collectionNames]);
   const rowChecked = (id: string) => isSavedHere(id)
-    ? !collection.hidden.includes(id) && (!scopedSources.length || sourceIds.has(id))
-    : selected.includes(id);
+    ? !hiddenIds.has(id) && (!scopedSources.length || sourceIds.has(id))
+    : selectedIds.has(id);
   const checkedCount = shown.filter(row => rowChecked(row.id)).length;
   const allChecked = !!shown.length && checkedCount === shown.length;
   const selectAllBox = useRef<HTMLInputElement>(null);
@@ -316,8 +321,8 @@ export default function CollectionManager({
   // where they started, so they become notices that stay until dismissed.
   function report(error: unknown, inline = false) {
     if ((error as Error).name === "AbortError") return;
-    const message = (error as Error).message === "Failed to fetch"
-      ? "Could not reach Archidekt. Your saved decks are still available."
+    const message = (error as Error).message.startsWith(UNREACHABLE)
+      ? `${(error as Error).message} Your saved decks are still available.`
       : (error as Error).message;
     if (inline) setError(message);
     else notify(message, { tone: "problem" });
@@ -427,8 +432,8 @@ export default function CollectionManager({
       const accepted = selected.flatMap(id => saved.get(id) || (listed.has(id) ? [listingDeck(listed.get(id)!)] : []));
       // Merge into the latest state: a background check may have saved since this render.
       const importedKeys = new Set(importedFolderKeys.current);
-      commitAsync(c => importFolderSelection(c, chosen, accepted, collectionDecks(c, catalog),
-        onlyFolders ? showcaseGroups(c, catalog, collectionDecks(c, catalog)).map(g => g.key).filter(key => !importedKeys.has(key)) : [], selected, catalog), signal);
+      commitAsync(c => importFolderSelection(c, chosen, accepted, collectionDecks(c),
+        onlyFolders ? showcaseGroups(c, collectionDecks(c)).map(g => g.key).filter(key => !importedKeys.has(key)) : [], selected), signal);
       chosen.filter(s => s.entries.some(e => accepted.some(d => d.id === e.id))).forEach(s => importedFolderKeys.current.add(s.key));
       finish(`${accepted.length} ${accepted.length === 1 ? 'deck' : 'decks'} added to your collection.`, []);
       navigate("overview");
@@ -493,7 +498,7 @@ export default function CollectionManager({
       const offGroup = accepted.length && activeGroup?.enabled === false ? activeGroup : undefined;
       commitAsync(c => {
         let next = saveSnapshots(c, accepted, true);
-        if (scopedSources.length) next = setSourceSelection(next, scopedKeys, accepted.map(d => d.id), true, collectionDecks(next, catalog));
+        if (scopedSources.length) next = setSourceSelection(next, scopedKeys, accepted.map(d => d.id), true, collectionDecks(next));
         return offGroup && turnsOn ? switchOn(next, offGroup.key) : next;
       }, signal);
       setSelected((ids) =>
@@ -567,7 +572,7 @@ export default function CollectionManager({
   }
   // Remove acts at once and offers Undo instead of asking first (#57).
   function remove(keys: string[], name: string, count: number) {
-    const after = keys.includes("starter") ? removeStarter(collection) : removeSources(collection, keys, catalog);
+    const after = removeSources(collection, keys);
     setCollection(after);
     navigate("overview");
     notify(`Removed ${name}${count ? ` and its ${count} saved ${count === 1 ? "deck" : "decks"}` : ""}.`, { action: { label: "Undo", run: undoTo(collection, after) } });
@@ -587,7 +592,7 @@ export default function CollectionManager({
     }
   }
   function addPrecons() {
-    setCollection(c => addDemo(c, precons as { snapshotAt: string; decks: Deck[] }));
+    void loadPrecons().then(snapshot => setCollection(c => addDemo(c, snapshot)));
     navigate("demo");
   }
   const headerKeys = scope ? scopedKeys : activeGroup || section === "demo" ? [section] : [];
@@ -601,8 +606,8 @@ export default function CollectionManager({
     ] : []),
     ...(!headerHidden && headerKeys.length ? [{ label: section === "demo" ? "Hide precons" : "Hide", icon: <EyeOff size={14} />, run: () => hide(headerKeys) }] : []),
     ...(scopedSources.length && !readOnly ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(scopedKeys, headerName, sourceIds.size) }] : []),
-    ...(section === "starter" ? [{ label: "Remove", icon: <Trash2 size={14} />, run: () => remove(["starter"], headerName, 0) }] : []),
   ];
+  const sourceEntryIds = useMemo(() => new Set(source?.entries.map(e => e.id) || []), [source]);
   const deckRows = shown.map((row) => {
     const deck = saved.get(row.id);
     const member = isSavedHere(row.id);
@@ -610,7 +615,7 @@ export default function CollectionManager({
     const missing =
       !!source &&
       !!deck &&
-      !source.entries.some((e) => e.id === row.id);
+      !sourceEntryIds.has(row.id);
     const toggle = (on: boolean) => {
       if (member) return setCollection(c => scopedSources.length ? setSourceSelection(c, scopedKeys, [row.id], on, decks) : setShown(c, [row.id], on));
       // A deck still waiting to download keeps its choice across the next check.
@@ -729,9 +734,7 @@ export default function CollectionManager({
                   <div>
                     <h3>
                       {scope?.name || activeGroup?.name ||
-                        (section === "starter"
-                          ? "Included precons"
-                          : section === "manual"
+                        (section === "manual"
                             ? "Individual decks"
                             : readOnly ? "All decks" : "All saved decks")}
                     </h3>
@@ -765,8 +768,6 @@ export default function CollectionManager({
                     {section === "demo" && !headerHidden && <button className="text-button" disabled={!!busy} title="Check Archidekt for precons released since this snapshot" onClick={updatePrecons}><RefreshCw size={14} />Refresh</button>}
                     <CollectionMenu name={headerName} busy={!!busy} items={menuItems} />
                   </div>
-                  {section === "starter" && !collection.demo && <div className="manager-precon-link"><button className="text-button" disabled={!!busy} onClick={addPrecons}>
-                    <Plus size={14} />Add all Official Commander precons</button></div>}
                 </div>}
                 {followEnabled && source && <div className="source-refresh-status" aria-live="polite">
                   <span>Checked {new Date(source.checkedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>

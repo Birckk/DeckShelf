@@ -11,11 +11,11 @@ const source = { key: 'folder:42', kind: 'folder', value: '42', name: 'Followed 
   selectedIds: [decks[0].id], ownedIds: decks.slice(0, 2).map(d => d.id), folderPath: 'Home / Followed folder' };
 const { selectedIds: _selection, ownedIds: _ownership, ...listing } = source;
 const found = { ...listing, checkedAt: new Date().toISOString(), entries: decks.slice(1, 3).map(entry), knownIds: decks.slice(1, 3).map(d => d.id) };
-async function prepare(page: Page, options: { mode?: string; fail?: boolean; fresh?: boolean; prototype?: boolean; collection?: unknown } = {}) {
-  const collection = options.collection ?? { version: 1, starter: false, added: decks.slice(0, 2), hidden: [decks[1].id], excluded: [decks[0].id],
+async function prepare(page: Page, options: { mode?: string; fail?: boolean; fresh?: boolean; follow?: boolean; collection?: unknown } = {}) {
+  const collection = options.collection ?? { version: 1, added: decks.slice(0, 2), hidden: [decks[1].id], excluded: [decks[0].id],
     disabledGroups: ['folder:42'], sources: [{ ...source, ...(options.mode === 'legacy' ? {} : { membership: options.mode || 'follow' }), ...(options.fresh ? { checkedAt: new Date().toISOString() } : {}) }] };
-  // prototype: false is the Settings switch turned off.
-  const enabled = options.prototype !== false;
+  // follow: false is the Settings switch turned off.
+  const enabled = options.follow !== false;
   await page.addInitScript(({ key, collection }) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(collection)); }, { key, collection: enabled ? collection : { ...(collection as object), followOff: true } });
   // Use the bundled versions of fixture artwork; visual QA never waits on a CDN.
   await page.route('https://card-images.archidekt.com/**', route => {
@@ -179,7 +179,7 @@ test('new snapshot batches stop at ten and keep the remainder for the next manua
 
 test('a revisit checks only four stale sources and never starts overlapping discovery requests', async ({ page }) => {
   const six = Array.from({ length: 6 }, (_, index) => ({ ...source, key: `folder:${42 + index}`, value: String(42 + index), url: `https://archidekt.com/folders/${42 + index}`, membership: 'selected' }));
-  await page.addInitScript(({ key, six, decks }) => { localStorage.setItem(key, JSON.stringify({ version: 1, starter: false, added: decks.slice(0, 2), hidden: [], excluded: [], sources: six })); }, { key, six, decks });
+  await page.addInitScript(({ key, six, decks }) => { localStorage.setItem(key, JSON.stringify({ version: 1, added: decks.slice(0, 2), hidden: [], excluded: [], sources: six })); }, { key, six, decks });
   let requests = 0, active = 0, peak = 0;
   await page.route('**/api/sources?*', async route => {
     requests++; active++; peak = Math.max(peak, active);
@@ -197,7 +197,7 @@ test('a revisit checks only four stale sources and never starts overlapping disc
 test('folders saved before Follow keep hand-picked choices fixed and follow when whole', async ({ page }) => {
   const whole = { ...source, selectedIds: source.knownIds };
   const picked = { ...source, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43', name: 'Picked folder', folderPath: undefined, checkedAt: new Date().toISOString() };
-  await prepare(page, { collection: { version: 1, starter: false, added: decks.slice(0, 2), hidden: [], excluded: [], sources: [picked, whole] } });
+  await prepare(page, { collection: { version: 1, added: decks.slice(0, 2), hidden: [], excluded: [], sources: [picked, whole] } });
   await openSource(page);
   await expect(page.locator('.source-refresh-status')).toContainText('1 new deck added');
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key);
@@ -208,7 +208,7 @@ test('folders saved before Follow keep hand-picked choices fixed and follow when
 
 test('Settings switch: off means no checks and no folder status until it is turned on', async ({ page }) => {
   let requests = 0;
-  await prepare(page, { prototype: false });
+  await prepare(page, { follow: false });
   await page.route('**/api/sources?*', route => { requests++; return route.fulfill({ json: found }); });
   await openSource(page);
   await expect(page.locator('.source-refresh-status')).toHaveCount(0);
@@ -226,7 +226,7 @@ for (const flow of ['individual', 'folders', 'selected']) test(`background snaps
   const current = { ...source, membership: 'selected', checkedAt: new Date().toISOString(), ...(flow === 'selected' ? { knownIds: [...source.knownIds, decks[3].id], entries: [...source.entries, entry(decks[3])] } : {}) };
   const background = { ...source, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43', name: 'Background folder', folderPath: undefined, membership: 'follow', checkedAt: new Date().toISOString() };
   const changed = { ...background, checkedAt: new Date().toISOString(), entries: [...source.entries, entry(decks[2])], knownIds: [...source.knownIds, decks[2].id] };
-  await prepare(page, { collection: { version: 1, starter: false, added: decks.slice(0, 2), hidden: [], excluded: [], sources: [current, background] } });
+  await prepare(page, { collection: { version: 1, added: decks.slice(0, 2), hidden: [], excluded: [], sources: [current, background] } });
   let releaseC!: () => void, releaseB!: () => void, requestedB = false;
   const cGate = new Promise<void>(resolve => { releaseC = resolve; });
   const bGate = new Promise<void>(resolve => { releaseB = resolve; });
@@ -276,7 +276,7 @@ test('restoring a backup invalidates an in-flight refresh, even for the same sou
   await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   await expect(page.locator('.source-refresh-status')).toContainText('Checking');
   await expect.poll(() => requested).toBe(true);
-  const backup = { version: 1, starter: false, added: [decks[3]], hidden: [], excluded: [], sources: [{ ...source, membership: 'selected', entries: [entry(decks[3])], knownIds: [decks[3].id], selectedIds: [decks[3].id], ownedIds: [decks[3].id] }] };
+  const backup = { version: 1, added: [decks[3]], hidden: [], excluded: [], sources: [{ ...source, membership: 'selected', entries: [entry(decks[3])], knownIds: [decks[3].id], selectedIds: [decks[3].id], ownedIds: [decks[3].id] }] };
   await page.locator('input[type=file]').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
   await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
   release();
@@ -338,11 +338,11 @@ for (const action of ['bulk', 'individual']) test(`${action} deselection exclude
 
 test('restored stale sources refresh on later visibility revisits while the old queue stays cancelled', async ({ page }) => {
   const queued = { ...source, key: 'folder:43', value: '43', url: 'https://archidekt.com/folders/43', membership: 'selected' };
-  const initial = { version: 1, starter: false, added: decks.slice(0, 2), hidden: [], excluded: [], sources: [{ ...source, membership: 'follow' }, queued] };
+  const initial = { version: 1, added: decks.slice(0, 2), hidden: [], excluded: [], sources: [{ ...source, membership: 'follow' }, queued] };
   await page.addInitScript(({ key, initial }) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(initial)); }, { key, initial });
   const restored = { ...source, key: 'folder:44', value: '44', url: 'https://archidekt.com/folders/44', membership: 'selected', entries: [entry(decks[3])], knownIds: [decks[3].id], selectedIds: [decks[3].id], ownedIds: [decks[3].id] };
   // A fresh copy of the queued source stays connected; only the retired queue would check it.
-  const backup = { version: 1, starter: false, added: [decks[3]], hidden: [], excluded: [], sources: [restored, { ...queued, checkedAt: new Date().toISOString() }] };
+  const backup = { version: 1, added: [decks[3]], hidden: [], excluded: [], sources: [restored, { ...queued, checkedAt: new Date().toISOString() }] };
   let release!: () => void, requested = false;
   const gate = new Promise<void>(resolve => { release = resolve; });
   const requests: string[] = [];

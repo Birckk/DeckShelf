@@ -15,7 +15,7 @@
     "preview": "vp preview --host 127.0.0.1",
     "check": "vp check",
     "test": "node --test tests/*.test.mjs",
-    "test:dialogs": "playwright test",
+    "test:dialogs": "playwright test tests/browser/dialogs.spec.ts tests/browser/focus-ring.spec.ts",
     "desktop": "npm run runtime && npm run build && electron .",
     "runtime": "node node_modules/electron/install.js",
     "notices": "node scripts/notices.mjs",
@@ -33,6 +33,7 @@
     "sonner": "2.0.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@electron/asar": "^4.3.1",
     "@modelcontextprotocol/sdk": "^1.32.2",
     "@playwright/test": "1.64.1",

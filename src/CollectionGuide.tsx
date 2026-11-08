@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Dices, Link2 } from "lucide-react";
-import decks from "./data/decks.json";
+import helpArtwork from "./data/help-artwork.json";
 
 const pages = [
   { title: "Bring your decks", caption: "Library → paste an Archidekt username or link." },
   { title: "Find tonight’s deck", caption: "Choose what’s shown. Browse, or pick at random." },
   { title: "Or start with precons", caption: "Official Commander precons · Curated by Archidekt" },
 ];
-const artwork = decks.slice(0, 3);
+const artwork = helpArtwork.slice(0, 3);
 function GuidePicture({ step }: { step: number }) {
   return <div className={`guide-picture guide-picture-${step}`} role="img" aria-label={[
     "An Archidekt username or link becomes a collection of deck artwork.",
@@ -16,8 +16,8 @@ function GuidePicture({ step }: { step: number }) {
   ][step]}>
     {step === 0 && <div className="guide-input"><Link2 size={18} /><span>archidekt.com/u/your-name</span><ArrowRight size={18} /></div>}
     <div className="guide-artwork">
-      {artwork.map((deck, index) => <div className="guide-art-card" key={deck.id}>
-        <img src={deck.commanders[0].art} alt="" />
+      {artwork.map((deck, index) => <div className="guide-art-card" key={deck.art}>
+        <img src={deck.art} alt="" />
         {step === 1 && <span className={`guide-check ${index === 1 ? "guide-check-off" : ""}`}>{index !== 1 && <Check size={16} />}</span>}
       </div>)}
     </div>
@@ -39,7 +39,7 @@ export default function CollectionGuide({ present, onPrecons }: {
     <GuidePicture step={step} />
     <h3 ref={heading} tabIndex={-1}>{pages[step].title}</h3>
     <p>{pages[step].caption}</p>
-    <div className="guide-progress" aria-label={`Page ${step + 1} of 3`}>
+    <div className="guide-progress" role="img" aria-label={`Page ${step + 1} of 3`}>
       {pages.map((page, index) => <span key={page.title} className={index === step ? "active" : ""} />)}
     </div>
     <div className="guide-actions">

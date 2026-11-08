@@ -78,7 +78,7 @@ test('desktop copies a Commander Archive profile into a new DeckShelf profile on
 test('desktop bundle includes all local server module dependencies', async () => {
   const config = await readFile(new URL('../desktop/electron-builder.yml', import.meta.url), 'utf8');
   const bundled = new Set([...config.matchAll(/^  - ((?:server|shared)\/.+\.mjs)$/gm)].map(match => match[1]));
-  const queue = ['server/api.mjs'];
+  const queue = ['server/api.mjs', 'server/static.mjs'];
   const visited = new Set();
   while (queue.length) {
     const name = queue.shift();
@@ -105,7 +105,7 @@ test('desktop snapshots and discovery share the same Retry-After cooldown', asyn
   const second = await desktopResponse(new Request('archive://app/api/decks/987654301'), '.');
   assert.equal(second.status, 424);
   assert.match((await second.json()).error, /rate limited/);
-  const source = await desktopResponse(new Request('archive://app/api/sources?kind=folder&value=987654302&prototype=1'), '.');
+  const source = await desktopResponse(new Request('archive://app/api/sources?kind=folder&value=987654302&cached=1'), '.');
   assert.equal(source.status, 424);
   assert.equal(calls, 1);
 });

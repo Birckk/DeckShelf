@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import seed from '../../src/data/decks.json' with { type: 'json' };
+import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 
 const deck = { ...seed[0], id: '987001', name: 'Shared Commander' };
 const source = { key: 'folder:42', kind: 'folder', value: '42', name: 'Public shelf', url: 'https://archidekt.com/folders/42', checkedAt: new Date().toISOString(), entries: [{ id: deck.id, name: deck.name, image: deck.commanders[0].art, colors: deck.colors }], knownIds: [deck.id] };

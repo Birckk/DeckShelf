@@ -27,7 +27,7 @@ const env = { ...process.env, CA_TEST_PROFILE: profile, PATH: join(process.env.S
 delete env.ELECTRON_RUN_AS_NODE;
 delete env.NODE_OPTIONS;
 const key = 'commander-archive.collection.v1';
-const seed = JSON.parse(await readFile(join(root, 'src/data/decks.json'), 'utf8'));
+const seed = JSON.parse(await readFile(join(root, 'tests/fixtures/collection-decks.json'), 'utf8'));
 const snapshot = seed[2];
 const fixture = {
   version: 1, hidden: [seed[0].id], excluded: [seed[1].id], added: [snapshot],
