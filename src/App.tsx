@@ -305,7 +305,9 @@ function App() {
   // filling in after the collection manager closes. A deck that cannot load for
   // good (private, gone, no commander) is dropped again, as it was never added
   // before; one that failed for now waits for the next start or reconnection.
-  // App lasts as long as the page, so filling is never cancelled.
+  // App lasts as long as the page, so filling is never cancelled. `started` holds
+  // only decks loading now or waiting for reconnection: a restored backup or the
+  // return from a shared shelf can bring back a partial deck that already loaded.
   const fill = useRef({ started: new Set<string>(), later: new Set<string>(), signal: new AbortController().signal });
   const [fillPass, setFillPass] = useState(0);
   useEffect(() => {
@@ -325,6 +327,7 @@ function App() {
     void fillDecks(ids, loadFullDeck, {
       signal: queue.signal,
       onDeck: deck => {
+        queue.started.delete(deck.id);
         setCollection(c => fillDeck(c, deck));
         setDetail(current => current?.id === deck.id && current.partial ? deck : current);
       },
@@ -336,6 +339,8 @@ function App() {
       },
     }).then(() => {
       if (!dropped.length) return;
+      // Forget them in the same update that drops them, so they are not retried.
+      dropped.forEach(id => queue.started.delete(id));
       setCollection(c => dropPartialDecks(c, dropped));
       setDetail(current => current && dropped.includes(current.id) ? null : current);
       notify(`${dropped.length === 1 ? "A deck" : `${dropped.length} decks`} could not be added. ${reasons.join(" ")}`, { tone: "problem" });

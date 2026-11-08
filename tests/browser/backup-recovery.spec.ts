@@ -169,6 +169,21 @@ test('export stays collection-only and cancelling or restoring preserves display
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), displayKey)).toEqual(display);
 });
 
+test('a restored backup loads details again for a deck that already loaded once', async ({ page }) => {
+  const full = decks[0];
+  const partial = { ...full, partial: true as const, description: '', tags: [] };
+  const profile = { ...current, added: [partial, decks[1]] };
+  let requests = 0;
+  await page.route(`**/api/decks/${full.id}`, route => { requests++; return route.fulfill({ json: full }); });
+  await open(page, JSON.stringify(profile));
+  const stored = () => page.evaluate(key => JSON.parse(localStorage.getItem(key)!).added[0].partial ?? false, key);
+  await expect.poll(stored).toBe(false);
+  await manager(page); await upload(page, profile);
+  await page.getByRole('button', { name: 'Restore this backup', exact: true }).click();
+  await expect.poll(() => requests).toBe(2);
+  await expect.poll(stored).toBe(false);
+});
+
 for (const [label, profile, count] of [
   ['older precon snapshot', { version: 1, added: [], hidden: [], excluded: [], demo: { removed: false, snapshotAt: precons.snapshotAt, decks: precons.decks.slice(0, 2) } }, 2],
 ] as const) test(`${label} restores and reloads without silently expanding to the current catalog`, async ({ page }) => {
