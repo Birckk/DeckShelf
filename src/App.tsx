@@ -70,7 +70,7 @@ import { CardBackContext } from "./placeholders/CardBackArt";
 import CollectionManager from "./CollectionManager";
 import { useSourceRefresh } from './sourceRefresh';
 import { Notices, notify } from "./Notices";
-import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshCollection, addDemo, fillDeck, dropPartialDecks } from "./collection";
+import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshCollection, addDemo, fillDeck, dropPartialDecks, mergeSnapshot, saveSnapshots } from "./collection";
 import { DeckLoadError, fillDecks, loadFullDeck } from "./deckFill";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 import FirstVisitHint, { TourPopover } from "./FirstVisitHint";
@@ -539,16 +539,9 @@ function App() {
         throw new Error(data.error || "Could not refresh this deck.");
       if (!validateDeck(data) || data.id !== deck.id)
         throw new Error("The source returned incomplete deck information.");
-      const updated = {
-        ...data,
-        theme: deck.theme || data.theme,
-        originalUrl: deck.originalUrl,
-      };
+      const updated = mergeSnapshot(deck, data);
       if (epoch !== collectionGeneration.current) return;
-      setCollection((c) => epoch !== collectionGeneration.current ? c : ({
-        ...c,
-        added: [...c.added.filter((d) => d.id !== deck.id), updated],
-      }));
+      setCollection((c) => epoch !== collectionGeneration.current ? c : saveSnapshots(c, [data]));
       setDetail((current) => (current?.id === deck.id ? updated : current));
       notify(`${updated.name} refreshed from Archidekt.`);
     } catch (error) {

@@ -482,6 +482,14 @@ export function dropPartialDecks(collection: Collection, ids: string[]): Collect
   return drop.size ? { ...collection, added: collection.added.filter((d) => !drop.has(d.id)) } : collection;
 }
 
+/** A fresh snapshot keeps the theme and original link the saved copy already had. */
+export function mergeSnapshot(saved: Deck | undefined, fresh: Deck): Deck {
+  return {
+    ...fresh,
+    theme: saved?.theme || fresh.theme,
+    ...(saved?.originalUrl ? { originalUrl: saved.originalUrl } : {}),
+  };
+}
 export function saveSnapshots(
   collection: Collection,
   decks: Deck[],
@@ -489,15 +497,8 @@ export function saveSnapshots(
 ): Collection {
   const ids = new Set(decks.map((d) => d.id));
   const previous = new Map(collection.added.map((d) => [d.id, d]));
-  for (const d of decks) {
-    previous.set(d.id, {
-      ...d,
-      theme: previous.get(d.id)?.theme || d.theme,
-      ...(previous.get(d.id)?.originalUrl
-        ? { originalUrl: previous.get(d.id)!.originalUrl }
-        : {}),
-    });
-  }
+  // A Map keeps the first insertion's position, so a refreshed deck keeps its place.
+  for (const d of decks) previous.set(d.id, mergeSnapshot(previous.get(d.id), d));
   const added = [...previous.values()];
   if (added.length > 1000)
     throw new Error("A local collection can hold up to 1,000 imported decks.");

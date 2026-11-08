@@ -120,6 +120,17 @@ test('late refresh failure stays with its deck and preserves saved choices', asy
   expect(saved.added).toEqual([first, second]);
 });
 
+test('a refreshed deck keeps its place and its saved theme', async ({ page }) => {
+  const fresh = { ...first, name: 'Renamed on Archidekt', theme: 'Upstream theme' };
+  await page.route(`**/api/decks/${first.id}?refresh=1`, route => route.fulfill({ json: fresh }));
+  await page.addInitScript(({ key, first, second }) => localStorage.setItem(key, JSON.stringify({ version: 1, hidden: [], excluded: [], added: [{ ...first, theme: 'Mine' }, second], manualIds: [first.id, second.id] })), { key, first, second });
+  await page.reload();
+  await page.getByRole('button', { name: `View ${first.name}`, exact: true }).click();
+  await page.getByRole('button', { name: 'Refresh snapshot' }).click();
+  await expect.poll(async () => (await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), key)).added.map((d: { name: string; theme: string }) => `${d.name}/${d.theme}`))
+    .toEqual([`${fresh.name}/Mine`, `${second.name}/${second.theme}`]);
+});
+
 test('a refresh notice shows above the open deck details dialog', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.route(`**/api/decks/${first.id}?refresh=1`, route => route.fulfill({ json: first }));
