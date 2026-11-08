@@ -75,29 +75,33 @@
 .is-spinning .helix-stage {
   cursor: wait;
 }
-.helix-stage:before,
-.helix-stage:after {
-  content: "";
+/* The scene fades out at the top and bottom through a mask, not a painted band:
+   the 3D cards rendered through any band laid over them, and a band never
+   matched the translucent picker behind it. */
+.helix-scene {
   position: absolute;
-  left: 0;
-  right: 0;
-  z-index: 3;
-  height: 150px;
-  pointer-events: none;
-}
-.helix-stage:before {
-  top: 0;
-  background: linear-gradient(
-    #101a16 3%,
-    #101a16ed 29%,
-    #101a1640 80%,
-    transparent
+  inset: 0;
+  perspective: inherit;
+  -webkit-mask-image: linear-gradient(
+    transparent 50px,
+    #0003 100px,
+    #000a 145px,
+    #000 185px,
+    #000 calc(100% - 170px),
+    #0005 calc(100% - 90px),
+    transparent calc(100% - 30px)
+  );
+  mask-image: linear-gradient(
+    transparent 50px,
+    #0003 100px,
+    #000a 145px,
+    #000 185px,
+    #000 calc(100% - 170px),
+    #0005 calc(100% - 90px),
+    transparent calc(100% - 30px)
   );
 }
-.helix-stage:after {
-  bottom: 0;
-  background: linear-gradient(0deg, #101a16 3%, #101a16b3 25%, transparent);
-}
+
 .helix-world {
   position: absolute;
   left: 50%;
@@ -399,9 +403,6 @@
     width: 9px;
     height: 9px;
     font-size: 6px;
-  }
-  .helix-stage:before {
-    height: 150px;
   }
   .helix-intro {
     top: 79px;

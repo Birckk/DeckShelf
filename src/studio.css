@@ -740,17 +740,6 @@ option {
 .helix-stage {
   background: radial-gradient(ellipse at 50% 48%, #c5ac7920, transparent 65%);
 }
-.helix-stage:before {
-  background: linear-gradient(
-    #111215 3%,
-    #111215ed 29%,
-    #11121540 80%,
-    transparent
-  );
-}
-.helix-stage:after {
-  background: linear-gradient(0deg, #111215 3%, #111215b3 25%, transparent);
-}
 .helix-motion-controls > label,
 .helix-intro p,
 .helix-gesture {
