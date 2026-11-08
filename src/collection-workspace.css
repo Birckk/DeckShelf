@@ -224,6 +224,15 @@ body:has(.collection-workspace) { min-width:320px; }
 .manager-toolbar-end { display:flex; align-items:center; gap:8px; margin-left:auto; }
 .manager-toolbar-end > .text-button { white-space:nowrap; }
 .collection-workspace .manager-group-control { gap:8px 12px; }
+/* Phones: the scope's pill, Only this and More join the title row when they fit beside it,
+   and drop to their own full-width row (as on wide screens) when a Refresh button or long name
+   needs the room. The title takes nearly all spare space, so beside it the controls stay packed. */
+@media(max-width:700px) {
+  .collection-workspace .manager-scope-head { display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 12px; padding-bottom:6px; border-bottom:1px solid #ffffff12; }
+  .manager-scope-head > .manager-section-heading { flex:1000 1 9rem; min-width:0; overflow-wrap:anywhere; }
+  .collection-workspace .manager-scope-head > .manager-toolbar { flex:1 0 auto; border-bottom:0; padding:0; }
+  .manager-scope-head > .manager-toolbar .manager-group-control { flex-wrap:nowrap; }
+}
 .collection-hidden-state { display:flex; align-items:center; gap:8px 10px; flex-wrap:wrap; font-size:12px; color:#aaa6a0; }
 
 .collection-menu { position:relative; flex-shrink:0; }

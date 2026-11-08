@@ -1755,12 +1755,21 @@ body:has(.studio-workspace) { min-width:320px; }
 .deck-format { position: absolute; z-index: 2; bottom: 8px; right: 8px; max-width: calc(100% - 16px); padding: 4px 7px; border-radius: 4px; background: #111214eb; color: #e9deca; font-size: 11px; line-height: 1.2; }
 .filter-fieldset > .format-select { display: flex; justify-content: space-between; }
 .source-folder-decks small { display: block; color: #aaa7a0; }
-.manager-search > .format-select { flex: 0 1 auto; border: 0; background: none; padding: 0; white-space: nowrap; }
-.manager-search > .format-select:focus-within { outline: none; }
-.manager-search > .format-select > span { display: none; }
+.manager-search .format-select { flex: 0 1 auto; border: 0; background: none; padding: 0; white-space: nowrap; }
+.manager-search .format-select:focus-within { outline: none; }
+.manager-search .format-select > span { display: none; }
+/* Wide screens show format and status beside search. Phones fold them behind a Filters
+   button in the search row, so they take a row only while open. */
+.manager-filters { display: contents; }
+.manager-filters-toggle { display: none; }
 @media (max-width: 700px) {
-  .manager-search { flex-wrap: wrap; }
-  .manager-search > label:not(.format-select) { flex-basis: 100%; }
+  .manager-search { flex-wrap: wrap; gap: 8px; }
+  .collection-manager .button.manager-filters-toggle { display: inline-flex; flex-shrink: 0; height: 40px; padding: 0 12px; gap: 7px; background: #131417; border: 1px solid #ffffff24; border-radius: 5px; }
+  .collection-manager .button.manager-filters-toggle[aria-expanded="true"] { background: #1f2024; }
+  .manager-filters { display: none; flex-basis: 100%; gap: 8px; }
+  .manager-filters.is-open { display: flex; }
+  .manager-search .manager-filters > * { flex: 1 1 0; min-width: 0; max-width: none; }
+  .manager-search .manager-filters select { width: 100%; max-width: none; }
 }
 
 /* Settings and Help are a pair of icons, closer to each other than to the other header controls. */
