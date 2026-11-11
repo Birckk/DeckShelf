@@ -29,8 +29,11 @@ export type Deck = {
   cardCount: number;
   releasedAt: string;
   fetchedAt: string;
-  // Added from a folder listing; commanders and other details are still loading.
+  // Added from a folder listing; commanders and other details load when needed.
   partial?: true;
+  // The listing's last edit time when this copy was made. A later edit sends the
+  // deck back to listing data on the website (refreshFromListing).
+  updatedAt?: string;
 };
 export type Filters = {
   format?: string;
@@ -194,6 +197,10 @@ export type SourceEntry = {
   name: string;
   image: string;
   colors: Color[];
+  // Also in the listing, so a deck drawn from it can be filtered by tag and checked for edits.
+  tags?: string[];
+  cardCount?: number;
+  updatedAt?: string;
 };
 export type CollectionSource = {
   formatScope?: "all" | "commander";
@@ -237,6 +244,7 @@ export function imageUrl(value: unknown): value is string {
     (/^\/images\/[a-zA-Z0-9.-]+$/.test(value) || webUrl(value))
   );
 }
+const validDate = (value: unknown) => typeof value === "string" && value.length <= 40 && Number.isFinite(Date.parse(value));
 export function validateSource(value: unknown): value is CollectionSource {
   if (!value || typeof value !== "object") return false;
   const s = value as CollectionSource;
@@ -288,6 +296,9 @@ export function validateSource(value: unknown): value is CollectionSource {
         (e.image === "" || imageUrl(e.image)) &&
         Array.isArray(e.colors) &&
         e.colors.every((c) => COLORS.some((v) => v.id === c)) &&
+        (e.tags === undefined || (Array.isArray(e.tags) && e.tags.length <= 50 && e.tags.every((t) => typeof t === "string" && t.length <= 200))) &&
+        (e.cardCount === undefined || (Number.isInteger(e.cardCount) && e.cardCount >= 0)) &&
+        (e.updatedAt === undefined || validDate(e.updatedAt)) &&
         knownIds.has(e.id),
     )
   );
@@ -325,6 +336,7 @@ export function validateDeck(value: unknown): value is Deck {
     d.tags.every((t) => typeof t === "string") &&
     Array.isArray(d.commanders) &&
     (d.partial === undefined || d.partial === true) &&
+    (d.updatedAt === undefined || validDate(d.updatedAt)) &&
     (d.commanders.length > 0 || (d.cover !== undefined && (d.partial === true || (d.format !== undefined && formatOf(d).id !== "commander")))) &&
     d.commanders.length < 10 &&
     d.commanders.every(

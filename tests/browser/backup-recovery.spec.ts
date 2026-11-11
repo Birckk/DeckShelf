@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { asWindowsApp } from './desktop-mode';
 import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import precons from '../../src/data/precons.json' with { type: 'json' };
 
@@ -169,7 +170,9 @@ test('export stays collection-only and cancelling or restoring preserves display
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), displayKey)).toEqual(display);
 });
 
-test('a restored backup loads details again for a deck that already loaded once', async ({ page }) => {
+// The Windows app fills listing decks in the background; the website loads one when it is opened.
+test('in the Windows app a restored backup loads details again for a deck that already loaded once', async ({ page }) => {
+  await asWindowsApp(page);
   const full = decks[0];
   const partial = { ...full, partial: true as const, description: '', tags: [] };
   const profile = { ...current, added: [partial, decks[1]] };

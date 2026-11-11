@@ -117,7 +117,7 @@ async function loadCollection(input, { getDeck, progress, signal, includeSubfold
     return { source: { name: deck.name, url: deck.sourceUrl }, scope, decks: fits ? [deck] : [], failed: [],
       ...(fits ? {} : { note: `This is a ${formatOf(deck).name} deck.` }) };
   }
-  const options = { signal, formatScope: scope === 'commander' ? 'commander' : 'all', withUpdatedAt: true };
+  const options = { signal, formatScope: scope === 'commander' ? 'commander' : 'all' };
   let name, url, entries, note;
   if (kind === 'account') {
     ({ name, url, entries } = await discoverSource(kind, value, options));

@@ -61,7 +61,9 @@ import {
   updateDemo,
   importFolderSelection,
   listingDeck,
+  refreshFromListing,
 } from "./collection";
+import { fetchAllDecks } from "./fetchMode";
 import { loadPrecons } from "./precons";
 import CollectionNavigator from "./CollectionNavigator";
 import CollectionViewControls, { collectionPhoneColumns, collectionTileSize, sortCollectionDecks, useCollectionDisplay } from "./CollectionViewControls";
@@ -73,7 +75,7 @@ import "./collection.css";
 import { apiJson, UNREACHABLE } from "./api";
 
 type Props = {
-  sourceRefresh: { checking: string; refresh: (key: string, manual?: boolean) => Promise<void> };
+  sourceRefresh: { checking: string; refresh: (key: string, manual?: boolean) => Promise<boolean> };
   followEnabled: boolean;
   decks: Deck[];
   collection: Collection;
@@ -513,6 +515,16 @@ export default function CollectionManager({
   }
   async function refreshSource() {
     if (!source) return;
+    // The website reads the listing alone: decks edited on Archidekt go back to listing data and
+    // load again when opened, instead of every saved deck being read now (src/fetchMode.ts).
+    if (!fetchAllDecks && followEnabled) {
+      const signal = begin('Checking source…');
+      try {
+        if (await sourceRefresh.refresh(source.key, true) && !signal.aborted)
+          finish('Checked. Decks edited on Archidekt load again when you open them.', []);
+      } finally { if (controller.current?.signal === signal) setBusy(''); }
+      return;
+    }
     if (followEnabled) {
       // Update saved decks as Refresh always has, without touching the listing,
       // then let the check add new decks and record what changed.
@@ -530,6 +542,12 @@ export default function CollectionManager({
     const signal = begin('Checking source\u2026');
     try {
       const found = await loadSource(source.kind, source.value, signal, source.formatScope || 'commander');
+      if (!fetchAllDecks) {
+        commitAsync(c => c.sources?.some(s => s.key === source.key) ? refreshFromListing(rememberSource(c, found), found.entries) : c, signal);
+        setSelected([]);
+        finish('Source checked. Edited decks load again when opened; new decks are ready to review.', []);
+        return;
+      }
       const { loaded, errors } = await fetchDecks(
         found.entries.filter((e) => sourceIds.has(e.id)).map((e) => e.id),
         signal,

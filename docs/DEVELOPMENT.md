@@ -52,6 +52,24 @@ errors leave the saved collection usable. The desktop app runs the same adapter 
 its main process. See Archidekt's [API discussion](https://archidekt.com/forum/thread/21858972)
 for the public/private distinction.
 
+Archidekt limits requests per IP address (measured 2026-11-09). Single decks
+(`/api/decks/{id}/`) and folder pages (`/api/decks/folders/{id}/`) share about 80
+requests a minute; one a second sustained is safe. The account search
+(`/api/decks/v3/`) allows 10 requests, then blocks for about 30 seconds. A 429 carries
+no `Retry-After`, and the server then pauses every upstream call for a minute
+(`server/archidekt.mjs`).
+
+The hosted site proxies every visitor through one server, so they all share that
+budget. The website therefore draws shelves from folder listings alone: a listing row
+carries each deck's name, format, colour pips, featured art, tags, card count and
+`updatedAt`. A deck's full details (commanders, description, set) load only when
+someone opens it, and the follow check reads listings rather than the account search,
+sending decks edited since they were loaded back to listing data. The Windows app runs
+the adapter from the user's own address and keeps the full fetch: listing first, then
+every deck in the background. One build serves both; the desktop preload sets
+`deckshelfDesktop.fetchAllDecks` and `src/fetchMode.ts` reads it. When checking against
+live Archidekt from a machine that shares the site's address, keep traffic gentle.
+
 ## Agent access (MCP)
 
 `server/mcp.mjs` is a local, read-only [MCP](https://modelcontextprotocol.io) server
@@ -91,7 +109,7 @@ not. A damaged cache is ignored and rewritten. Bump `VERSION` in
 `server/deck-cache.mjs` when `normalizeDeck`'s output changes shape.
 
 The first load of a large library is the slow part: decks are read two at a time, and
-Archidekt answers 429 (no `Retry-After`) after roughly 50 quick requests. The server
+Archidekt answers 429 (no `Retry-After`) after about 80 requests a minute per IP. The server
 then pauses (5 s, doubling to 30 s) and retries, waiting at most a minute per call;
 whatever is left is listed as unavailable with a `note` to ask again, and the next call
 continues from the cache. Claude Code allows stdio tool calls 30 minutes of idle time;

@@ -62,6 +62,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await page.route('**/api/source-folders?*', route => route.fulfill({
         json: { name: source.name, folders: [{ source, path: source.name, root: true }] },
       }));
+      // The saved source is past its daily check; answer it with the same listing.
+      await page.route('**/api/sources?*', route => route.fulfill({ json: source }));
       await page.route('**/api/decks/*', route => {
         const deck = decks.find(d => route.request().url().endsWith('/' + d.id));
         return route.fulfill({ json: deck });
