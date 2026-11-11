@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import fs from 'node:fs';
+import { asWindowsApp } from './desktop-mode';
 const key = 'commander-archive.collection.v1';
 const deck = {...seed[0], id:'987001', name:'Shared Commander'};
 const source = {key:'folder:42',kind:'folder',value:'42',name:'Public shelf',url:'https://archidekt.com/folders/42',checkedAt:new Date().toISOString(),entries:[{id:deck.id,name:deck.name,image:deck.commanders[0].art,colors:deck.colors}],knownIds:[deck.id]};
@@ -124,7 +125,9 @@ test('account links load the exact public account; its folders open read-only an
   await page.getByRole('button',{name:'Share',exact:true}).click();
   await expect(page.getByText('Add an Archidekt account or folder in Library to share it.')).toBeVisible();
 });
-test('a shared shelf opens from its folder listing while deck details load behind it', async ({page}) => {
+// The Windows app; the website's listing-only shelf is in listing-shelves.spec.ts.
+test('in the Windows app a shared shelf opens from its folder listing while deck details load behind it', async ({page}) => {
+  await asWindowsApp(page);
   const hidden = {...seed[1],id:'987003',name:'Private deck'};
   const listed = [deck, hidden].map(d => ({id:d.id,name:d.name,image:d.commanders[0].art,colors:d.colors}));
   await page.route('**/api/source-folders?*', route => route.fulfill({json:tree({...source,entries:listed,knownIds:listed.map(e=>e.id)})}));
@@ -360,7 +363,7 @@ test('shared Save preserves an existing all-format source and Settings preferenc
   await page.addInitScript(({key,saved})=>{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(saved));},{key,saved});
   await page.route('**/api/source-folders?*',route=>{
     expect(new URL(route.request().url()).searchParams.get('formats')).toBe('all');
-    return route.fulfill({json:tree(source)});
+    return route.fulfill({json:tree({...source,entries:[{...source.entries[0],tags:deck.tags,cardCount:deck.cardCount}]})});
   });
   await page.route('**/api/decks/987001',route=>route.fulfill({json:deck}));
   await page.goto('/f/42');
@@ -376,7 +379,9 @@ test('shared Save preserves an existing all-format source and Settings preferenc
   const result=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)!),key);
   expect(result.cardBack).toBe('wedges');
   expect(result.hideArtwork).toBe(true);
-  expect(result.added).toEqual([modern,deck]);
+  // The website saves the shared deck as its listing; its details load when it is opened.
+  expect(result.added[0]).toEqual(modern);
+  expect(result.added[1]).toMatchObject({id:deck.id,name:deck.name,tags:deck.tags,cardCount:deck.cardCount,partial:true});
   expect(result.sources[0].formatScope).toBe('all');
   expect(result.sources[0].selectedIds).toEqual([modern.id,deck.id]);
   await page.getByRole('button',{name:'Back to Public shelf',exact:true}).click();
@@ -388,8 +393,8 @@ test('shared Save preserves an existing all-format source and Settings preferenc
 });
 
 test('shared views include public decks in every format, Commander first', async ({page}) => {
-  await mock(page);
-  await page.route('**/api/decks/987001',route=>route.fulfill({json:{...deck,format:{id:'modern',name:'Modern',sourceId:2},commanders:[],cover:{...deck.commanders[0],kind:'featured'}}}));
+  // The listing names each deck's format, so the shelf sorts it without reading the deck.
+  await page.route('**/api/source-folders?*', route => route.fulfill({json:tree({...source,entries:[{...source.entries[0],format:{id:'modern',name:'Modern',sourceId:2}}]})}));
   await page.goto('/f/42');
   await expect(page.locator('.result-count')).toHaveText('0 of 1 decks');
   await expect(page.getByRole('button',{name:'View Shared Commander',exact:true})).toHaveCount(0);

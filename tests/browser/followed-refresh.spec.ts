@@ -2,6 +2,11 @@ import { test, expect, type Page } from '@playwright/test';
 import fixture from '../fixtures/collection-decks.json' with { type: 'json' };
 import folders from '../fixtures/collection-folders.json' with { type: 'json' };
 import { existsSync } from 'node:fs';
+import { asWindowsApp } from './desktop-mode';
+
+// These checks load new decks in full, as the Windows app does. The website's listing-only
+// check is in listing-shelves.spec.ts.
+test.beforeEach(async ({ page }) => { await asWindowsApp(page); });
 
 const key = 'commander-archive.collection.v1';
 const decks = fixture.slice(0, 4);

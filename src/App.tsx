@@ -76,6 +76,7 @@ import { useSourceRefresh } from './sourceRefresh';
 import { Notices, notify } from "./Notices";
 import { showcaseDecks, showcaseGroups, deckCollections, collectionDecks, freshCollection, addDemo, fillDeck, dropPartialDecks, mergeSnapshot, saveSnapshots } from "./collection";
 import { DeckLoadError, fillDecks, loadFullDeck } from "./deckFill";
+import { fetchAllDecks } from "./fetchMode";
 import { apiJson } from "./api";
 import { Atmosphere, tiltCard, resetTilt } from "./Atmosphere";
 import FirstVisitHint, { TourPopover } from "./FirstVisitHint";
@@ -307,8 +308,9 @@ function App() {
     setCollection(before);
   }, []);
   const online = useOnline();
-  // Decks added from a folder listing get their full details here, so they keep
-  // filling in after the collection manager closes. A deck that cannot load for
+  // In the Windows app, decks added from a folder listing get their full details here, so they keep
+  // filling in after the collection manager closes. The website keeps them as listing decks and
+  // loads one when it is opened (below), so visitors share Archidekt's per-address limit gently. A deck that cannot load for
   // good (private, gone, no commander) is dropped again, as it was never added
   // before; one that failed for now waits for the next start or reconnection.
   // App lasts as long as the page, so filling is never cancelled. `started` holds
@@ -323,6 +325,7 @@ function App() {
     setFillPass(n => n + 1);
   }, [online]);
   useEffect(() => {
+    if (!fetchAllDecks) return;
     const queue = fill.current;
     const ids = online ? collection.added.filter(d => d.partial && !queue.started.has(d.id)).map(d => d.id) : [];
     if (!ids.length) return;
@@ -356,6 +359,26 @@ function App() {
   useEffect(() => {
     setDetail(current => current?.partial ? shared.decks.find(deck => deck.id === current.id) ?? current : current);
   }, [shared.decks]);
+  // A deck still on listing data loads in full when it is opened. On the website this is the
+  // only time a deck is read in full; in the Windows app it jumps the background queue. A deck
+  // that cannot load stays on the shelf and says why here.
+  const [detailError, setDetailError] = useState<{ id: string; message: string } | null>(null);
+  const loadingDetail = detail?.partial ? detail.id : "";
+  const upgradeShared = shared.upgrade;
+  useEffect(() => {
+    if (!loadingDetail || !online) return;
+    const controller = new AbortController();
+    setDetailError(null);
+    loadFullDeck(loadingDetail, controller.signal).then(deck => {
+      if (controller.signal.aborted) return;
+      if (isShared) upgradeShared(deck);
+      else setCollection(c => fillDeck(c, deck));
+      setDetail(current => current?.id === deck.id && current.partial ? mergeSnapshot(current, deck) : current);
+    }, error => {
+      if (!controller.signal.aborted) setDetailError({ id: loadingDetail, message: (error as Error).message });
+    });
+    return () => controller.abort();
+  }, [loadingDetail, online, isShared, upgradeShared]);
   const updateReady = useUpdateReady();
   const [updateLater, setUpdateLater] = useState(false);
   useEffect(() => {
@@ -643,7 +666,7 @@ function App() {
   }
   // A bookmark made while details were loading takes the finished snapshot.
   useEffect(() => {
-    if (!isKept || !shared.source || shared.filling || shared.loading) return;
+    if (!fetchAllDecks || !isKept || !shared.source || shared.filling || shared.loading) return;
     if (kept.find(shelf => shelfId(shelf.source) === sharedIdentity)?.decks.some(deck => deck.partial))
       changeKept(keepShelf(kept, { source: shared.source, decks: shared.decks, folders: shared.folders }));
   }, [isKept, shared.source, shared.filling, shared.loading, sharedIdentity]);
@@ -1141,7 +1164,7 @@ function App() {
               <h2>{detail.name}</h2>
               <Mana colors={detail.colors} />
               <p className="detail-commander">
-                {detail.partial ? 'Loading details from Archidekt…' : detail.commanders.map((c) => c.name).join(" & ") || (detail.cover?.kind === 'featured' ? `Featured card · ${coverOf(detail).name}` : 'No cover selected · Set a featured card on Archidekt')}
+                {detail.partial ? (detailError?.id === detail.id ? `Details couldn’t load. ${detailError.message}` : online ? 'Loading details from Archidekt…' : 'Details load from Archidekt when you’re online.') : detail.commanders.map((c) => c.name).join(" & ") || (detail.cover?.kind === 'featured' ? `Featured card · ${coverOf(detail).name}` : 'No cover selected · Set a featured card on Archidekt')}
               </p>
               {detail.theme && <p className="detail-theme">{detail.theme}</p>}
               {detail.tags.length > 0 && <div className="tag-list" role="group" aria-label="Tags">
