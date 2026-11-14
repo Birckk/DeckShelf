@@ -2,7 +2,7 @@
   "id": "/",
   "name": "DeckShelf",
   "short_name": "DeckShelf",
-  "description": "Commander collection",
+  "description": "Your Magic: The Gathering decks on one shelf, straight from Archidekt",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
