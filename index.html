@@ -6,14 +6,23 @@
     <meta name="theme-color" content="#161a18" />
     <meta
       name="description"
-      content="Deck collection"
+      content="Your Magic: The Gathering decks and your friends' on one shelf, straight from Archidekt. Filter them and pick one at random when the table can't decide."
     />
+    <!-- How search results and link previews name and describe the site. -->
+    <meta property="og:site_name" content="DeckShelf" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="DeckShelf" />
+    <meta property="og:description" content="Your Magic: The Gathering decks and your friends' on one shelf, straight from Archidekt." />
+    <script type="application/ld+json">
+      { "@context": "https://schema.org", "@type": "WebSite", "name": "DeckShelf", "url": "https://deckshelf.birckk.com/" }
+    </script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="DeckShelf" />
     <title>DeckShelf</title>
   </head>
   <body>
+    <noscript>DeckShelf shows Magic: The Gathering deck collections from Archidekt as a wall of cards. Turn on JavaScript to use it.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

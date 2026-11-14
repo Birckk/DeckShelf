@@ -64,6 +64,21 @@ test('production handler falls back to the SPA for routes, but not missing asset
   assert.equal(Number(head.headers['content-length']), Buffer.byteLength('<h1>DeckShelf</h1>'));
 });
 
+test('production handler serves robots.txt as plain text', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'deckshelf-robots-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(join(root, 'index.html'), '<h1>DeckShelf</h1>');
+  await writeFile(join(root, 'robots.txt'), 'User-agent: *\nDisallow: /api/\n');
+  const server = createServer(createRequestHandler(root));
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  t.after(() => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
+  const response = await fetch(`http://127.0.0.1:${server.address().port}/robots.txt`);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'text/plain; charset=utf-8');
+  assert.equal(await response.text(), 'User-agent: *\nDisallow: /api/\n');
+});
+
 test('production handler streams assets with their content type and immutable cache policy', async t => {
   const get = await fixture(t);
   for (const [path, type, body] of [
