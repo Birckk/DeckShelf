@@ -2,15 +2,15 @@
   <img src="https://raw.githubusercontent.com/Birckk/DeckShelf/main/public/icons/icon-192.png" width="96" alt="">
 </p>
 
-DeckShelf shows your Magic: The Gathering decks as a wall of cards. Filter them, then let it pick one at random when the table can't decide what to play. DeckShelf 1.0.0 is the first public release.
+DeckShelf shows your Magic: The Gathering decks as a wall of cards. Filter them, then let it pick one at random when the table can't decide what to play. DeckShelf 1.1.0 makes friends' collections open in a fraction of the requests on the website.
 
 ![The collection view with commander cards](https://raw.githubusercontent.com/Birckk/DeckShelf/main/docs/images/collection.jpg)
 
 ## Get it
 
 - **In your browser:** [deckshelf.birckk.com](https://deckshelf.birckk.com). Nothing to install. Your collection is saved in your browser; the server keeps no account or deck database.
-- **Windows:** download **DeckShelf-Setup-1.0.0-x64.exe** below and run it. It installs for your user without admin rights and adds a Start menu entry and an uninstaller. Prefer no install? The **windows-x64.zip** is the same app to unzip and run.
-- **Docker:** `docker pull ghcr.io/birckk/deckshelf:v1.0.0`. See [hosting](https://github.com/Birckk/DeckShelf/blob/main/docs/HOSTING.md).
+- **Windows:** download **DeckShelf-Setup-1.1.0-x64.exe** below and run it. It installs for your user without admin rights and adds a Start menu entry and an uninstaller. Prefer no install? The **windows-x64.zip** is the same app to unzip and run.
+- **Docker:** `docker pull ghcr.io/birckk/deckshelf:v1.1.0`. See [hosting](https://github.com/Birckk/DeckShelf/blob/main/docs/HOSTING.md).
 
 The Windows app is **unsigned**, so SmartScreen warns before it runs: choose *More info* → *Run anyway*. `SHA256SUMS.txt` lets you check the download wasn't corrupted.
 
@@ -19,7 +19,13 @@ The Windows app is **unsigned**, so SmartScreen warns before it runs: choose *Mo
   <img src="https://raw.githubusercontent.com/Birckk/DeckShelf/main/docs/images/picker.jpg" alt="A deck chosen by the picker" width="49%">
 </p>
 
-## What's in 1.0
+## New in 1.1
+
+- **Shelves open from Archidekt's folder listings on the website.** Opening a collection reads its folders, not every deck: a 595-deck collection now takes about 21 requests instead of 616, so busy moments no longer run into Archidekt's limit. A deck's commanders and description load when you open it. Tags, colours, formats and card counts are there from the start.
+- **The Windows app still loads every deck's details.** It reads Archidekt from your own connection, so search by commander, sets and sorting work across the whole shelf straight away.
+- **New decks in followed folders join from the listing**, all at once instead of ten per check, and decks edited on Archidekt reload when you next open them.
+
+## What DeckShelf does
 
 - **Archidekt imports.** Link a public Archidekt account, folder or single deck. DeckShelf only reads public data and never asks for a login.
 - **The shelf.** Each deck shows as its commander or featured card. Search by name and filter by format, colour identity, set or theme.
