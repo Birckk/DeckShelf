@@ -41,7 +41,12 @@ async function read(path, signal, request = fetch) {
   return response.json();
 }
 
-export async function discoverSource(kind, value, { strict = false, verifyCount = false, signal: outerSignal, firstPage, formatScope = 'commander', withUpdatedAt = false, request = fetch } = {}) {
+// Listing rows name their tags as strings or as { name }, like a deck's own deckTags.
+const listTags = tags => Array.isArray(tags)
+  ? [...new Set(tags.map(tag => typeof tag === 'string' ? tag : tag?.name ?? tag?.tag?.name).filter(tag => typeof tag === 'string' && tag && tag.length <= 200))].slice(0, 50)
+  : [];
+
+export async function discoverSource(kind, value, { strict = false, verifyCount = false, signal: outerSignal, firstPage, formatScope = 'commander', request = fetch } = {}) {
   if (!['commander', 'all'].includes(formatScope) || (strict && formatScope !== 'commander')) throw new Error('Choose Commander or All formats.');
   if (
     !["account", "folder"].includes(kind) ||
@@ -125,8 +130,10 @@ export async function discoverSource(kind, value, { strict = false, verifyCount 
         name: row.name,
         image,
         colors: ["W", "U", "B", "R", "G"].filter((c) => Number(row.colors?.[c]) > 0),
-        // Only the MCP server's deck cache asks for this; saved sources stay as they were.
-        ...(withUpdatedAt && typeof row.updatedAt === "string" ? { updatedAt: row.updatedAt } : {}),
+        // Enough for the website to draw, filter and refresh a deck without reading it in full.
+        ...(listTags(row.tags).length ? { tags: listTags(row.tags) } : {}),
+        ...(Number.isInteger(row.size) && row.size >= 0 ? { cardCount: row.size } : {}),
+        ...(typeof row.updatedAt === "string" && row.updatedAt.length <= 40 && Number.isFinite(Date.parse(row.updatedAt)) ? { updatedAt: row.updatedAt } : {}),
       });
     }
     if (entries.size > 1000)
@@ -179,7 +186,7 @@ export async function accountExists(username, signal, request = fetch) {
 }
 
 // Discovery is a preview. It never changes a visitor's saved source selections.
-export async function discoverFolders(kind, value, { signal: outerSignal, formatScope = 'commander', withUpdatedAt = false, request = fetch } = {}) {
+export async function discoverFolders(kind, value, { signal: outerSignal, formatScope = 'commander', request = fetch } = {}) {
   if (!['commander', 'all'].includes(formatScope)) throw new Error('Choose Commander or All formats.');
   if (!['account', 'folder'].includes(kind) ||
       !(kind === 'folder' ? idPattern : /^[\p{L}\p{N}_.@+ -]{1,100}$/u).test(value))
@@ -212,7 +219,7 @@ export async function discoverFolders(kind, value, { signal: outerSignal, format
       const data = await read(`/api/decks/folders/${item.id}/?page=1`, signal, request);
       if (kind === 'account' && data.owner?.username?.toLowerCase() !== value.toLowerCase())
         throw new Error('Archidekt returned a folder for a different account.');
-      const source = await discoverSource('folder', item.id, { signal, firstPage: data, verifyCount: true, formatScope, withUpdatedAt, request });
+      const source = await discoverSource('folder', item.id, { signal, firstPage: data, verifyCount: true, formatScope, request });
       if (!Array.isArray(data.subfolders)) throw new Error('Could not read the complete folder listing. Try a smaller folder link.');
       return { item, source, children: data.subfolders };
     }));

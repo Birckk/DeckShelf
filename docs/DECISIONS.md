@@ -24,6 +24,7 @@ Each line is one product or technical decision: the date, what was decided and w
 - 2026-10-18 · Remove acts at once and offers Undo. Toggles and Hide stay silent. There's no edit history or refresh log. Notices use Sonner. #57
 - 2026-10-18 · Folders added whole get their new Archidekt decks automatically, checked at most once a day when DeckShelf opens. Hand-picked folders stay fixed. Decks removed upstream are kept and flagged. Settings has one off switch. #23
 - 2026-10-18 · Added decks appear at once from the folder listing, and their details fill in from Archidekt in the background, two at a time to stay clear of rate limits. #102
+- 2026-11-11 · The website is the main product and draws shelves from Archidekt's folder listings only; a deck's full details load when it is opened. All visitors share the server's one address and its limit of about 80 deck or folder reads a minute, and a full shelf cost one read per deck. The Windows app reads from the user's own address and keeps loading every deck. One build serves both, chosen at runtime. #169
 - 2026-10-18 · Adding decks to a collection that is off never switches it on by itself. The notice offers Turn on. #94
 - 2026-10-18 · Share links `/u/{user}` and `/f/{folder}` open a read-only shelf. Saving one to your collection is a separate, add-only step. Kept and recent shelves aren't part of backups. #24
 - 2026-10-14 · The desktop origin `archive://app` and the `commander-archive.*` storage keys keep their old names, because renaming them would hide saved collections. Archive PR 49.

@@ -3,7 +3,9 @@
 ## Architecture
 
 The React/Vite frontend is shared by the browser and Electron application. Desktop
-uses a sandboxed renderer with no Node integration or preload bridge. A secure
+uses a sandboxed renderer with no Node integration. Its small preload bridge only
+opens the window menu and tells the page to load every deck in full
+(`src/fetchMode.ts`). A secure
 `archive://app` protocol serves packaged assets and adapts the existing read-only
 Archidekt API handlers in the main process. No HTTP server, free port or installed
 Node runtime is needed. External HTTPS links open in the system browser. Other

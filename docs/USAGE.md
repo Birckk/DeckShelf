@@ -125,8 +125,10 @@ storage is available. Damaged or unreadable saved data is protected from automat
 overwrites. **Download recovery data** preserves damaged data for manual repair;
 **Export backup** exports the current session as a valid collection file.
 
-Adding or refreshing decks needs an internet connection. Deck details are saved
-locally, so browsing and picking work offline.
+Adding or refreshing decks needs an internet connection. On the website a deck's
+commanders and description load the first time you open it; the Windows app loads
+every deck's details when you add them. What has loaded is saved locally, so browsing
+and picking work offline.
 
 ## Installing and offline use
 

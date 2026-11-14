@@ -445,30 +445,56 @@ export function freshCollection(snapshot: { snapshotAt: string; decks: Deck[] })
 }
 
 // A refresh only replaces metadata. Local visibility and picker choices survive.
-// A folder listing already names each deck with its format, art and colours, so
-// the deck can join the shelf straight away. The full deck (commanders, colour
-// identity, set, tags) replaces it in the background through fillDeck.
+// A folder listing already names each deck with its format, art, colours, tags and
+// card count, so the deck can join the shelf straight away. The full deck (commanders,
+// colour identity, set, description) replaces it through fillDeck: in the background
+// in the Windows app, and on the website when someone opens the deck.
 export function listingDeck(entry: SourceEntry): Deck {
   return {
     format: formatOf(entry),
+    // The listing gives the featured card's art crop; Archidekt keeps the whole card beside it.
     cover: entry.image
-      ? { kind: "featured", name: "", artist: "", image: entry.image, art: entry.image }
+      ? { kind: "featured", name: "", artist: "", image: entry.image.replace(/^(https:\/\/card-images\.archidekt\.com\/)art\//, "$1grid/"), art: entry.image }
       : { kind: "fallback", name: "No cover selected", artist: "", image: "", art: "" },
     id: entry.id,
     name: entry.name,
     set: "",
     colors: entry.colors,
     theme: "",
-    tags: [],
+    tags: entry.tags || [],
     description: "",
     commanders: [],
     sourceUrl: `https://archidekt.com/decks/${entry.id}`,
     sourceName: "Archidekt",
-    cardCount: 0,
+    cardCount: entry.cardCount || 0,
     releasedAt: "",
     fetchedAt: "",
     partial: true,
+    ...(entry.updatedAt ? { updatedAt: entry.updatedAt } : {}),
   };
+}
+// The website's refresh reads listings only. A deck still on listing data takes the newer
+// listing; a full deck that Archidekt shows as edited since goes back to listing data and
+// loads again when opened. A full deck saved without an edit time takes the listing's, so
+// later edits are noticed. Theme and original link stay, as with any refreshed snapshot.
+export function refreshFromListing(collection: Collection, entries: SourceEntry[]): Collection {
+  const listed = new Map(entries.map(entry => [entry.id, entry]));
+  let changed = false;
+  const added = collection.added.map(deck => {
+    const entry = listed.get(deck.id);
+    if (!entry) return deck;
+    const edited = !!entry.updatedAt && (!deck.updatedAt || Date.parse(entry.updatedAt) > Date.parse(deck.updatedAt));
+    if (deck.partial || (edited && deck.updatedAt)) {
+      const fresh = mergeSnapshot(deck, listingDeck(entry));
+      if (JSON.stringify(fresh) === JSON.stringify(deck)) return deck;
+      changed = true;
+      return fresh;
+    }
+    if (!edited) return deck;
+    changed = true;
+    return { ...deck, updatedAt: entry.updatedAt };
+  });
+  return changed ? { ...collection, added } : collection;
 }
 // Only a deck still waiting for its details changes, so a refresh or removal
 // that happened while it loaded wins.
@@ -484,8 +510,11 @@ export function dropPartialDecks(collection: Collection, ids: string[]): Collect
 
 /** A fresh snapshot keeps the theme and original link the saved copy already had. */
 export function mergeSnapshot(saved: Deck | undefined, fresh: Deck): Deck {
+  // A full deck keeps the listing edit time it was loaded against.
+  const updatedAt = fresh.updatedAt || saved?.updatedAt;
   return {
     ...fresh,
+    ...(updatedAt ? { updatedAt } : {}),
     theme: saved?.theme || fresh.theme,
     ...(saved?.originalUrl ? { originalUrl: saved.originalUrl } : {}),
   };

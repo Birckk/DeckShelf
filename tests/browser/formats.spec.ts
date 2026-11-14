@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { mkdirSync, readFileSync } from 'node:fs';
+import { asWindowsApp } from './desktop-mode';
 import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import { archidektFormat } from '../../shared/formats.mjs';
 import { cardImage, parseCollection, type Deck } from '../../src/domain';
@@ -285,7 +286,9 @@ test('widening a legacy source does not select an unticked deck saved in paused 
   await expect(page.locator('.collection-tile')).toHaveCount(1);
 });
 
-test('re-adding Commander decks retains an all-format connection and refreshes its Modern deck', async ({ page }) => {
+// The Windows app's Refresh reads saved decks in full; the website's reads the listing.
+test('in the Windows app re-adding Commander decks retains an all-format connection and refreshes its Modern deck', async ({ page }) => {
+  await asWindowsApp(page);
   // Fixed (not following), so Refresh updates saved decks without adding the three new ones.
   const connected = { ...source, membership: 'selected', entries: source.entries.slice(0, 2), knownIds: decks.slice(0, 2).map(d => d.id), selectedIds: decks.slice(0, 2).map(d => d.id) };
   await init(page, { ...fixture, added: decks.slice(0, 2), manualIds: [], sources: [connected] });

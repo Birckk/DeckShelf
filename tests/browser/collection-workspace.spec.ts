@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { asWindowsApp } from './desktop-mode';
 import seed from '../fixtures/collection-decks.json' with { type: 'json' };
 import folderFixture from '../fixtures/collection-folders.json' with { type: 'json' };
 import deckFixture from '../fixtures/collection-decks.json' with { type: 'json' };
@@ -72,7 +73,12 @@ test('failed refresh retains snapshots and hierarchy; Remove keeps decks other c
   expect(after.added.map((d: { id: string }) => d.id)).toEqual([decks[0].id, decks[3].id, decks[4].id]);
 });
 
-test('new source entries join at once, fill in later, and drop only decks that can never load', async ({ page }) => {
+// The Windows app fills listing decks in the background; the website keeps them until opened.
+test('in the Windows app new source entries join at once, fill in later, and drop only decks that can never load', async ({ page }) => {
+  // beforeEach has opened the page already; the mode is read when the app loads.
+  await asWindowsApp(page);
+  await page.reload();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
   const found = makeSource('42', 'Mono-color', [0, 1, 2, 5, 6], 'Home / Test collection / Mono-color');
   await page.route('**/api/sources?*', route => route.fulfill({ json: found }));
   await page.route('**/api/decks/*', route => {
