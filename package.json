@@ -1,7 +1,7 @@
 {
   "name": "deckshelf",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Your Magic: The Gathering decks on one shelf, straight from Archidekt",
   "author": "Birckk",
   "license": "MIT",
