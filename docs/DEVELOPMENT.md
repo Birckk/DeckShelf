@@ -164,6 +164,19 @@ Claude Desktop: add this to `%APPDATA%\Claude\claude_desktop_config.json` and re
 With the dev server running, `npm run screenshots` regenerates
 `docs/images/` from a fresh profile, so only the public precon demo appears.
 
+`node scripts/share-image.mjs` redraws `public/share.jpg`, the 1200×630 picture link
+previews show, from the logo and five bundled precon cards. Pass a path, `1280` and `640`
+for the copy used as the GitHub social preview.
+
+## Search and link previews
+
+`index.html` names the site for search engines (`WebSite` structured data, `og:site_name`)
+and carries the share tags, which preview fetchers read without running JavaScript. The app
+sets each page's title and canonical address (`src/pageMeta.ts`). The server answers
+addresses the app doesn't know with a 404 (still showing the app) and marks shared
+collection links (`/u/`, `/f/`) `noindex`. `public/sitemap.xml` lists home and the Help
+sections; a test keeps it in step with `src/helpSections.ts`.
+
 ## CI/CD
 
 Changes are checked locally before merging:

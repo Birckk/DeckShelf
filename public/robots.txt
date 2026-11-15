@@ -1,2 +1,4 @@
 User-agent: *
 Disallow: /api/
+
+Sitemap: https://deckshelf.birckk.com/sitemap.xml

@@ -36,7 +36,7 @@ export function createRequestHandler(root, api = handleApi) {
         const path = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
         const result = await staticFile(root, path);
         if (result.status) { res.writeHead(result.status); res.end(result.body); return; }
-        res.writeHead(200, { 'Content-Type': result.type, 'Content-Length': result.content.size, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': path.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache' });
+        res.writeHead(result.code ?? 200, { 'Content-Type': result.type, 'Content-Length': result.content.size, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': path.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache', ...(result.robots && { 'X-Robots-Tag': result.robots }) });
         // pipeline destroys both streams on a read error or a closed connection instead of crashing.
         if (req.method === 'HEAD') res.end(); else pipeline(createReadStream(result.file), res, () => {});
       } catch { res.writeHead(400); res.end('Bad request'); }

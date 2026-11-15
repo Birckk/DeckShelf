@@ -2,7 +2,7 @@
   "name": "deckshelf",
   "private": true,
   "version": "1.1.0",
-  "description": "A personal Commander collection viewer and deck picker",
+  "description": "Your Magic: The Gathering decks on one shelf, straight from Archidekt",
   "author": "Birckk",
   "license": "MIT",
   "main": "desktop/main.mjs",
