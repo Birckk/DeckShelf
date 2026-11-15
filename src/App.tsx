@@ -68,6 +68,7 @@ import ShufflePicker from "./ShufflePicker";
 import { savedPresentation, savePresentation, type Presentation } from "./PickerControls";
 import CardStudio from "./CardStudio";
 import { helpSectionFromPath, type FeatureTarget, type HelpSection } from "./helpSections";
+import { applyPageMeta, pageMeta } from "./pageMeta";
 // Help (with Settings) is a separate chunk; most visits never open it.
 const HelpCenter = lazy(() => import("./HelpCenter"));
 import { CardBackContext } from "./placeholders/CardBackArt";
@@ -689,6 +690,8 @@ function App() {
   }
   // A loaded shared shelf: the header button, dock and read-only workspace follow it.
   const sharedShelf = isShared && !!shared.source && !shared.loading && !shared.error && shared.decks.length > 0;
+  // The tab title and canonical address follow the page: home, a Help section or a shared shelf.
+  useEffect(() => { applyPageMeta(pageMeta(help, isShared ? { name: sharedName } : null)); }, [help, isShared, sharedName]);
   // Labels keep one width whatever the state; the icon and aria-pressed show it.
   const bookmarkIcon = (size: number) => isKept ? <BookmarkCheck size={size} /> : <BookmarkPlus size={size} />;
   const saveLabel = sharedSaved ? 'Saved to my library' : 'Save to my library';

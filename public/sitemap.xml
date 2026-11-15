@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- One entry per page in src/pageMeta.ts indexedPaths(); tests/page-meta.test.mjs keeps them in step. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://deckshelf.birckk.com/</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/start</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/core</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/adding</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/showing</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/updates</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/picking</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/friends</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/saving</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/faq</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/project</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/features</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/roadmap</loc></url>
+  <url><loc>https://deckshelf.birckk.com/help/about</loc></url>
+</urlset>

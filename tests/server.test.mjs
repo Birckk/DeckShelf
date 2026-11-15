@@ -58,6 +58,16 @@ test('production handler falls back to the SPA for routes, but not missing asset
   }
   assert.equal((await get('/missing.js')).status, 404);
   assert.equal((await get('/assets')).status, 404);
+  // Unknown addresses still open the app, but as a 404 so search engines don't index copies of home.
+  for (const path of ['/anything', '/help/faq/extra', '/u/', '/u/a/b']) {
+    const result = await get(path);
+    assert.equal(result.status, 404, path);
+    assert.equal(result.body, '<h1>DeckShelf</h1>');
+    assert.equal(result.headers['content-type'], 'text/html');
+  }
+  // Shared collections are someone else's shelf: reachable, but not for search results.
+  for (const path of ['/u/A.b', '/f/1916319']) assert.equal((await get(path)).headers['x-robots-tag'], 'noindex');
+  for (const path of ['/', '/help/faq', '/settings']) assert.equal((await get(path)).headers['x-robots-tag'], undefined);
   const head = await get('/help/faq', 'HEAD');
   assert.equal(head.status, 200);
   assert.equal(head.body, '');
